@@ -20,29 +20,4 @@
 
 ---
 
-## 🛠️ Built With
-
-- **Frontend:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool:** [Vite 8](https://vitejs.dev/)
-- **Icons:** [Lucide React](https://lucide.dev/)
-- **API Proxy:** [RoyaleAPI Proxy](https://proxy.royaleapi.dev/) for secure, static-IP requests.
-- **Styling:** Custom Vanilla CSS (Modern UI/UX).
-
----
-
-## 🛡️ Security & Proxy
-
-This application is designed with security and scalability in mind:
-- **Serverless Rewrites:** All API traffic is routed through secure server-side rewrites to prevent exposing endpoints.
-- **Static IP Tunneling:** Integrated with professional proxy services to maintain reliable connections to Supercell's developer servers.
-- **Key Protection:** Sensitive credentials are never exposed in the client-side code, ensuring the integrity of the service.
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
 <p align="center">Made with ❤️ for the Clash Royale Community</p>
