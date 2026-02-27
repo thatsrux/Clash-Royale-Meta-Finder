@@ -285,16 +285,25 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <h1>Royale Profile</h1>
+        <h1>Clash Royale Meta Finder</h1>
         <p>Manage your collection and find meta decks.</p>
       </header>
 
       <div className="search-section">
         <form onSubmit={handleSearch} className="input-group">
-          <label>Player Tag</label>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input style={{ flex: 1 }} type="text" placeholder="#P802VR..." value={playerTag} onChange={(e) => setPlayerTag(e.target.value)} />
-            <button type="submit" disabled={loading}><Search size={20} /></button>
+          <label className="input-label-premium">PLAYER TAG</label>
+          <div className="modern-input-wrapper">
+            <div className="input-prefix">#</div>
+            <input 
+              type="text" 
+              placeholder="P802VR..." 
+              value={playerTag} 
+              onChange={(e) => setPlayerTag(e.target.value.replace('#', ''))} 
+            />
+            <button type="submit" disabled={loading} className="modern-search-btn">
+              {loading ? <RefreshCw size={20} className="spin" /> : <Search size={20} />}
+              <span>SEARCH</span>
+            </button>
           </div>
         </form>
         {recentTags.length > 0 && (
@@ -316,12 +325,10 @@ function App() {
       {!profile && !loading && (
         <div className="hero-landing">
           <div className="hero-content">
-            <div className="hero-badge-new">NEW VERSION 2.0</div>
             <h2>Master the Meta with <span>Your</span> Cards.</h2>
             <p>Enter your Player Tag to analyze your collection, track your progress, and discover pro-level decks you can actually play.</p>
             <div className="hero-features-grid">
               <div className="h-feat"><div className="h-icon"><Trophy size={20} /></div><span>Pro Meta Sync</span></div>
-              <div className="h-feat"><div className="h-icon"><Sparkles size={20} /></div><span>Evo Detection</span></div>
               <div className="h-feat"><div className="h-icon"><Target size={20} /></div><span>Affinity Scoring</span></div>
             </div>
           </div>
