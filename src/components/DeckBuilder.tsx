@@ -75,8 +75,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     return { filteredRecommendations: filtered };
   }, [cachedDecks, selectedFilters]);
 
-  // Theoretical max score: 800 (8 elite cards) + 15 (avg level) + 20 (max meta popularity) = 835
-  const THEORETICAL_MAX_SCORE = 835;
+  // Theoretical max score: 800 (8 elite cards) + 15 (avg level) + 35 (max meta popularity bonus) = 850
+  const THEORETICAL_MAX_SCORE = 850;
 
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
@@ -226,7 +226,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   <div className="affinity-content">
                     <span className="label">AFFINITY</span>
                     <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
-                      {((deck.score / THEORETICAL_MAX_SCORE) * 100).toFixed(0)}%
+                      {Math.min(100, Number(((deck.score / THEORETICAL_MAX_SCORE) * 100).toFixed(0)))}%
                     </span>
                   </div>
                 </div>
