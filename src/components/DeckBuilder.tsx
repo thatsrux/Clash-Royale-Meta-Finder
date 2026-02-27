@@ -55,14 +55,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
   };
 
-  const filteredRecommendations = useMemo(() => {
-    if (!cachedDecks) return [];
-    if (selectedFilters.length === 0) return cachedDecks.slice(0, 50);
-    return cachedDecks
+  const { filteredRecommendations, maxScoreInCache } = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return { filteredRecommendations: [], maxScoreInCache: 0 };
+    
+    const maxScore = Math.max(...cachedDecks.map(d => d.score));
+    
+    const filtered = cachedDecks
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
-            // Check if the card is in one of the first 2 slots
             const cardInSlot1 = deck.cards[0] ? Number(deck.cards[0].id) === filter.id : false;
             const cardInSlot2 = deck.cards[1] ? Number(deck.cards[1].id) === filter.id : false;
             return cardInSlot1 || cardInSlot2;
@@ -72,6 +73,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         })
       )
       .slice(0, 50);
+
+    return { filteredRecommendations: filtered, maxScoreInCache: maxScore };
   }, [cachedDecks, selectedFilters]);
 
   const sections = useMemo(() => {
@@ -217,11 +220,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   )}
                 </div>
                 
-                <div className="affinity-pill" style={{ borderColor: deck.score > 100 ? '#4ade80' : '#fbbf24' }}>
-                  <Target size={14} style={{ color: deck.score > 100 ? '#4ade80' : '#fbbf24' }} />
+                <div className="affinity-pill" style={{ borderColor: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }}>
+                  <Target size={14} style={{ color: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }} />
                   <div className="affinity-content">
                     <span className="label">AFFINITY</span>
-                    <span className="value" style={{ color: deck.score > 100 ? '#4ade80' : '#fbbf24' }}>{deck.score.toFixed(1)}</span>
+                    <span className="value" style={{ color: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }}>
+                      {maxScoreInCache > 0 ? ((deck.score / maxScoreInCache) * 100).toFixed(0) : 0}%
+                    </span>
                   </div>
                 </div>
               </div>
