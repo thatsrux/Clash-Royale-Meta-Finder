@@ -184,6 +184,16 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           </div>
         </div>
       )}
+
+      {!cachedDecks && !isLoading && (
+        <div className="start-analysis-container">
+          <button onClick={onAnalysisStart} className="big-analysis-btn">
+            <TrendingUp size={24} />
+            <span>FIND META DECKS</span>
+          </button>
+          <p className="start-hint">Scan the Top 200 Global Leaderboard to find the best decks for your collection.</p>
+        </div>
+      )}
       
       {isLoading && (
         <div className="analysis-progress-container">
@@ -320,16 +330,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             </div>
           ))}
         </div>
-      ) : !isLoading && (
-        <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-          <TrendingUp size={48} color="var(--border)" style={{ marginBottom: '1rem' }} />
-          <h3>No Data Analyzed</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Start scanning the Top 200 Leaderboard to find the best decks for your collection.</p>
-          <button onClick={onAnalysisStart} className="order-toggle-btn" style={{ padding: '0.75rem 2rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
-            Start Deep Meta Analysis
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };
