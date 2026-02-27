@@ -224,9 +224,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
                   <Target size={14} style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }} />
                   <div className="affinity-content">
-                    <span className="label">AFFINITY</span>
+                    <span className="label">AFFINITY ({deck.score.toFixed(0)})</span>
                     <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
-                      {Math.min(100, Number(((deck.score / THEORETICAL_MAX_SCORE) * 100).toFixed(0)))}%
+                      {Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)}%
                     </span>
                   </div>
                 </div>
