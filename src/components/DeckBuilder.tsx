@@ -55,10 +55,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
   };
 
-  const { filteredRecommendations, maxScoreInCache } = useMemo(() => {
-    if (!cachedDecks || cachedDecks.length === 0) return { filteredRecommendations: [], maxScoreInCache: 0 };
-    
-    const maxScore = Math.max(...cachedDecks.map(d => d.score));
+  const { filteredRecommendations } = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return { filteredRecommendations: [] };
     
     const filtered = cachedDecks
       .filter(deck => 
@@ -74,8 +72,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       )
       .slice(0, 50);
 
-    return { filteredRecommendations: filtered, maxScoreInCache: maxScore };
+    return { filteredRecommendations: filtered };
   }, [cachedDecks, selectedFilters]);
+
+  // Theoretical max score: 800 (8 elite cards) + 15 (avg level) + 20 (max meta popularity) = 835
+  const THEORETICAL_MAX_SCORE = 835;
 
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
@@ -220,12 +221,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   )}
                 </div>
                 
-                <div className="affinity-pill" style={{ borderColor: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }}>
-                  <Target size={14} style={{ color: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }} />
+                <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
+                  <Target size={14} style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }} />
                   <div className="affinity-content">
                     <span className="label">AFFINITY</span>
-                    <span className="value" style={{ color: (deck.score / maxScoreInCache) > 0.8 ? '#4ade80' : '#fbbf24' }}>
-                      {maxScoreInCache > 0 ? ((deck.score / maxScoreInCache) * 100).toFixed(0) : 0}%
+                    <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
+                      {((deck.score / THEORETICAL_MAX_SCORE) * 100).toFixed(0)}%
                     </span>
                   </div>
                 </div>
