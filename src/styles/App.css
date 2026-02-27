@@ -738,17 +738,28 @@ button {
 }
 
 /* REFINED FILTER UI */
+/* FILTER ANIMATION WRAPPER */
+.filter-animation-wrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-10px);
+  margin-bottom: 0;
+}
+
+.filter-animation-wrapper.expanded {
+  max-height: 1000px; /* High enough to contain all filters */
+  opacity: 1;
+  transform: translateY(0);
+  margin-bottom: 2rem;
+}
+
 .card-filter-grid-section {
   background: var(--surface);
   border-radius: 1.25rem;
   border: 1px solid var(--border);
-  margin-bottom: 1.5rem;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.card-filter-grid-section.collapsed {
-  background: rgba(30, 41, 59, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
 .filter-header {

@@ -151,31 +151,33 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           className={`explore-meta-btn ${isFilterExpanded ? 'active' : ''}`}
         >
           <Filter size={18} />
-          <span>EXPLORE META CARDS</span>
+          <span>FILTER CARDS</span>
           {selectedFilters.length > 0 && <span className="filter-count-badge">{selectedFilters.length}</span>}
         </button>
       </div>
 
-      {Array.isArray(allGameCards) && allGameCards.length > 0 && isFilterExpanded && (
-        <div className="card-filter-grid-section">
-          <div className="filter-header-minimal">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-              <Sparkles size={14} /> ACTIVE FILTERS
+      <div className={`filter-animation-wrapper ${isFilterExpanded ? 'expanded' : ''}`}>
+        {Array.isArray(allGameCards) && allGameCards.length > 0 && (
+          <div className="card-filter-grid-section">
+            <div className="filter-header-minimal">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                <Sparkles size={14} /> ACTIVE FILTERS
+              </div>
+              {selectedFilters.length > 0 && (
+                <button onClick={() => setSelectedFilters([])} className="clear-btn">
+                  <X size={12} /> Reset
+                </button>
+              )}
             </div>
-            {selectedFilters.length > 0 && (
-              <button onClick={() => setSelectedFilters([])} className="clear-btn">
-                <X size={12} /> Reset
-              </button>
-            )}
+            
+            <div className="filter-sections-container">
+              <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
+              <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
+              <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
+            </div>
           </div>
-          
-          <div className="filter-sections-container">
-            <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-            <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
-            <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {!cachedDecks && !isLoading && (
         <div className="start-analysis-container-centered">
