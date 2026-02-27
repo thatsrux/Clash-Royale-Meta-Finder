@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trophy, Shield, Layout, User, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
+import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
@@ -349,9 +349,21 @@ function App() {
 
       {profile && !loading && (
         <div className="profile-view">
-          <div className="tabs">
-            <button className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><User size={18} /> Profile</button>
-            <button className={activeTab === 'decks' ? 'active' : ''} onClick={() => setActiveTab('decks')}><Layout size={18} /> Meta Decks</button>
+          <div className="tabs-premium-container">
+            <button 
+              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('profile')}
+            >
+              <UserCircle2 size={24} />
+              <span>PROFILE</span>
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('decks')}
+            >
+              <LayoutDashboard size={24} />
+              <span>META DECKS</span>
+            </button>
           </div>
 
           {activeTab === 'profile' ? (
