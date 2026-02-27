@@ -145,57 +145,44 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   return (
     <div className="deck-builder">
-      <div className="builder-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <TrendingUp size={24} color="var(--secondary)" />
-          <h2 style={{ margin: 0 }}>Ultimate Pro Meta Analysis</h2>
-        </div>
-        <button onClick={onAnalysisStart} disabled={isLoading} style={{ padding: '0.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
-          <RefreshCw size={18} className={isLoading ? 'spin' : ''} />
+      <div className="builder-header-simple">
+        <button 
+          onClick={() => setIsFilterExpanded(!isFilterExpanded)} 
+          className={`explore-meta-btn ${isFilterExpanded ? 'active' : ''}`}
+        >
+          <Filter size={18} />
+          <span>EXPLORE META CARDS</span>
+          {selectedFilters.length > 0 && <span className="filter-count-badge">{selectedFilters.length}</span>}
         </button>
       </div>
 
-      {Array.isArray(allGameCards) && allGameCards.length > 0 && (
-        <div className={`card-filter-grid-section ${!isFilterExpanded ? 'collapsed' : ''}`}>
-          <div className="filter-header" onClick={() => setIsFilterExpanded(!isFilterExpanded)} style={{ cursor: 'pointer', borderBottom: isFilterExpanded ? '1px solid var(--border)' : 'none', marginBottom: isFilterExpanded ? '1.5rem' : '0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div className={`filter-icon-bg ${isFilterExpanded ? 'active' : ''}`}>
-                <Filter size={14} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: '900', letterSpacing: '0.05em' }}>EXPLORE META BY CARDS</span>
-                {!isFilterExpanded && selectedFilters.length > 0 && (
-                  <span style={{ fontSize: '0.65rem', color: 'var(--primary)' }}>{selectedFilters.length} filters active</span>
-                )}
-              </div>
+      {Array.isArray(allGameCards) && allGameCards.length > 0 && isFilterExpanded && (
+        <div className="card-filter-grid-section">
+          <div className="filter-header-minimal">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+              <Sparkles size={14} /> ACTIVE FILTERS
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {selectedFilters.length > 0 && (
-                <button onClick={(e) => { e.stopPropagation(); setSelectedFilters([]); }} className="clear-btn">
-                  <X size={12} /> Reset
-                </button>
-              )}
-              {isFilterExpanded ? <ChevronUp size={18} opacity={0.5} /> : <ChevronDown size={18} opacity={0.5} />}
-            </div>
+            {selectedFilters.length > 0 && (
+              <button onClick={() => setSelectedFilters([])} className="clear-btn">
+                <X size={12} /> Reset
+              </button>
+            )}
           </div>
           
-          {isFilterExpanded && (
-            <div className="filter-sections-container">
-              <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-              <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
-              <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
-            </div>
-          )}
+          <div className="filter-sections-container">
+            <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
+            <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
+            <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
+          </div>
         </div>
       )}
 
       {!cachedDecks && !isLoading && (
-        <div className="start-analysis-container">
-          <button onClick={onAnalysisStart} className="big-analysis-btn">
+        <div className="start-analysis-container-centered">
+          <button onClick={onAnalysisStart} className="big-analysis-btn-premium">
             <TrendingUp size={24} />
             <span>FIND META DECKS</span>
           </button>
-          <p className="start-hint">Scan the Top 200 Global Leaderboard to find the best decks for your collection.</p>
         </div>
       )}
       

@@ -284,9 +284,9 @@ function App() {
 
   return (
     <div className="app-container">
-      <header>
+      <header className="main-header-centered">
         <h1>Clash Royale Meta Finder</h1>
-        <p>Manage your collection and find meta decks.</p>
+        <p>Load your profile to check your collection and find meta decks</p>
       </header>
 
       <div className="search-section">
