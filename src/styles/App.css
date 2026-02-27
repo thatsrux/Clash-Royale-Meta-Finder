@@ -876,17 +876,26 @@ button {
   }
   
   .modern-search-btn {
-    width: 44px; /* Fisso per la lente */
-    height: 44px;
-    padding: 0;
+    width: 42px;
+    height: 42px;
+    min-width: 42px; /* Forza la larghezza minima */
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
     justify-content: center;
-    flex-shrink: 0; /* Impedisce al bottone di restringersi */
+    flex-shrink: 0;
     border-radius: 0.75rem;
     margin-left: 0.25rem;
   }
   
   .modern-search-btn span {
-    display: none;
+    display: none !important;
+  }
+
+  .modern-search-btn svg {
+    display: block !important;
+    width: 20px;
+    height: 20px;
   }
 }
 
