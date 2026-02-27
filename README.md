@@ -7,8 +7,6 @@
 
 **Royale Insights** is a powerful web application for Clash Royale players to analyze their card collection and discover the best pro-meta decks compatible with their current card levels.
 
-![Hero Banner](https://via.placeholder.com/800x400.png?text=Royale+Insights+Dashboard+Preview)
-
 ---
 
 ## ✨ Key Features
@@ -32,46 +30,12 @@
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Clone & Install
-```bash
-git clone https://github.com/yourusername/clashroyale-app.git
-cd clashroyale-app
-npm install
-```
-
-### 2. Environment Variables
-Create a `.env` file in the root directory:
-```env
-VITE_CLASH_API_KEY=your_clash_royale_developer_key
-```
-*Note: Ensure your API Key on [developer.clashroyale.com](https://developer.clashroyale.com/) has the RoyaleAPI Proxy IP (`45.79.218.79`) in the whitelist.*
-
-### 3. Run Development
-```bash
-npm run dev
-```
-
----
-
-## 🌍 Deployment on Vercel
-
-This project is optimized for **Vercel** with pre-configured API rewrites in `vercel.json`.
-
-1. Push your code to GitHub.
-2. Connect the repository to Vercel.
-3. Add `VITE_CLASH_API_KEY` to **Project Settings > Environment Variables**.
-4. **Deploy!** 🚀
-
----
-
 ## 🛡️ Security & Proxy
 
-To comply with Clash Royale's API IP restrictions and protect your keys:
-1. **Frontend Proxy:** All requests go through `/api/*` defined in `vercel.json`.
-2. **RoyaleAPI Proxy:** Requests are routed through `proxy.royaleapi.dev` using their static IP.
-3. **Hidden Keys:** API keys are injected at build time via Vercel secrets, never exposed in the source code.
+This application is designed with security and scalability in mind:
+- **Serverless Rewrites:** All API traffic is routed through secure server-side rewrites to prevent exposing endpoints.
+- **Static IP Tunneling:** Integrated with professional proxy services to maintain reliable connections to Supercell's developer servers.
+- **Key Protection:** Sensitive credentials are never exposed in the client-side code, ensuring the integrity of the service.
 
 ---
 
