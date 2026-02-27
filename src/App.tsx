@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trophy, Shield, Layout, User, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, X as CloseIcon } from 'lucide-react';
+import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
@@ -284,17 +284,26 @@ function App() {
 
   return (
     <div className="app-container">
-      <header>
-        <h1>Royale Profile</h1>
-        <p>Manage your collection and find meta decks.</p>
+      <header className="main-header-centered">
+        <h1>Clash Royale Meta Finder</h1>
+        <p>Load your profile to check your collection and find meta decks</p>
       </header>
 
       <div className="search-section">
         <form onSubmit={handleSearch} className="input-group">
-          <label>Player Tag</label>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input style={{ flex: 1 }} type="text" placeholder="#P802VR..." value={playerTag} onChange={(e) => setPlayerTag(e.target.value)} />
-            <button type="submit" disabled={loading}><Search size={20} /></button>
+          <label className="input-label-premium">PLAYER TAG</label>
+          <div className="modern-input-wrapper">
+            <div className="input-prefix">#</div>
+            <input 
+              type="text" 
+              placeholder="P802VR..." 
+              value={playerTag} 
+              onChange={(e) => setPlayerTag(e.target.value.replace('#', ''))} 
+            />
+            <button type="submit" disabled={loading} className="modern-search-btn">
+              {loading ? <RefreshCw size={20} className="spin" /> : <Search size={20} />}
+              <span>SEARCH</span>
+            </button>
           </div>
         </form>
         {recentTags.length > 0 && (
@@ -313,11 +322,48 @@ function App() {
         {error && <p style={{ color: '#ff4d4d', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>{error}</p>}
       </div>
 
-      {profile && (
+      {!profile && !loading && (
+        <div className="hero-landing">
+          <div className="hero-content">
+            <h2>Master the Meta with <span>Your</span> Cards.</h2>
+            <p>Enter your Player Tag to analyze your collection, track your progress, and discover pro-level decks you can actually play.</p>
+            <div className="hero-features-grid">
+              <div className="h-feat"><div className="h-icon"><Trophy size={20} /></div><span>Pro Meta Sync</span></div>
+              <div className="h-feat"><div className="h-icon"><Target size={20} /></div><span>Affinity Scoring</span></div>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="floating-card c1">👑</div>
+            <div className="floating-card c2">⚔️</div>
+            <div className="floating-card c3">💎</div>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading-state">
+          <RefreshCw size={48} className="spin" color="var(--primary)" />
+          <p>Fetching Royale Data...</p>
+        </div>
+      )}
+
+      {profile && !loading && (
         <div className="profile-view">
-          <div className="tabs">
-            <button className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><User size={18} /> Profile</button>
-            <button className={activeTab === 'decks' ? 'active' : ''} onClick={() => setActiveTab('decks')}><Layout size={18} /> Meta Decks</button>
+          <div className="tabs-premium-container">
+            <button 
+              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('profile')}
+            >
+              <UserCircle2 size={24} />
+              <span>PROFILE</span>
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('decks')}
+            >
+              <LayoutDashboard size={24} />
+              <span>META DECKS</span>
+            </button>
           </div>
 
           {activeTab === 'profile' ? (

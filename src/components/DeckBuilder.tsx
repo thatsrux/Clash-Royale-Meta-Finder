@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, ChevronDown, ChevronUp, Sparkles, Crown, Medal, Target, Activity } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity } from 'lucide-react';
 
 interface MetaDeck {
   name: string;
@@ -55,14 +55,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
   };
 
-  const filteredRecommendations = useMemo(() => {
-    if (!cachedDecks) return [];
-    if (selectedFilters.length === 0) return cachedDecks.slice(0, 50);
-    return cachedDecks
+  const { filteredRecommendations } = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return { filteredRecommendations: [] };
+    
+    const filtered = cachedDecks
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
-            // Check if the card is in one of the first 2 slots
             const cardInSlot1 = deck.cards[0] ? Number(deck.cards[0].id) === filter.id : false;
             const cardInSlot2 = deck.cards[1] ? Number(deck.cards[1].id) === filter.id : false;
             return cardInSlot1 || cardInSlot2;
@@ -72,7 +71,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         })
       )
       .slice(0, 50);
+
+    return { filteredRecommendations: filtered };
   }, [cachedDecks, selectedFilters]);
+
+  // Theoretical max score: 800 (8 elite cards) + 15 (avg level) + 35 (max meta popularity bonus) = 850
+  const THEORETICAL_MAX_SCORE = 850;
 
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
@@ -141,63 +145,75 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   return (
     <div className="deck-builder">
-      <div className="builder-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <TrendingUp size={24} color="var(--secondary)" />
-          <h2 style={{ margin: 0 }}>Ultimate Pro Meta Analysis</h2>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            onClick={() => setIsFilterExpanded(!isFilterExpanded)} 
-            className={`filter-toggle-btn ${isFilterExpanded ? 'active' : ''}`}
-          >
-            {isFilterExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            Card Filter
-          </button>
-          <button onClick={onAnalysisStart} disabled={isLoading} style={{ padding: '0.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
-            <RefreshCw size={18} className={isLoading ? 'spin' : ''} />
-          </button>
-        </div>
+      <div className="builder-header-simple">
+        <button 
+          onClick={() => setIsFilterExpanded(!isFilterExpanded)} 
+          className={`explore-meta-btn ${isFilterExpanded ? 'active' : ''}`}
+        >
+          <Filter size={18} />
+          <span>FILTER CARDS</span>
+          {selectedFilters.length > 0 && <span className="filter-count-badge">{selectedFilters.length}</span>}
+        </button>
       </div>
 
-      {Array.isArray(allGameCards) && allGameCards.length > 0 && isFilterExpanded && (
-        <div className="card-filter-grid-section">
-          <div className="filter-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-              <Filter size={14} /> EXPLORE META BY CARDS
+      <div className={`filter-animation-wrapper ${isFilterExpanded ? 'expanded' : ''}`}>
+        {Array.isArray(allGameCards) && allGameCards.length > 0 && (
+          <div className="card-filter-grid-section">
+            <div className="filter-header-minimal">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                <Sparkles size={14} /> ACTIVE FILTERS
+              </div>
+              {selectedFilters.length > 0 && (
+                <button onClick={() => setSelectedFilters([])} className="clear-btn">
+                  <X size={12} /> Reset
+                </button>
+              )}
             </div>
-            {selectedFilters.length > 0 && (
-              <button onClick={() => setSelectedFilters([])} className="clear-btn">
-                <X size={12} /> Reset Filters ({selectedFilters.length})
-              </button>
-            )}
+            
+            <div className="filter-sections-container">
+              <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
+              <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
+              <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
+            </div>
           </div>
-          
-          <div className="filter-sections-container">
-            <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-            <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
-            <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
-          </div>
+        )}
+      </div>
+
+      {!cachedDecks && !isLoading && (
+        <div className="start-analysis-container-centered">
+          <button onClick={onAnalysisStart} className="big-analysis-btn-premium">
+            <TrendingUp size={24} />
+            <span>FIND META DECKS</span>
+          </button>
         </div>
       )}
       
       {isLoading && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ height: '4px', width: '100%', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: 'var(--primary)', transition: 'width 0.3s ease' }}></div>
+        <div className="analysis-progress-container">
+          <div className="analysis-status">
+            <div className="status-main">
+              <RefreshCw size={14} className="spin" />
+              <span>Analyzing Top 200 Pro Meta...</span>
+            </div>
+            <span className="status-percent">{progress}%</span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
-            Deep Scanning Top 200 Pro Battle Logs... {progress}%
+          <div className="progress-track">
+            <div 
+              className="progress-bar-fill" 
+              style={{ width: `${progress}%` }}
+            >
+              <div className="progress-glow"></div>
+              <div className="progress-shimmer"></div>
+            </div>
+          </div>
+          <p className="analysis-hint">
+            Deep scanning battle logs and calculating card synergies...
           </p>
         </div>
       )}
 
       {cachedDecks && !isLoading ? (
         <div className="recommendations-list">
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Showing {filteredRecommendations.length} pro decks matching your criteria</span>
-            {selectedFilters.length > 0 && <span style={{ color: 'var(--primary)' }}>Filters Active</span>}
-          </div>
           {filteredRecommendations.map((deck, idx) => (
             <div key={idx} className="deck-suggestion">
               <div className="deck-header">
@@ -217,11 +233,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   )}
                 </div>
                 
-                <div className="affinity-pill" style={{ borderColor: deck.score > 100 ? '#4ade80' : '#fbbf24' }}>
-                  <Target size={14} style={{ color: deck.score > 100 ? '#4ade80' : '#fbbf24' }} />
+                <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
+                  <Target size={14} style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }} />
                   <div className="affinity-content">
                     <span className="label">AFFINITY</span>
-                    <span className="value" style={{ color: deck.score > 100 ? '#4ade80' : '#fbbf24' }}>{deck.score.toFixed(1)}</span>
+                    <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
+                      {Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -301,16 +319,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             </div>
           ))}
         </div>
-      ) : !isLoading && (
-        <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-          <TrendingUp size={48} color="var(--border)" style={{ marginBottom: '1rem' }} />
-          <h3>No Data Analyzed</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Start scanning the Top 200 Leaderboard to find the best decks for your collection.</p>
-          <button onClick={onAnalysisStart} className="order-toggle-btn" style={{ padding: '0.75rem 2rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
-            Start Deep Meta Analysis
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };
