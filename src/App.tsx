@@ -158,9 +158,6 @@ function App() {
     setMetaProgress(0);
     
     try {
-      const locs = await getLocations(INTEGRATED_API_KEY);
-      const globalLoc = locs.items.find((l: any) => l.name === 'Global') || { id: 'global' };
-
       let seasonId: string | undefined;
       try {
         const seasons = await getSeasons(INTEGRATED_API_KEY);
