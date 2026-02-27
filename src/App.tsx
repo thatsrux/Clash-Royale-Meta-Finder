@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, Layout, User, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, X as CloseIcon } from 'lucide-react';
-import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getLocations, getSeasons, getPlayerDeck } from './services/royaleApi';
+import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
