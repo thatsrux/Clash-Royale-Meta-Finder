@@ -186,12 +186,25 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       )}
       
       {isLoading && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ height: '4px', width: '100%', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: 'var(--primary)', transition: 'width 0.3s ease' }}></div>
+        <div className="analysis-progress-container">
+          <div className="analysis-status">
+            <div className="status-main">
+              <RefreshCw size={14} className="spin" />
+              <span>Analyzing Top 200 Pro Meta...</span>
+            </div>
+            <span className="status-percent">{progress}%</span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
-            Deep Scanning Top 200 Pro Battle Logs... {progress}%
+          <div className="progress-track">
+            <div 
+              className="progress-bar-fill" 
+              style={{ width: `${progress}%` }}
+            >
+              <div className="progress-glow"></div>
+              <div className="progress-shimmer"></div>
+            </div>
+          </div>
+          <p className="analysis-hint">
+            Deep scanning battle logs and calculating card synergies...
           </p>
         </div>
       )}
@@ -224,7 +237,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
                   <Target size={14} style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }} />
                   <div className="affinity-content">
-                    <span className="label">AFFINITY ({deck.score.toFixed(0)})</span>
+                    <span className="label">AFFINITY</span>
                     <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
                       {Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)}%
                     </span>
