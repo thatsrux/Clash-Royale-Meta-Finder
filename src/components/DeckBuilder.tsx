@@ -165,7 +165,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: '900', letterSpacing: '0.05em' }}>EXPLORE META BY CARDS</span>
                 {!isFilterExpanded && selectedFilters.length > 0 && (
-                  <span style={{ fontSize: '0.65rem', color: var('--primary') }}>{selectedFilters.length} filters active</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--primary)' }}>{selectedFilters.length} filters active</span>
                 )}
               </div>
             </div>
