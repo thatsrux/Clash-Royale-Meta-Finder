@@ -187,7 +187,7 @@ function App() {
       const sampleSize = 200;
       const playersToFetch = items.slice(0, sampleSize);
       const decksWithRatings: { deck: Card[], rating: number }[] = [];
-      const batchSize = 8;
+      const batchSize = 20; // Increased from 8 to 20 for faster scanning
       
       const extractDeckFromLog = (log: any[]) => {
         const recentMatch = log.find(entry => entry.type === 'pathOfLegend' || entry.type === 'PvP');
