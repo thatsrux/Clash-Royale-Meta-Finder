@@ -837,6 +837,7 @@ button {
 
 .modern-input-wrapper {
   display: flex;
+  align-items: center; /* Perfezione allineamento verticale */
   background: rgba(15, 23, 42, 0.6);
   border: 2px solid var(--border);
   border-radius: 1rem;
@@ -844,31 +845,39 @@ button {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  flex-wrap: wrap; /* Added for mobile wrapping if needed */
 }
 
 @media (max-width: 500px) {
   .modern-input-wrapper {
-    flex-direction: column;
-    gap: 0.4rem;
-    padding: 0.4rem;
+    flex-direction: row; /* Ripristinato orizzontale per coerenza con hashtag */
+    gap: 0;
+    padding: 0.3rem;
   }
   
   .input-prefix {
-    display: none; /* Hide prefix on very small screens to save space */
+    display: flex !important; /* Forza la visibilità su iPhone */
+    padding: 0 0.75rem !important;
+    font-size: 1.1rem !important;
+    border-right: 1px solid var(--border);
+    height: 100%;
+    align-items: center;
   }
   
   .modern-input-wrapper input {
-    width: 100%;
+    flex: 1;
+    width: auto;
     padding: 0.6rem 0.75rem;
-    font-size: 1.2rem;
-    text-align: center;
+    font-size: 1.1rem;
+    text-align: left;
   }
   
   .modern-search-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.8rem;
+    width: auto;
+    padding: 0.6rem 1rem;
+  }
+  
+  .modern-search-btn span {
+    display: none; /* Nasconde testo "SEARCH" su iPhone per far stare tutto in riga */
   }
 }
 
