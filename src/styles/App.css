@@ -844,6 +844,32 @@ button {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  flex-wrap: wrap; /* Added for mobile wrapping if needed */
+}
+
+@media (max-width: 500px) {
+  .modern-input-wrapper {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.4rem;
+  }
+  
+  .input-prefix {
+    display: none; /* Hide prefix on very small screens to save space */
+  }
+  
+  .modern-input-wrapper input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  
+  .modern-search-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem;
+  }
 }
 
 .modern-input-wrapper:focus-within {
