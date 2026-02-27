@@ -313,7 +313,34 @@ function App() {
         {error && <p style={{ color: '#ff4d4d', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>{error}</p>}
       </div>
 
-      {profile && (
+      {!profile && !loading && (
+        <div className="hero-landing">
+          <div className="hero-content">
+            <div className="hero-badge-new">NEW VERSION 2.0</div>
+            <h2>Master the Meta with <span>Your</span> Cards.</h2>
+            <p>Enter your Player Tag to analyze your collection, track your progress, and discover pro-level decks you can actually play.</p>
+            <div className="hero-features-grid">
+              <div className="h-feat"><div className="h-icon"><Trophy size={20} /></div><span>Pro Meta Sync</span></div>
+              <div className="h-feat"><div className="h-icon"><Sparkles size={20} /></div><span>Evo Detection</span></div>
+              <div className="h-feat"><div className="h-icon"><Target size={20} /></div><span>Affinity Scoring</span></div>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="floating-card c1">👑</div>
+            <div className="floating-card c2">⚔️</div>
+            <div className="floating-card c3">💎</div>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading-state">
+          <RefreshCw size={48} className="spin" color="var(--primary)" />
+          <p>Fetching Royale Data...</p>
+        </div>
+      )}
+
+      {profile && !loading && (
         <div className="profile-view">
           <div className="tabs">
             <button className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><User size={18} /> Profile</button>

@@ -150,38 +150,42 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           <TrendingUp size={24} color="var(--secondary)" />
           <h2 style={{ margin: 0 }}>Ultimate Pro Meta Analysis</h2>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            onClick={() => setIsFilterExpanded(!isFilterExpanded)} 
-            className={`filter-toggle-btn ${isFilterExpanded ? 'active' : ''}`}
-          >
-            {isFilterExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            Card Filter
-          </button>
-          <button onClick={onAnalysisStart} disabled={isLoading} style={{ padding: '0.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
-            <RefreshCw size={18} className={isLoading ? 'spin' : ''} />
-          </button>
-        </div>
+        <button onClick={onAnalysisStart} disabled={isLoading} style={{ padding: '0.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+          <RefreshCw size={18} className={isLoading ? 'spin' : ''} />
+        </button>
       </div>
 
-      {Array.isArray(allGameCards) && allGameCards.length > 0 && isFilterExpanded && (
-        <div className="card-filter-grid-section">
-          <div className="filter-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-              <Filter size={14} /> EXPLORE META BY CARDS
+      {Array.isArray(allGameCards) && allGameCards.length > 0 && (
+        <div className={`card-filter-grid-section ${!isFilterExpanded ? 'collapsed' : ''}`}>
+          <div className="filter-header" onClick={() => setIsFilterExpanded(!isFilterExpanded)} style={{ cursor: 'pointer', borderBottom: isFilterExpanded ? '1px solid var(--border)' : 'none', marginBottom: isFilterExpanded ? '1.5rem' : '0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className={`filter-icon-bg ${isFilterExpanded ? 'active' : ''}`}>
+                <Filter size={14} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: '900', letterSpacing: '0.05em' }}>EXPLORE META BY CARDS</span>
+                {!isFilterExpanded && selectedFilters.length > 0 && (
+                  <span style={{ fontSize: '0.65rem', color: var('--primary') }}>{selectedFilters.length} filters active</span>
+                )}
+              </div>
             </div>
-            {selectedFilters.length > 0 && (
-              <button onClick={() => setSelectedFilters([])} className="clear-btn">
-                <X size={12} /> Reset Filters ({selectedFilters.length})
-              </button>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {selectedFilters.length > 0 && (
+                <button onClick={(e) => { e.stopPropagation(); setSelectedFilters([]); }} className="clear-btn">
+                  <X size={12} /> Reset
+                </button>
+              )}
+              {isFilterExpanded ? <ChevronUp size={18} opacity={0.5} /> : <ChevronDown size={18} opacity={0.5} />}
+            </div>
           </div>
           
-          <div className="filter-sections-container">
-            <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-            <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
-            <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
-          </div>
+          {isFilterExpanded && (
+            <div className="filter-sections-container">
+              <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
+              <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
+              <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
+            </div>
+          )}
         </div>
       )}
 
@@ -221,10 +225,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
       {cachedDecks && !isLoading ? (
         <div className="recommendations-list">
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Showing {filteredRecommendations.length} pro decks matching your criteria</span>
-            {selectedFilters.length > 0 && <span style={{ color: 'var(--primary)' }}>Filters Active</span>}
-          </div>
           {filteredRecommendations.map((deck, idx) => (
             <div key={idx} className="deck-suggestion">
               <div className="deck-header">
