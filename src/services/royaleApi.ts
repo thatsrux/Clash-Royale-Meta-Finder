@@ -33,6 +33,14 @@ export const getSeasons = async (apiKey: string) => {
   return response.json();
 };
 
+export const getPathOfLegendSeasons = async (apiKey: string) => {
+  const response = await fetch(`${BASE_URL}/locations/global/pathoflegend/seasons`, {
+    headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
+  });
+  if (!response.ok) throw new Error('Failed to fetch PoL seasons');
+  return response.json();
+};
+
 export const fetchRankings = async (apiKey: string, path: string) => {
   console.log(`[API] Fetching Rankings from: ${path}`);
   const response = await fetch(`${BASE_URL}${path}`, {
