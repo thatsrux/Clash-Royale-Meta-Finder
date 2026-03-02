@@ -34,23 +34,26 @@ export const getSeasons = async (apiKey: string) => {
 };
 
 export const getPathOfLegendSeasons = async (apiKey: string) => {
-  const response = await fetch(`${BASE_URL}/locations/global/pathoflegend/seasons`, {
-    headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
-  });
-  if (!response.ok) throw new Error('Failed to fetch PoL seasons');
-  return response.json();
+  // Try the official pathoflegend specific endpoint first, fallback to general seasons
+  try {
+    const response = await fetch(`${BASE_URL}/locations/global/pathoflegend/seasons`, {
+      headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
+    });
+    if (response.ok) return await response.json();
+  } catch (e) { console.warn('[API] PoL specific seasons failed, trying general'); }
+
+  return getSeasons(apiKey);
 };
 
 export const fetchRankings = async (apiKey: string, path: string) => {
-  console.log(`[API] Fetching Rankings from: ${path}`);
+  console.log(`[API] Fetching Rankings: ${path}`);
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
   });
   if (!response.ok) {
-    throw new Error(`Status ${response.status} for ${path}`);
+    throw new Error(`HTTP ${response.status}`);
   }
   const data = await response.json();
-  console.log(`[API] Rankings items received: ${data.items?.length || 0}`);
   return data;
 };
 
