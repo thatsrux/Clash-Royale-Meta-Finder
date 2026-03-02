@@ -162,49 +162,50 @@ function App() {
       let prevSeasonId: string | undefined;
       
       try {
-        // Try to get Path of Legend seasons first as they are more relevant for Meta
         const seasons = await getPathOfLegendSeasons(INTEGRATED_API_KEY);
         if (seasons.items && seasons.items.length > 0) {
+          // Latest season might be just starting
           seasonId = seasons.items[seasons.items.length - 1].id;
           if (seasons.items.length > 1) {
             prevSeasonId = seasons.items[seasons.items.length - 2].id;
           }
         }
-      } catch (e) { console.warn('[Meta] PoL seasons lookup failed'); }
-
-      if (!seasonId) {
-        try {
-          const seasons = await getSeasons(INTEGRATED_API_KEY);
-          if (seasons.items && seasons.items.length > 0) {
-            seasonId = seasons.items[seasons.items.length - 1].id;
-          }
-        } catch (e) { console.warn('[Meta] Standard seasons lookup failed'); }
-      }
+      } catch (e) { console.warn('[Meta] Seasons lookup failed'); }
 
       const pathsToTry = [
+        // 1. Current PoL (Modern path)
         '/locations/global/pathoflegend/players?limit=100',
+        // 2. Specific season PoL (Previous often has data at start of new season)
+        seasonId ? `/locations/global/seasons/${seasonId}/rankings/players?limit=100` : null,
+        prevSeasonId ? `/locations/global/seasons/${prevSeasonId}/rankings/players?limit=100` : null,
+        // 3. Alternate PoL paths
         seasonId ? `/locations/global/pathoflegend/seasons/${seasonId}/rankings/players?limit=100` : null,
-        prevSeasonId ? `/locations/global/pathoflegend/seasons/${prevSeasonId}/rankings/players?limit=100` : null,
-        '/locations/global/rankings/pathoflegend?limit=100',
+        // 4. Global Trophy Road (Standard Ladder) - The ultimate fallback
         '/locations/global/rankings/players?limit=100',
+        // 5. Regional fallback (International)
         '/locations/57000000/rankings/players?limit=100'
       ].filter(Boolean) as string[];
       
       let rankingsData: any = null;
+      let successfulPath: string = '';
+
       for (const path of pathsToTry) {
         try {
-          rankingsData = await fetchRankings(INTEGRATED_API_KEY, path);
-          if (rankingsData && rankingsData.items && rankingsData.items.length > 0) {
-            console.log(`[Meta] Successfully loaded rankings from: ${path}`);
+          const data = await fetchRankings(INTEGRATED_API_KEY, path);
+          if (data && data.items && data.items.length > 0) {
+            rankingsData = data;
+            successfulPath = path;
+            console.log(`[Meta] Successfully synced from: ${path}`);
             break;
           }
+          console.log(`[Meta] Path empty or invalid: ${path}`);
         } catch (e) {
-          console.warn(`[Meta] Failed to fetch from ${path}`);
+          console.warn(`[Meta] Error on path: ${path}`);
         }
       }
 
       if (!rankingsData || !rankingsData.items || rankingsData.items.length === 0) {
-        throw new Error('Could not find any active rankings. Please try again later.');
+        throw new Error('Could not find any active rankings in the Royale API. The season might be resetting.');
       }
 
       const items = rankingsData.items;
