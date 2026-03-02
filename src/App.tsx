@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
-import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck } from './services/royaleApi';
+import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
@@ -159,29 +159,53 @@ function App() {
     
     try {
       let seasonId: string | undefined;
+      let prevSeasonId: string | undefined;
+      
       try {
-        const seasons = await getSeasons(INTEGRATED_API_KEY);
+        // Try to get Path of Legend seasons first as they are more relevant for Meta
+        const seasons = await getPathOfLegendSeasons(INTEGRATED_API_KEY);
         if (seasons.items && seasons.items.length > 0) {
           seasonId = seasons.items[seasons.items.length - 1].id;
+          if (seasons.items.length > 1) {
+            prevSeasonId = seasons.items[seasons.items.length - 2].id;
+          }
         }
-      } catch (e) { console.warn('[Meta] Seasons lookup failed'); }
+      } catch (e) { console.warn('[Meta] PoL seasons lookup failed'); }
+
+      if (!seasonId) {
+        try {
+          const seasons = await getSeasons(INTEGRATED_API_KEY);
+          if (seasons.items && seasons.items.length > 0) {
+            seasonId = seasons.items[seasons.items.length - 1].id;
+          }
+        } catch (e) { console.warn('[Meta] Standard seasons lookup failed'); }
+      }
 
       const pathsToTry = [
-        '/locations/global/pathoflegend/players?limit=200',
-        seasonId ? `/locations/global/pathoflegend/seasons/${seasonId}/rankings/players?limit=200` : null,
+        '/locations/global/pathoflegend/players?limit=100',
+        seasonId ? `/locations/global/pathoflegend/seasons/${seasonId}/rankings/players?limit=100` : null,
+        prevSeasonId ? `/locations/global/pathoflegend/seasons/${prevSeasonId}/rankings/players?limit=100` : null,
         '/locations/global/rankings/pathoflegend?limit=100',
-        '/locations/global/rankings/players?limit=100'
+        '/locations/global/rankings/players?limit=100',
+        '/locations/57000000/rankings/players?limit=100'
       ].filter(Boolean) as string[];
       
       let rankingsData: any = null;
       for (const path of pathsToTry) {
         try {
           rankingsData = await fetchRankings(INTEGRATED_API_KEY, path);
-          if (rankingsData && rankingsData.items && rankingsData.items.length > 0) break;
-        } catch (e) {}
+          if (rankingsData && rankingsData.items && rankingsData.items.length > 0) {
+            console.log(`[Meta] Successfully loaded rankings from: ${path}`);
+            break;
+          }
+        } catch (e) {
+          console.warn(`[Meta] Failed to fetch from ${path}`);
+        }
       }
 
-      if (!rankingsData || !rankingsData.items) throw new Error('Failed to sync leaderboard');
+      if (!rankingsData || !rankingsData.items || rankingsData.items.length === 0) {
+        throw new Error('Could not find any active rankings. Please try again later.');
+      }
 
       const items = rankingsData.items;
       const sampleSize = 200;
