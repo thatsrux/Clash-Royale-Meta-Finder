@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
-import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getSeasons, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
+import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
@@ -187,14 +187,12 @@ function App() {
       ].filter(Boolean) as string[];
       
       let rankingsData: any = null;
-      let successfulPath: string = '';
 
       for (const path of pathsToTry) {
         try {
           const data = await fetchRankings(INTEGRATED_API_KEY, path);
           if (data && data.items && data.items.length > 0) {
             rankingsData = data;
-            successfulPath = path;
             console.log(`[Meta] Successfully synced from: ${path}`);
             break;
           }
