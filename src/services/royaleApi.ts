@@ -34,13 +34,17 @@ export const getSeasons = async (apiKey: string) => {
 };
 
 export const getPathOfLegendSeasons = async (apiKey: string) => {
-  // Try the official pathoflegend specific endpoint first, fallback to general seasons
+  // Try the correct path for RoyaleAPI proxy first
   try {
-    const response = await fetch(`${BASE_URL}/locations/global/pathoflegend/seasons`, {
+    const response = await fetch(`${BASE_URL}/locations/global/rankings/pathoflegend/seasons`, {
       headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
     });
-    if (response.ok) return await response.json();
-  } catch (e) { console.warn('[API] PoL specific seasons failed, trying general'); }
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[API] PoL Seasons found: ${data.items?.length || 0}`);
+      return data;
+    }
+  } catch (e) { console.warn('[API] PoL specific seasons failed, trying alternate'); }
 
   return getSeasons(apiKey);
 };
@@ -50,10 +54,20 @@ export const fetchRankings = async (apiKey: string, path: string) => {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
   });
+  
   if (!response.ok) {
+    console.error(`[API] Error ${response.status} for path: ${path}`);
     throw new Error(`HTTP ${response.status}`);
   }
+  
   const data = await response.json();
+  // Log structure to debug empty results
+  if (!data.items) {
+    console.warn(`[API] Response from ${path} has no 'items' property:`, Object.keys(data));
+  } else {
+    console.log(`[API] Path ${path} returned ${data.items.length} items`);
+  }
+  
   return data;
 };
 

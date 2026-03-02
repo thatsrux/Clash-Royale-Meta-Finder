@@ -173,17 +173,18 @@ function App() {
       } catch (e) { console.warn('[Meta] Seasons lookup failed'); }
 
       const pathsToTry = [
-        // 1. Current PoL (Modern path)
+        // 1. Current PoL Rankings (RoyaleAPI Proxy path)
+        '/locations/global/rankings/pathoflegend',
+        // 2. Specific Season PoL Rankings (RoyaleAPI Proxy path)
+        seasonId ? `/locations/global/rankings/pathoflegend/seasons/${seasonId}` : null,
+        prevSeasonId ? `/locations/global/rankings/pathoflegend/seasons/${prevSeasonId}` : null,
+        // 3. Official API fallback paths
         '/locations/global/pathoflegend/players?limit=100',
-        // 2. Specific season PoL (Previous often has data at start of new season)
         seasonId ? `/locations/global/seasons/${seasonId}/rankings/players?limit=100` : null,
-        prevSeasonId ? `/locations/global/seasons/${prevSeasonId}/rankings/players?limit=100` : null,
-        // 3. Alternate PoL paths
-        seasonId ? `/locations/global/pathoflegend/seasons/${seasonId}/rankings/players?limit=100` : null,
-        // 4. Global Trophy Road (Standard Ladder) - The ultimate fallback
+        // 4. Global Trophy Road (The ultimate fallback)
         '/locations/global/rankings/players?limit=100',
-        // 5. Regional fallback (International)
-        '/locations/57000000/rankings/players?limit=100'
+        // 5. Common location fallback
+        '/locations/57000006/rankings/players?limit=100' // USA often active
       ].filter(Boolean) as string[];
       
       let rankingsData: any = null;
