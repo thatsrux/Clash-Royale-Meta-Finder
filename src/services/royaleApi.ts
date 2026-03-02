@@ -26,6 +26,7 @@ export const getLocations = async (apiKey: string) => {
 };
 
 export const getSeasons = async (apiKey: string) => {
+  // Official path for trophy road seasons (if it exists, though usually it's just /locations/global/seasons)
   const response = await fetch(`${BASE_URL}/locations/global/seasons`, {
     headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
   });
@@ -34,17 +35,17 @@ export const getSeasons = async (apiKey: string) => {
 };
 
 export const getPathOfLegendSeasons = async (apiKey: string) => {
-  // Try the correct path for RoyaleAPI proxy first
+  // Official path for Path of Legend (Ranked) seasons
   try {
-    const response = await fetch(`${BASE_URL}/locations/global/rankings/pathoflegend/seasons`, {
+    const response = await fetch(`${BASE_URL}/locations/global/rankings/seasons`, {
       headers: { Authorization: `Bearer ${apiKey}`, 'Accept': 'application/json' },
     });
     if (response.ok) {
       const data = await response.json();
-      console.log(`[API] PoL Seasons found: ${data.items?.length || 0}`);
+      console.log(`[API] PoL/Ranked Seasons found: ${data.items?.length || 0}`);
       return data;
     }
-  } catch (e) { console.warn('[API] PoL specific seasons failed, trying alternate'); }
+  } catch (e) { console.warn('[API] Ranked seasons specific path failed'); }
 
   return getSeasons(apiKey);
 };
@@ -56,18 +57,13 @@ export const fetchRankings = async (apiKey: string, path: string) => {
   });
   
   if (!response.ok) {
-    console.error(`[API] Error ${response.status} for path: ${path}`);
     throw new Error(`HTTP ${response.status}`);
   }
   
   const data = await response.json();
-  // Log structure to debug empty results
-  if (!data.items) {
-    console.warn(`[API] Response from ${path} has no 'items' property:`, Object.keys(data));
-  } else {
-    console.log(`[API] Path ${path} returned ${data.items.length} items`);
+  if (!data.items || data.items.length === 0) {
+    console.log(`[API] No items returned from: ${path}`);
   }
-  
   return data;
 };
 
