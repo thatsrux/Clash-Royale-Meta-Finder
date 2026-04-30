@@ -413,6 +413,30 @@ button {
 .uses-badge, .medals-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.6rem; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
 .uses-badge { background: rgba(251, 191, 36, 0.1); color: var(--secondary); }
 .medals-badge { background: rgba(192, 38, 211, 0.1); color: #e879f9; }
+.copy-deck-btn {
+  background: rgba(43, 115, 255, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(43, 115, 255, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  transition: all 0.2s;
+}
+.copy-deck-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+.copy-deck-btn.copied {
+  background: #064e3b;
+  color: #4ade80;
+  border-color: #065f46;
+}
 .best-synergy-badge { background: #064e3b; color: #4ade80; padding: 0.2rem 0.5rem; border-radius: 0.4rem; font-size: 0.6rem; font-weight: 900; }
 .affinity-pill { display: flex; align-items: center; gap: 0.6rem; background: #0f172a; padding: 0.4rem 0.8rem; border-radius: 2rem; border: 2px solid; }
 .affinity-content { display: flex; flex-direction: column; line-height: 1; }

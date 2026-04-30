@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
   name: string;
@@ -44,6 +44,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 }) => {
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
@@ -53,6 +54,20 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       }
       return [...prev, item];
     });
+  };
+
+  const handleCopyDeck = (cards: Card[], index: number) => {
+    const ids = cards.map(c => c.id).join(';');
+    const link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
+
+    // Try to open the link directly (deep link)
+    window.location.href = link;
   };
 
   const { filteredRecommendations } = useMemo(() => {
@@ -231,6 +246,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   {deck.isBestSynergy && (
                     <span className="best-synergy-badge">BEST SYNERGY</span>
                   )}
+                  <button 
+                    className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
+                    onClick={() => handleCopyDeck(deck.cards, idx)}
+                    title="Copy to Clash Royale"
+                  >
+                    {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
+                  </button>
                 </div>
                 
                 <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
