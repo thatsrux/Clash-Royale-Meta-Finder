@@ -457,19 +457,23 @@ function App() {
                 {sortedCards.map((card) => {
                     const displayLevel = getDisplayLevel(card);
                     
-                    // Logic for Hero / Champion / Evolution (2026 Update)
+                    // Definitive 2026 Hero/Evo Detection
                     const rarity = getRarityClass(card);
                     const isActualChampion = rarity === 'champion' || rarity === 'hero';
-                    const isHeroVariant = (card as any).heroLevel > 0 || (card as any).hero?.unlocked === true || (card as any).hero?.active === true;
-                    const isHero = isHeroVariant || isActualChampion;
-                    const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
-                    // Improved slugging for RoyaleAPI assets
+                    // Check for Hero status in various API formats
+                    const heroData = (card as any).hero;
+                    const isHeroVariant = (card as any).heroLevel > 0 || heroData?.unlocked === true || heroData?.active === true;
+                    const isHero = isHeroVariant || isActualChampion;
+                    
+                    // Only count as Evo if level > 0 AND the card actually has an Evo icon in the data
+                    const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !!card.iconUrls.evolutionMedium;
+                    
                     const getCardSlug = (name: string) => {
                       return name.toLowerCase()
                         .replace(/\./g, '')
                         .replace(/ /g, '-')
-                        .replace('mini-pe-k-k-a', 'mini-pekka')
+                        .replace('mini-p-e-k-k-a', 'mini-pekka')
                         .replace('p-e-k-k-a', 'pekka');
                     };
                     
@@ -493,7 +497,7 @@ function App() {
                           />
                           <div className="card-badges">
                             {isHero && (
-                              <div className="badge hero-badge" title={isActualChampion ? "Champion" : "Hero"}>
+                              <div className="badge hero-badge" title="Hero / Champion">
                                 <Crown size={12} strokeWidth={3} />
                               </div>
                             )}
