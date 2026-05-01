@@ -57,31 +57,89 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   };
 
   const handleCopyDeck = (cards: Card[], index: number) => {
-    // Standard Clash Royale decks have exactly 8 cards.
-    // We MUST filter out Tower Troops (IDs usually start with 68) 
-    // and ensure we only send exactly 8 valid card IDs.
-    const deckCards = cards
-      .filter(c => c && c.id && c.id < 68000000)
-      .slice(0, 8);
+    // Clash Royale deep links REQUIRE a specific slot order to work correctly:
+    // Slot 1: First Evolution Slot
+    // Slot 2: Champion Slot (or regular if no Champion)
+    // Slot 3: Second Evolution Slot (or regular)
+    // Slots 4-8: Regular card slots
     
-    const ids = deckCards.map(c => c.id).join(';');
+    // 1. Filter out Tower Troops (ID >= 68000000)
+    const allCards = cards.filter(c => c && c.id && c.id < 68000000);
     
-    // The official link format
+    // 2. Identify Evolutions (in this app, Evo cards are usually the first two in meta decks)
+    // and Champions (rarity 'champion' or 'hero')
+    const champions = allCards.filter(c => c.rarity?.toLowerCase() === 'champion' || c.rarity?.toLowerCase() === 'hero');
+    const evos = allCards.filter(c => c.evolutionLevel && c.evolutionLevel > 0);
+    const others = allCards.filter(c => 
+      !(c.rarity?.toLowerCase() === 'champion' || c.rarity?.toLowerCase() === 'hero') && 
+      !(c.evolutionLevel && c.evolutionLevel > 0)
+    );
+
+    // 3. Construct the 8-card array in correct order
+    const orderedDeck: Card[] = new Array(8);
+    const usedIds = new Set<number>();
+
+    // Slot 1: First Evo
+    if (evos.length > 0) {
+      orderedDeck[0] = evos[0];
+      usedIds.add(evos[0].id);
+    }
+
+    // Slot 2: Champion
+    if (champions.length > 0) {
+      orderedDeck[1] = champions[0];
+      usedIds.add(champions[0].id);
+    }
+
+    // Slot 3: Second Evo
+    const secondEvo = evos.find(e => !usedIds.has(e.id));
+    if (secondEvo) {
+      orderedDeck[2] = secondEvo;
+      usedIds.add(secondEvo.id);
+    }
+
+    // Fill remaining slots with "others"
+    let othersIdx = 0;
+    for (let i = 0; i < 8; i++) {
+      if (!orderedDeck[i]) {
+        while (othersIdx < others.length && usedIds.has(others[othersIdx].id)) {
+          othersIdx++;
+        }
+        if (othersIdx < others.length) {
+          orderedDeck[i] = others[othersIdx];
+          usedIds.add(others[othersIdx].id);
+          othersIdx++;
+        }
+      }
+    }
+
+    // Final fallback: if we still have empty slots (e.g., fewer than 2 evos), 
+    // just fill them with any remaining cards from the original list that aren't used.
+    const remainingCards = allCards.filter(c => !usedIds.has(c.id));
+    let remIdx = 0;
+    for (let i = 0; i < 8; i++) {
+      if (!orderedDeck[i] && remIdx < remainingCards.length) {
+        orderedDeck[i] = remainingCards[remIdx];
+        remIdx++;
+      }
+    }
+
+    // 4. Generate the ID string (filter out any undefined just in case)
+    const finalIds = orderedDeck.filter(Boolean).map(c => c.id).slice(0, 8);
+    const ids = finalIds.join(';');
+    
     const link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
-    // Direct deep link scheme
     const deepLink = `clashroyale://copyDeck?deck=${ids}`;
     
-    // Copy the universal link to clipboard
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    // We try the deep link first as it's more direct, 
-    // but the universal link is also reliable via the browser.
+    // Try direct scheme
     window.location.href = deepLink;
     
-    // Fallback to universal link after a short delay if deep link didn't trigger
+    // Fallback to universal link
     setTimeout(() => {
       window.location.href = link;
     }, 500);
