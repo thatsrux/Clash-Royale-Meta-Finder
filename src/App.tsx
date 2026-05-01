@@ -459,26 +459,27 @@ function App() {
                     
                     // Logic for Hero / Champion / Evolution
                     const isActualChampion = getRarityClass(card) === 'champion';
-                    const isHero = (card.heroLevel !== undefined && card.heroLevel > 0) || getRarityClass(card) === 'hero';
+                    const isHeroVariant = card.heroLevel !== undefined && card.heroLevel > 0;
+                    const isHero = isHeroVariant || isActualChampion || getRarityClass(card) === 'hero';
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
                     return (
                       <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
                         <div className="card-image-container">
                           <img 
-                            src={isEvo && card.iconUrls.evolutionMedium ? card.iconUrls.evolutionMedium : card.iconUrls.medium} 
+                            src={(isEvo && !isHeroVariant && card.iconUrls.evolutionMedium) ? card.iconUrls.evolutionMedium : card.iconUrls.medium} 
                             alt={card.name} 
                             className="card-image" 
                           />
                           <div className="card-badges">
-                            {isEvo && (
-                              <div className="badge evo-badge" title="Evolution Unlocked">
-                                <Sparkles size={10} />
-                              </div>
-                            )}
                             {isHero && (
                               <div className="badge hero-badge" title={isActualChampion ? "Champion Card" : "Hero Version"}>
                                 <Crown size={10} />
+                              </div>
+                            )}
+                            {isEvo && !isHeroVariant && (
+                              <div className="badge evo-badge" title="Evolution Unlocked">
+                                <Sparkles size={10} />
                               </div>
                             )}
                           </div>

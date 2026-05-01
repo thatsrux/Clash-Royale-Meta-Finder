@@ -135,19 +135,35 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5
     };
 
+    // List of cards known to have Hero versions in 2026
+    const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Hog Rider'];
+
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
         if (!c) return;
         const iconUrl = c.iconUrls?.medium || '';
         const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = c.rarity || 'common';
+        const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
 
         if (evoIconUrl) {
           evos.push({ id: c.id, icon: evoIconUrl, name: c.name, isEvoFilter: true, rarity });
         }
-        if (rarity.toLowerCase() === 'champion') {
+        
+        if (rarity.toLowerCase() === 'champion' || rarity.toLowerCase() === 'hero') {
           heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
+        } else if (isKnownHeroBase) {
+          // Add the Hero version of this base card to the heroes list
+          // We mark it so handleCopyDeck knows it's a Hero version
+          heroes.push({ 
+            id: c.id, 
+            icon: iconUrl, 
+            name: `${c.name} (Hero)`, 
+            isEvoFilter: false, 
+            rarity: 'hero' // Force rarity for filter styling
+          });
         }
+        
         normal.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
       });
     }
@@ -173,16 +189,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         </div>
         <div className="filter-grid">
           {items.map((c, idx) => {
-            const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
+            const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter && f.rarity === c.rarity);
+            const isHeroVariant = c.rarity === 'hero';
+            
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''}`}
+                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${isHeroVariant ? 'hero-filter-item' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
                 <img src={c.icon} alt={c.name} />
                 {c.isEvoFilter && <div className="evo-mini-icon"></div>}
+                {isHeroVariant && <div className="hero-mini-icon"></div>}
               </div>
             );
           })}
