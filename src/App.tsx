@@ -463,13 +463,26 @@ function App() {
                     const isHero = isHeroVariant || isActualChampion || getRarityClass(card) === 'hero';
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
+                    // Logic for Hero Icons: 2026 API often uses a separate 'hero' object or rarity.
+                    // If we have a heroLevel, we try to use the heroic version of the image.
+                    // Falling back to a known RoyaleAPI CDN pattern if the standard API doesn't provide it yet.
+                    const cardSlug = card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '');
+                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/hero-${cardSlug}.png`;
+                    
                     return (
                       <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
                         <div className="card-image-container">
                           <img 
-                            src={(isEvo && !isHeroVariant && card.iconUrls.evolutionMedium) ? card.iconUrls.evolutionMedium : card.iconUrls.medium} 
+                            src={isHeroVariant ? heroIcon : (isEvo && card.iconUrls.evolutionMedium ? card.iconUrls.evolutionMedium : card.iconUrls.medium)} 
                             alt={card.name} 
                             className="card-image" 
+                            onError={(e) => {
+                              // Fallback if the CDN image doesn't exist
+                              const target = e.target as HTMLImageElement;
+                              if (isHeroVariant && target.src !== card.iconUrls.medium) {
+                                target.src = card.iconUrls.medium;
+                              }
+                            }}
                           />
                           <div className="card-badges">
                             {isHero && (
@@ -477,7 +490,7 @@ function App() {
                                 <Crown size={10} />
                               </div>
                             )}
-                            {isEvo && !isHeroVariant && (
+                            {isEvo && (
                               <div className="badge evo-badge" title="Evolution Unlocked">
                                 <Sparkles size={10} />
                               </div>
