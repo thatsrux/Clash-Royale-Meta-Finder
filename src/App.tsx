@@ -270,6 +270,8 @@ function App() {
         let allAtLeast14 = true;
         const missingEvos: { name: string; icon: string }[] = [];
         
+        // Affinity MUST be calculated ONLY on the 8 deck cards.
+        // The towerTroopId is stored separately and does not affect the score.
         meta.cards.forEach((metaCard, index) => {
           const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
           if (userCard) {
@@ -277,10 +279,14 @@ function App() {
             totalLevel += displayLevel;
             if (displayLevel >= 15) eliteCount++;
             if (displayLevel < 14) allAtLeast14 = false;
+            // Evo check (index < 2 is a heuristic for meta decks)
             if (index < 2 && metaCard.iconUrls.evolutionMedium && !(userCard.evolutionLevel && userCard.evolutionLevel > 0)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
             }
-          } else { totalLevel += 1; allAtLeast14 = false; }
+          } else { 
+            totalLevel += 1; 
+            allAtLeast14 = false; 
+          }
         });
 
         const avgLevel = totalLevel / 8;
