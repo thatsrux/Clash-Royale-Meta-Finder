@@ -136,7 +136,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     };
 
     // List of cards known to have Hero versions in 2026
-    const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Hog Rider', 'Wizard', 'Prince', 'Magic Archer', 'P.E.K.K.A'];
+    const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Hog Rider', 'Wizard', 'Prince', 'Magic Archer', 'P.E.K.K.A', 'Valkyrie'];
 
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
@@ -152,9 +152,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         
         if (rarity.toLowerCase() === 'champion' || rarity.toLowerCase() === 'hero') {
           heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
-        } else if (isKnownHeroBase) {
-          // Add the Hero version of this base card with its Heroic icon
-          const cardSlug = c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '');
+        }
+        
+        if (isKnownHeroBase) {
+          // Correct slug handling for images (especially Mini P.E.K.K.A)
+          const cardSlug = c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '').replace('mini-pe-k-k-a', 'mini-pekka');
           const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/hero-${cardSlug}.png`;
           
           heroes.push({ 

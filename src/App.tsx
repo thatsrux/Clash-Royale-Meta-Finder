@@ -458,15 +458,13 @@ function App() {
                     const displayLevel = getDisplayLevel(card);
                     
                     // Logic for Hero / Champion / Evolution
-                    const isActualChampion = getRarityClass(card) === 'champion';
+                    const isActualChampion = getRarityClass(card) === 'champion' || getRarityClass(card) === 'hero';
                     const isHeroVariant = card.heroLevel !== undefined && card.heroLevel > 0;
-                    const isHero = isHeroVariant || isActualChampion || getRarityClass(card) === 'hero';
+                    const isHero = isHeroVariant || isActualChampion;
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
-                    // Logic for Hero Icons: 2026 API often uses a separate 'hero' object or rarity.
-                    // If we have a heroLevel, we try to use the heroic version of the image.
-                    // Falling back to a known RoyaleAPI CDN pattern if the standard API doesn't provide it yet.
-                    const cardSlug = card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '');
+                    // Direct URL for Heroic versions from RoyaleAPI
+                    const cardSlug = card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '').replace('mini-pe-k-k-a', 'mini-pekka');
                     const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/hero-${cardSlug}.png`;
                     
                     return (
@@ -477,9 +475,8 @@ function App() {
                             alt={card.name} 
                             className="card-image" 
                             onError={(e) => {
-                              // Fallback if the CDN image doesn't exist
                               const target = e.target as HTMLImageElement;
-                              if (isHeroVariant && target.src !== card.iconUrls.medium) {
+                              if (target.src !== card.iconUrls.medium) {
                                 target.src = card.iconUrls.medium;
                               }
                             }}
@@ -490,7 +487,7 @@ function App() {
                                 <Crown size={10} />
                               </div>
                             )}
-                            {isEvo && (
+                            {isEvo && !isHeroVariant && (
                               <div className="badge evo-badge" title="Evolution Unlocked">
                                 <Sparkles size={10} />
                               </div>
