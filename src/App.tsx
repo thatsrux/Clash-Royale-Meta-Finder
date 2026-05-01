@@ -457,17 +457,18 @@ function App() {
                 {sortedCards.map((card) => {
                     const displayLevel = getDisplayLevel(card);
                     
-                    // Definitive 2026 Hero/Evo Detection
+                    // ULTIMATE HERO/EVO DETECTION (STRICT ALLOW-LIST)
+                    const HERO_CARDS = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
                     const rarity = getRarityClass(card);
                     const isActualChampion = rarity === 'champion' || rarity === 'hero';
                     
-                    // Check for Hero status in various API formats
+                    const isHeroAllowed = HERO_CARDS.includes(card.name);
                     const heroData = (card as any).hero;
-                    const isHeroVariant = (card as any).heroLevel > 0 || heroData?.unlocked === true || heroData?.active === true;
-                    const isHero = isHeroVariant || isActualChampion;
+                    const isHeroVariant = isHeroAllowed && ((card as any).heroLevel > 0 || heroData?.unlocked === true || heroData?.active === true);
                     
-                    // Only count as Evo if level > 0 AND the card actually has an Evo icon in the data
-                    const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !!card.iconUrls.evolutionMedium;
+                    const isHero = isHeroVariant || isActualChampion;
+                    // Only show Evo if it's NOT showing as a Hero variant and has the properties
+                    const isEvo = !isHeroVariant && card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !!card.iconUrls.evolutionMedium;
                     
                     const getCardSlug = (name: string) => {
                       return name.toLowerCase()
@@ -479,7 +480,7 @@ function App() {
                     
                     const slug = getCardSlug(card.name);
                     const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
-                    const evoIcon = card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
+                    const evoIcon = card.iconUrls.evolutionMedium;
                     
                     return (
                       <div key={card.id} className={`card-item ${rarity} ${isHero ? 'hero-variant' : ''}`}>

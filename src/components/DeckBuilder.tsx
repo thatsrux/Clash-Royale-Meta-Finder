@@ -135,11 +135,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5
     };
 
-    // Final 2026 Hero List (Verified)
-    const HERO_VARIANTS_NAMES = [
-      'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 
-      'Wizard', 'Magic Archer', 'Mega Knight'
-    ];
+    // ULTIMATE 2026 HERO LIST (STRICT)
+    const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
 
     const getCardSlug = (name: string) => {
       return name.toLowerCase()
