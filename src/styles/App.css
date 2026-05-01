@@ -495,7 +495,7 @@ button {
 
 .hero-badge {
   background: #facc15 !important;
-  color: #422006 !important;
+  color: #78350f !important;
   box-shadow: 0 0 10px rgba(250, 204, 21, 0.8) !important;
   border: 1px solid #fff !important;
 }
@@ -505,6 +505,10 @@ button {
   color: #fff !important;
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.8) !important;
   border: 1px solid #fff !important;
+}
+
+.badge svg {
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
 }
 
 .missing-item-badge.hero {

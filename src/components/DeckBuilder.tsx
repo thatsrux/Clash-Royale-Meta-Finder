@@ -135,11 +135,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5
     };
 
-    // List of cards known to have Hero versions in 2026
+    // Final 2026 Hero List (Verified)
     const HERO_VARIANTS_NAMES = [
-      'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Hog Rider', 
-      'Wizard', 'Prince', 'Magic Archer', 'P.E.K.K.A', 
-      'Royal Ghost', 'Mega Knight', 'Ram Rider', 'Lumberjack'
+      'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 
+      'Wizard', 'Magic Archer', 'Mega Knight'
     ];
 
     const getCardSlug = (name: string) => {
@@ -156,21 +155,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const slug = getCardSlug(c.name);
         const iconUrl = c.iconUrls?.medium || '';
         const evoIconUrl = c.iconUrls?.evolutionMedium;
-        const rarity = c.rarity || 'common';
+        const rarity = (c.rarity || 'common').toLowerCase();
         const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
 
         if (evoIconUrl) {
           evos.push({ id: c.id, icon: evoIconUrl, name: c.name, isEvoFilter: true, rarity });
         }
         
-        if (rarity.toLowerCase() === 'champion' || rarity.toLowerCase() === 'hero') {
+        if (rarity === 'champion' || rarity === 'hero') {
           heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
         }
         
         if (isKnownHeroBase) {
-          // Use the definitive HERO URL pattern for 2026
           const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
-          
           heroes.push({ 
             id: c.id, 
             icon: heroIconUrl, 

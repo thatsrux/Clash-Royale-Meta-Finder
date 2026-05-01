@@ -458,8 +458,9 @@ function App() {
                     const displayLevel = getDisplayLevel(card);
                     
                     // Logic for Hero / Champion / Evolution (2026 Update)
-                    const isActualChampion = getRarityClass(card) === 'champion' || getRarityClass(card) === 'hero';
-                    const isHeroVariant = (card.heroLevel !== undefined && card.heroLevel > 0) || (card as any).hero?.unlocked === true;
+                    const rarity = getRarityClass(card);
+                    const isActualChampion = rarity === 'champion' || rarity === 'hero';
+                    const isHeroVariant = (card as any).heroLevel > 0 || (card as any).hero?.unlocked === true || (card as any).hero?.active === true;
                     const isHero = isHeroVariant || isActualChampion;
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
@@ -477,7 +478,7 @@ function App() {
                     const evoIcon = card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
                     
                     return (
-                      <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
+                      <div key={card.id} className={`card-item ${rarity} ${isHero ? 'hero-variant' : ''}`}>
                         <div className="card-image-container">
                           <img 
                             src={isHeroVariant ? heroIcon : (isEvo ? evoIcon : card.iconUrls.medium)} 
@@ -485,7 +486,6 @@ function App() {
                             className="card-image" 
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              // Final fallback to standard icon
                               if (target.src !== card.iconUrls.medium) {
                                 target.src = card.iconUrls.medium;
                               }
@@ -493,13 +493,13 @@ function App() {
                           />
                           <div className="card-badges">
                             {isHero && (
-                              <div className="badge hero-badge" title={isActualChampion ? "Champion Card" : "Hero Version"}>
-                                <Crown size={10} />
+                              <div className="badge hero-badge" title={isActualChampion ? "Champion" : "Hero"}>
+                                <Crown size={12} strokeWidth={3} />
                               </div>
                             )}
                             {isEvo && (
-                              <div className="badge evo-badge" title="Evolution Unlocked">
-                                <Sparkles size={10} />
+                              <div className="badge evo-badge" title="Evolution">
+                                <Sparkles size={12} strokeWidth={3} />
                               </div>
                             )}
                           </div>
