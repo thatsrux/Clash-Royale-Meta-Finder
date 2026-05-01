@@ -138,13 +138,22 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     // List of cards known to have Hero versions in 2026
     const HERO_VARIANTS_NAMES = [
       'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Hog Rider', 
-      'Wizard', 'Prince', 'Magic Archer', 'P.E.K.K.A', 'Valkyrie', 
+      'Wizard', 'Prince', 'Magic Archer', 'P.E.K.K.A', 
       'Royal Ghost', 'Mega Knight', 'Ram Rider', 'Lumberjack'
     ];
+
+    const getCardSlug = (name: string) => {
+      return name.toLowerCase()
+        .replace(/\./g, '')
+        .replace(/ /g, '-')
+        .replace('mini-pe-k-k-a', 'mini-pekka')
+        .replace('p-e-k-k-a', 'pekka');
+    };
 
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
         if (!c) return;
+        const slug = getCardSlug(c.name);
         const iconUrl = c.iconUrls?.medium || '';
         const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = c.rarity || 'common';
@@ -159,9 +168,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         }
         
         if (isKnownHeroBase) {
-          // Correct URL pattern for Heroic versions (-hero.png)
-          const cardSlug = c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '').replace('mini-pe-k-k-a', 'mini-pekka');
-          const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${cardSlug}-hero.png`;
+          // Use the definitive HERO URL pattern for 2026
+          const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
           
           heroes.push({ 
             id: c.id, 

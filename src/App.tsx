@@ -457,16 +457,24 @@ function App() {
                 {sortedCards.map((card) => {
                     const displayLevel = getDisplayLevel(card);
                     
-                    // Logic for Hero / Champion / Evolution
+                    // Logic for Hero / Champion / Evolution (2026 Update)
                     const isActualChampion = getRarityClass(card) === 'champion' || getRarityClass(card) === 'hero';
-                    const isHeroVariant = card.heroLevel !== undefined && card.heroLevel > 0;
+                    const isHeroVariant = (card.heroLevel !== undefined && card.heroLevel > 0) || (card as any).hero?.unlocked === true;
                     const isHero = isHeroVariant || isActualChampion;
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
-                    // Correct URL pattern for Heroic versions from RoyaleAPI (-hero.png)
-                    const cardSlug = card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '').replace('mini-pe-k-k-a', 'mini-pekka');
-                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/${cardSlug}-hero.png`;
-                    const evoIcon = card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${cardSlug}-ev1.png`;
+                    // Improved slugging for RoyaleAPI assets
+                    const getCardSlug = (name: string) => {
+                      return name.toLowerCase()
+                        .replace(/\./g, '')
+                        .replace(/ /g, '-')
+                        .replace('mini-pe-k-k-a', 'mini-pekka')
+                        .replace('p-e-k-k-a', 'pekka');
+                    };
+                    
+                    const slug = getCardSlug(card.name);
+                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+                    const evoIcon = card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
                     
                     return (
                       <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
@@ -477,6 +485,7 @@ function App() {
                             className="card-image" 
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
+                              // Final fallback to standard icon
                               if (target.src !== card.iconUrls.medium) {
                                 target.src = card.iconUrls.medium;
                               }
