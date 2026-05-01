@@ -142,7 +142,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       return name.toLowerCase()
         .replace(/\./g, '')
         .replace(/ /g, '-')
-        .replace('mini-pe-k-k-a', 'mini-pekka')
+        .replace('mini-p-e-k-k-a', 'mini-pekka')
         .replace('p-e-k-k-a', 'pekka');
     };
 
@@ -165,6 +165,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         
         if (isKnownHeroBase) {
           const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+          // We add the Hero variant to the heroes list. 
+          // Since allGameCards includes everything in the game, this will trigger for these 4 cards 
+          // regardless of player's personal collection.
           heroes.push({ 
             id: c.id, 
             icon: heroIconUrl, 
