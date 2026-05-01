@@ -25,6 +25,7 @@ interface MetaDeck {
   isBestSynergy: boolean;
   maxMedals: number;
   missingEvos: { name: string; icon: string }[];
+  towerTroopId?: number;
 }
 
 type SortOption = 'level' | 'elixir' | 'rarity' | 'evo';
@@ -210,16 +211,18 @@ function App() {
       const items = rankingsData.items;
       const sampleSize = 200;
       const playersToFetch = items.slice(0, sampleSize);
-      const decksWithRatings: { deck: Card[], rating: number }[] = [];
+      const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number }[] = [];
       const batchSize = 20; // Increased from 8 to 20 for faster scanning
       
       const extractDeckFromLog = (log: any[]) => {
         const recentMatch = log.find(entry => entry.type === 'pathOfLegend' || entry.type === 'PvP');
         if (!recentMatch || !recentMatch.team || !recentMatch.team[0]) return null;
-        // Filter out Tower Troops (ID >= 68000000) and keep only 8 cards
-        return recentMatch.team[0].cards
-          .filter((c: any) => c.id < 68000000)
-          .slice(0, 8);
+        
+        const allMatchCards = recentMatch.team[0].cards || [];
+        const towerTroop = allMatchCards.find((c: any) => c.id >= 68000000);
+        const deck = allMatchCards.filter((c: any) => c.id < 68000000).slice(0, 8);
+        
+        return { deck, towerTroopId: towerTroop?.id };
       };
 
       for (let i = 0; i < playersToFetch.length; i += batchSize) {
@@ -228,30 +231,36 @@ function App() {
           batch.map(async (p: any) => {
             try { 
               const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
-              const deckFromLog = log ? extractDeckFromLog(log) : null;
-              let deck = deckFromLog || await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
+              const logData = log ? extractDeckFromLog(log) : null;
               
+              if (logData && logData.deck.length === 8) {
+                return { deck: logData.deck, towerTroopId: logData.towerTroopId, rating: p.eloRating || p.trophies || 0 };
+              }
+              
+              // Fallback to getPlayerDeck if log fails
+              const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
               if (deck && Array.isArray(deck)) {
-                // Ensure we filter any non-deck cards (like Tower Troops) from getPlayerDeck too
-                deck = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
-                return deck.length === 8 ? { deck, rating: p.eloRating || p.trophies || 0 } : null;
+                const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
+                const tower = deck.find((c: any) => c.id >= 68000000);
+                return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
               }
               return null;
             } catch { return null; }
           })
         );
-        decksWithRatings.push(...batchResults.filter((d): d is { deck: Card[], rating: number } => d !== null));
+        decksWithRatings.push(...batchResults.filter((d): d is { deck: Card[], towerTroopId?: number, rating: number } => d !== null));
         setMetaProgress(Math.round(((i + batch.length) / playersToFetch.length) * 100));
       }
       
-      const deckCounts: Record<string, { cards: Card[], count: number, maxRating: number }> = {};
+      const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number }> = {};
       decksWithRatings.forEach(item => {
         const key = item.deck.map((c: any) => c.id).sort((a, b) => a - b).join(',');
         if (deckCounts[key]) {
           deckCounts[key].count++;
           deckCounts[key].maxRating = Math.max(deckCounts[key].maxRating, item.rating);
+          if (!deckCounts[key].towerTroopId && item.towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
         } else {
-          deckCounts[key] = { cards: item.deck, count: 1, maxRating: item.rating };
+          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: item.rating };
         }
       });
 
@@ -280,6 +289,7 @@ function App() {
         return {
           name: `Meta Archetype`,
           cards: meta.cards,
+          towerTroopId: meta.towerTroopId,
           count: meta.count,
           maxedCount: eliteCount,
           isBestSynergy: allAtLeast14,

@@ -12,6 +12,7 @@ interface MetaDeck {
   isBestSynergy: boolean;
   maxMedals: number;
   missingEvos: { name: string; icon: string }[];
+  towerTroopId?: number;
 }
 
 interface FilterItem {
@@ -56,18 +57,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
   };
 
-  const handleCopyDeck = (cards: Card[], index: number) => {
+  const handleCopyDeck = (deck: MetaDeck, index: number) => {
+    const { cards, towerTroopId } = deck;
     // Clash Royale deep links REQUIRE a specific slot order to work correctly:
     // Slot 1: First Evolution Slot
     // Slot 2: Champion Slot (or regular if no Champion)
     // Slot 3: Second Evolution Slot (or regular)
     // Slots 4-8: Regular card slots
     
-    // 1. Filter out Tower Troops (ID >= 68000000)
+    // 1. Filter out Tower Troops (ID >= 68000000) from the main card list
     const allCards = cards.filter(c => c && c.id && c.id < 68000000);
     
-    // 2. Identify Evolutions (in this app, Evo cards are usually the first two in meta decks)
-    // and Champions (rarity 'champion' or 'hero')
+    // 2. Identify Evolutions and Champions
     const champions = allCards.filter(c => c.rarity?.toLowerCase() === 'champion' || c.rarity?.toLowerCase() === 'hero');
     const evos = allCards.filter(c => c.evolutionLevel && c.evolutionLevel > 0);
     const others = allCards.filter(c => 
@@ -113,8 +114,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       }
     }
 
-    // Final fallback: if we still have empty slots (e.g., fewer than 2 evos), 
-    // just fill them with any remaining cards from the original list that aren't used.
+    // Final fallback
     const remainingCards = allCards.filter(c => !usedIds.has(c.id));
     let remIdx = 0;
     for (let i = 0; i < 8; i++) {
@@ -124,25 +124,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       }
     }
 
-    // 4. Generate the ID string (filter out any undefined just in case)
     const finalIds = orderedDeck.filter(Boolean).map(c => c.id).slice(0, 8);
     const ids = finalIds.join(';');
     
-    const link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
-    const deepLink = `clashroyale://copyDeck?deck=${ids}`;
+    // Construct the link with Tower Troop if available
+    let link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
+    if (towerTroopId) {
+      link += `&towerTroop=${towerTroopId}`;
+    }
+    
+    // Add a name to make the link more "official"
+    link += `&name=Meta%20Archetype`;
     
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    // Try direct scheme
-    window.location.href = deepLink;
-    
-    // Fallback to universal link
-    setTimeout(() => {
-      window.location.href = link;
-    }, 500);
+    // On modern mobile devices, a single window.location.href to the universal link
+    // is often more reliable than trying to trigger the custom scheme manually,
+    // as the browser handles the app redirection automatically.
+    window.location.href = link;
   };
 
   const { filteredRecommendations } = useMemo(() => {
@@ -323,9 +325,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   )}
                   <button 
                     className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
-                    onClick={() => handleCopyDeck(deck.cards, idx)}
+                    onClick={() => handleCopyDeck(deck, idx)}
                     title="Copy to Clash Royale"
                   >
+
                     {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
                     <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
                   </button>
