@@ -25,6 +25,7 @@ interface MetaDeck {
   isBestSynergy: boolean;
   maxMedals: number;
   missingEvos: { name: string; icon: string }[];
+  missingHeroes: { name: string; icon: string }[];
   towerTroopId?: number;
 }
 
@@ -269,28 +270,40 @@ function App() {
         let eliteCount = 0;
         let allAtLeast14 = true;
         const missingEvos: { name: string; icon: string }[] = [];
+        const missingHeroes: { name: string; icon: string }[] = [];
         
         // Affinity MUST be calculated ONLY on the 8 deck cards.
         // The towerTroopId is stored separately and does not affect the score.
-        meta.cards.forEach((metaCard, index) => {
+        meta.cards.forEach((metaCard) => {
           const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
           if (userCard) {
             const displayLevel = Number(getDisplayLevel(userCard));
             totalLevel += displayLevel;
             if (displayLevel >= 15) eliteCount++;
             if (displayLevel < 14) allAtLeast14 = false;
-            // Evo check (index < 2 is a heuristic for meta decks)
-            if (index < 2 && metaCard.iconUrls.evolutionMedium && !(userCard.evolutionLevel && userCard.evolutionLevel > 0)) {
+            
+            // Evo check
+            if (metaCard.evolutionLevel && metaCard.evolutionLevel > 0 && !(userCard.evolutionLevel && userCard.evolutionLevel > 0)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+            }
+            // Hero check
+            if (metaCard.heroLevel && metaCard.heroLevel > 0 && !(userCard.heroLevel && userCard.heroLevel > 0)) {
+              missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
             }
           } else { 
             totalLevel += 1; 
             allAtLeast14 = false; 
+            if (metaCard.evolutionLevel && metaCard.evolutionLevel > 0) {
+              missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+            }
+            if (metaCard.heroLevel && metaCard.heroLevel > 0) {
+              missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
+            }
           }
         });
 
         const avgLevel = totalLevel / 8;
-        const affinityScore = (eliteCount * 100.0) + avgLevel - (missingEvos.length * 10.0) + (meta.count * 0.1);
+        const affinityScore = (eliteCount * 100.0) + avgLevel - (missingEvos.length * 10.0) - (missingHeroes.length * 10.0) + (meta.count * 0.1);
 
         return {
           name: `Meta Archetype`,
@@ -302,7 +315,8 @@ function App() {
           maxMedals: meta.maxRating,
           score: affinityScore,
           avgLevel: avgLevel,
-          missingEvos
+          missingEvos,
+          missingHeroes
         };
       });
 
@@ -443,16 +457,13 @@ function App() {
                 {sortedCards.map((card) => {
                     const displayLevel = getDisplayLevel(card);
                     
-                    // Logic for Hero / Champion Badge
-                    const isActualChampion = getRarityClass(card) === 'champion' || getRarityClass(card) === 'hero';
-                    const isSpecificHero = card.name.toLowerCase().includes('mini p.e.k.k.a') || card.name.toLowerCase() === 'giant';
-                    const isHero = isActualChampion || isSpecificHero;
-
-                    // Only show Evo badge if it's NOT a specific hero we want to mark as gold
-                    const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !isSpecificHero;
+                    // Logic for Hero / Champion / Evolution
+                    const isActualChampion = getRarityClass(card) === 'champion';
+                    const isHero = (card.heroLevel !== undefined && card.heroLevel > 0) || getRarityClass(card) === 'hero';
+                    const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
                     return (
-                      <div key={card.id} className={`card-item ${getRarityClass(card)}`}>
+                      <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
                         <div className="card-image-container">
                           <img 
                             src={isEvo && card.iconUrls.evolutionMedium ? card.iconUrls.evolutionMedium : card.iconUrls.medium} 
@@ -466,7 +477,7 @@ function App() {
                               </div>
                             )}
                             {isHero && (
-                              <div className="badge hero-badge" title="Hero / Champion Card">
+                              <div className="badge hero-badge" title={isActualChampion ? "Champion Card" : "Hero Version"}>
                                 <Crown size={10} />
                               </div>
                             )}

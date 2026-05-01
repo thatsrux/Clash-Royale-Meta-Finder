@@ -11,6 +11,7 @@ export interface Card {
   };
   rarity: string;
   evolutionLevel?: number;
+  heroLevel?: number;
 }
 
 export interface PlayerProfile {

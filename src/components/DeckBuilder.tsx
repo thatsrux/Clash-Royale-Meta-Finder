@@ -12,6 +12,7 @@ interface MetaDeck {
   isBestSynergy: boolean;
   maxMedals: number;
   missingEvos: { name: string; icon: string }[];
+  missingHeroes: { name: string; icon: string }[];
   towerTroopId?: number;
 }
 
@@ -59,81 +60,39 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
-    // Clash Royale deep links REQUIRE a specific slot order to work correctly:
-    // Slot 1: First Evolution Slot
-    // Slot 2: Champion Slot (or regular if no Champion)
-    // Slot 3: Second Evolution Slot (or regular)
-    // Slots 4-8: Regular card slots
     
-    // 1. Filter out Tower Troops (ID >= 68000000) from the main card list
+    // 1. Filter out Tower Troops (ID >= 68000000)
     const allCards = cards.filter(c => c && c.id && c.id < 68000000);
     
-    // 2. Identify Evolutions and Champions
-    const champions = allCards.filter(c => c.rarity?.toLowerCase() === 'champion' || c.rarity?.toLowerCase() === 'hero');
-    const evos = allCards.filter(c => c.evolutionLevel && c.evolutionLevel > 0);
-    const others = allCards.filter(c => 
-      !(c.rarity?.toLowerCase() === 'champion' || c.rarity?.toLowerCase() === 'hero') && 
-      !(c.evolutionLevel && c.evolutionLevel > 0)
-    );
-
-    // 3. Construct the 8-card array in correct order
-    const orderedDeck: Card[] = new Array(8);
-    const usedIds = new Set<number>();
-
-    // Slot 1: First Evo
-    if (evos.length > 0) {
-      orderedDeck[0] = evos[0];
-      usedIds.add(evos[0].id);
-    }
-
-    // Slot 2: Champion
-    if (champions.length > 0) {
-      orderedDeck[1] = champions[0];
-      usedIds.add(champions[0].id);
-    }
-
-    // Slot 3: Second Evo
-    const secondEvo = evos.find(e => !usedIds.has(e.id));
-    if (secondEvo) {
-      orderedDeck[2] = secondEvo;
-      usedIds.add(secondEvo.id);
-    }
-
-    // Fill remaining slots with "others"
-    let othersIdx = 0;
-    for (let i = 0; i < 8; i++) {
-      if (!orderedDeck[i]) {
-        while (othersIdx < others.length && usedIds.has(others[othersIdx].id)) {
-          othersIdx++;
-        }
-        if (othersIdx < others.length) {
-          orderedDeck[i] = others[othersIdx];
-          usedIds.add(others[othersIdx].id);
-          othersIdx++;
-        }
-      }
-    }
-
-    // Final fallback
-    const remainingCards = allCards.filter(c => !usedIds.has(c.id));
-    let remIdx = 0;
-    for (let i = 0; i < 8; i++) {
-      if (!orderedDeck[i] && remIdx < remainingCards.length) {
-        orderedDeck[i] = remainingCards[remIdx];
-        remIdx++;
-      }
-    }
-
-    const finalIds = orderedDeck.filter(Boolean).map(c => c.id).slice(0, 8);
-    const ids = finalIds.join(';');
+    // In 2026, we have 3 special slots: Evolution, Hero, and Wild (2nd Evo or 2nd Hero/Champ)
+    // We prioritize assigning cards to these slots.
+    const orderedDeck: Card[] = [...allCards].slice(0, 8);
+    const slots = new Array(8).fill(0);
     
-    // Construct the link with Tower Troop if available
-    let link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
+    let evoCount = 0;
+    let heroChampCount = 0;
+    
+    for (let i = 0; i < orderedDeck.length; i++) {
+      const card = orderedDeck[i];
+      const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
+      const isHeroChamp = (card.rarity?.toLowerCase() === 'champion' || card.rarity?.toLowerCase() === 'hero' || (card.heroLevel !== undefined && card.heroLevel > 0));
+      
+      if (isEvo && evoCount < 2 && (evoCount + heroChampCount < 3)) {
+        slots[i] = 1;
+        evoCount++;
+      } else if (isHeroChamp && heroChampCount < 2 && (evoCount + heroChampCount < 3)) {
+        slots[i] = 2;
+        heroChampCount++;
+      }
+    }
+
+    const finalIds = orderedDeck.map(c => c.id).join(';');
+    const slotsString = slots.join(';');
+    
+    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slotsString}`;
     if (towerTroopId) {
       link += `&towerTroop=${towerTroopId}`;
     }
-    
-    // Add a name to make the link more "official"
     link += `&name=Meta%20Archetype`;
     
     navigator.clipboard.writeText(link).then(() => {
@@ -141,9 +100,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    // On modern mobile devices, a single window.location.href to the universal link
-    // is often more reliable than trying to trigger the custom scheme manually,
-    // as the browser handles the app redirection automatically.
     window.location.href = link;
   };
 
@@ -353,12 +309,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     const isMaxed = userLevel >= 15;
                     const missingLvls = Math.max(0, 15 - userLevel);
                     
-                    const displayIcon = (index < 2 && card.iconUrls?.evolutionMedium) 
+                    const isEvo = card.evolutionLevel && card.evolutionLevel > 0;
+                    const isHero = card.heroLevel && card.heroLevel > 0;
+                    
+                    const displayIcon = (isEvo && card.iconUrls?.evolutionMedium) 
                       ? card.iconUrls.evolutionMedium 
                       : card.iconUrls?.medium || '';
 
                     return (
-                      <div key={card.id || index} className={`mini-card ${index < 2 && card.iconUrls?.evolutionMedium ? 'evo-slot' : ''}`}>
+                      <div key={card.id || index} className={`mini-card ${isEvo ? 'evo-slot' : ''} ${isHero ? 'hero-slot' : ''}`}>
                         <div className="card-image-container">
                           {displayIcon && <img src={displayIcon} alt={card.name} />}
                         </div>
@@ -370,7 +329,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             <ArrowUp size={6} /> {missingLvls}
                           </div>
                         )}
-                        {index < 2 && card.iconUrls?.evolutionMedium && <div className="evo-indicator-tiny"></div>}
+                        {isEvo && <div className="evo-indicator-tiny"></div>}
+                        {isHero && <div className="hero-indicator-tiny"></div>}
                       </div>
                     );
                   })}
@@ -394,27 +354,33 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 </div>
               </div>
 
-              {deck.missingEvos && deck.missingEvos.length > 0 && (
+              {(deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) && (
                 <div className="deck-missing-section">
                   <div className="missing-label">
                     <AlertCircle size={12} />
-                    <span>MISSING EVOLUTIONS</span>
+                    <span>MISSING UPGRADES</span>
                   </div>
                   <div className="missing-icons-list">
-                    {deck.missingEvos.map((evo, eIdx) => (
-                      <div key={eIdx} className="missing-item-badge">
+                    {deck.missingEvos?.map((evo, eIdx) => (
+                      <div key={`evo-${eIdx}`} className="missing-item-badge evo">
                         <img src={evo.icon} alt={evo.name} />
-                        <span>{evo.name}</span>
+                        <span>{evo.name} (EVO)</span>
+                      </div>
+                    ))}
+                    {deck.missingHeroes?.map((hero, hIdx) => (
+                      <div key={`hero-${hIdx}`} className="missing-item-badge hero">
+                        <img src={hero.icon} alt={hero.name} />
+                        <span>{hero.name} (HERO)</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
               
-              {(!deck.missingEvos || deck.missingEvos.length === 0) && (
+              {(!deck.missingEvos || deck.missingEvos.length === 0) && (!deck.missingHeroes || deck.missingHeroes.length === 0) && (
                 <div className="deck-ready-footer">
                   <CheckCircle2 size={12} />
-                  <span>EVOLUTIONS READY</span>
+                  <span>DECK FULLY READY</span>
                 </div>
               )}
             </div>

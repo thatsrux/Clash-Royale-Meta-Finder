@@ -451,7 +451,57 @@ button {
 .mini-level { position: absolute; bottom: 4px; right: 4px; background: var(--surface); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: 900; z-index: 10; }
 @media (min-width: 768px) { .mini-level { font-size: 0.75rem; padding: 2px 6px; bottom: 6px; right: 6px; } }
 .missing-lvl-indicator { position: absolute; top: -4px; left: -4px; background: #ef4444; color: white; font-size: 0.55rem; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; font-weight: 900; z-index: 10; }
-.evo-slot { border: 1.5px solid var(--evo-purple); background: linear-gradient(180deg, #2e1065 0%, #0f172a 100%) !important; }
+.evo-slot { 
+  border: 1.5px solid var(--evo-purple) !important; 
+  background: linear-gradient(180deg, #2e1065 0%, #0f172a 100%) !important; 
+}
+
+.hero-slot {
+  position: relative;
+  border: 1.5px solid var(--hero-gold) !important;
+  background: linear-gradient(180deg, #78350f 0%, #0f172a 100%) !important;
+}
+
+.hero-indicator-tiny {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: var(--hero-gold);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.evo-indicator-tiny {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: var(--evo-purple);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.hero-variant {
+  border-color: var(--hero-gold) !important;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+}
+
+.missing-item-badge.hero {
+  border-left: 3px solid var(--hero-gold);
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.missing-item-badge.evo {
+  border-left: 3px solid var(--evo-purple);
+  background: rgba(168, 85, 247, 0.05);
+}
 .deck-stats-group { display: flex; gap: 1rem; flex: 1; justify-content: space-around; }
 @media (min-width: 1024px) { .deck-stats-group { flex-direction: column; gap: 1.25rem; max-width: 180px; align-items: flex-end; } }
 .deck-stat-item { display: flex; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; }
