@@ -57,17 +57,34 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   };
 
   const handleCopyDeck = (cards: Card[], index: number) => {
-    const ids = cards.map(c => c.id).join(';');
-    const link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
+    // Standard Clash Royale decks have exactly 8 cards.
+    // We MUST filter out Tower Troops (IDs usually start with 68) 
+    // and ensure we only send exactly 8 valid card IDs.
+    const deckCards = cards
+      .filter(c => c && c.id && c.id < 68000000)
+      .slice(0, 8);
     
-    // Copy to clipboard
+    const ids = deckCards.map(c => c.id).join(';');
+    
+    // The official link format
+    const link = `https://link.clashroyale.com/deck/en?deck=${ids}`;
+    // Direct deep link scheme
+    const deepLink = `clashroyale://copyDeck?deck=${ids}`;
+    
+    // Copy the universal link to clipboard
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    // Try to open the link directly (deep link)
-    window.location.href = link;
+    // We try the deep link first as it's more direct, 
+    // but the universal link is also reliable via the browser.
+    window.location.href = deepLink;
+    
+    // Fallback to universal link after a short delay if deep link didn't trigger
+    setTimeout(() => {
+      window.location.href = link;
+    }, 500);
   };
 
   const { filteredRecommendations } = useMemo(() => {

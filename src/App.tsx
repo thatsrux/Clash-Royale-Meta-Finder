@@ -215,7 +215,11 @@ function App() {
       
       const extractDeckFromLog = (log: any[]) => {
         const recentMatch = log.find(entry => entry.type === 'pathOfLegend' || entry.type === 'PvP');
-        return (recentMatch && recentMatch.team && recentMatch.team[0]) ? recentMatch.team[0].cards : null;
+        if (!recentMatch || !recentMatch.team || !recentMatch.team[0]) return null;
+        // Filter out Tower Troops (ID >= 68000000) and keep only 8 cards
+        return recentMatch.team[0].cards
+          .filter((c: any) => c.id < 68000000)
+          .slice(0, 8);
       };
 
       for (let i = 0; i < playersToFetch.length; i += batchSize) {
@@ -225,8 +229,14 @@ function App() {
             try { 
               const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
               const deckFromLog = log ? extractDeckFromLog(log) : null;
-              const deck = deckFromLog || await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
-              return deck ? { deck, rating: p.eloRating || p.trophies || 0 } : null;
+              let deck = deckFromLog || await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
+              
+              if (deck && Array.isArray(deck)) {
+                // Ensure we filter any non-deck cards (like Tower Troops) from getPlayerDeck too
+                deck = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
+                return deck.length === 8 ? { deck, rating: p.eloRating || p.trophies || 0 } : null;
+              }
+              return null;
             } catch { return null; }
           })
         );
