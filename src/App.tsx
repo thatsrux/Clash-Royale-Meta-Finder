@@ -463,15 +463,16 @@ function App() {
                     const isHero = isHeroVariant || isActualChampion;
                     const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
                     
-                    // Direct URL for Heroic versions from RoyaleAPI
+                    // Correct URL pattern for Heroic versions from RoyaleAPI (-hero.png)
                     const cardSlug = card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '').replace('mini-pe-k-k-a', 'mini-pekka');
-                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/hero-${cardSlug}.png`;
+                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/${cardSlug}-hero.png`;
+                    const evoIcon = card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${cardSlug}-ev1.png`;
                     
                     return (
                       <div key={card.id} className={`card-item ${getRarityClass(card)} ${isHero ? 'hero-variant' : ''}`}>
                         <div className="card-image-container">
                           <img 
-                            src={isHeroVariant ? heroIcon : (isEvo && card.iconUrls.evolutionMedium ? card.iconUrls.evolutionMedium : card.iconUrls.medium)} 
+                            src={isHeroVariant ? heroIcon : (isEvo ? evoIcon : card.iconUrls.medium)} 
                             alt={card.name} 
                             className="card-image" 
                             onError={(e) => {
@@ -487,7 +488,7 @@ function App() {
                                 <Crown size={10} />
                               </div>
                             )}
-                            {isEvo && !isHeroVariant && (
+                            {isEvo && (
                               <div className="badge evo-badge" title="Evolution Unlocked">
                                 <Sparkles size={10} />
                               </div>
