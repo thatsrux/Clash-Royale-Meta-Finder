@@ -558,41 +558,87 @@ function App() {
                   </div>
 
                   {(() => {
-                    // CALCULATE RECOMMENDATIONS & STATS ON THE ENTIRE META (all scanned decks)
-                    const missingEvoCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
-                    const missingHeroCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
-                    
-                    // We use the FULL cache, not a sliced version
                     const allMetaDecks = metaDecksCache;
                     const totalDecksCount = allMetaDecks.length;
 
+                    // 1. ABSOLUTE META USAGE (Entire 200 decks, regardless of ownership)
+                    const absoluteEvoUsage: Record<number, { name: string, icon: string, count: number }> = {};
+                    const absoluteHeroUsage: Record<number, { name: string, icon: string, count: number }> = {};
+                    const absoluteRarityUsage: Record<string, Record<number, { name: string, icon: string, count: number, rarity: string }>> = {
+                      common: {}, rare: {}, epic: {}, legendary: {}, champion: {}
+                    };
+
                     allMetaDecks.forEach(deck => {
+                      deck.cards.forEach((metaCard, idx) => {
+                        const forcedForm = (metaCard as any)._forceForm;
+                        const cardRarity = getRarityClass(metaCard);
+                        
+                        // Count Absolute Card Usage
+                        if (absoluteRarityUsage[cardRarity]) {
+                          if (!absoluteRarityUsage[cardRarity][metaCard.id]) {
+                            absoluteRarityUsage[cardRarity][metaCard.id] = { name: metaCard.name, icon: metaCard.iconUrls.medium, count: 0, rarity: cardRarity };
+                          }
+                          absoluteRarityUsage[cardRarity][metaCard.id].count++;
+                        }
+
+                        // Count Absolute Evo/Hero Usage (only in first 3 slots as per rules)
+                        if (idx < 3) {
+                          if (forcedForm === 'evo') {
+                            if (!absoluteEvoUsage[metaCard.id]) absoluteEvoUsage[metaCard.id] = { name: metaCard.name, icon: getCardIcon(metaCard, false, true), count: 0 };
+                            absoluteEvoUsage[metaCard.id].count++;
+                          } else if (forcedForm === 'hero') {
+                            if (!absoluteHeroUsage[metaCard.id]) absoluteHeroUsage[metaCard.id] = { name: metaCard.name, icon: getCardIcon(metaCard, true, false), count: 0 };
+                            absoluteHeroUsage[metaCard.id].count++;
+                          }
+                        }
+                      });
+                    });
+
+                    // 2. PERSONAL RECOMMENDATIONS (Focus on what YOU need to improve)
+                    const missingEvoImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
+                    const missingHeroImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
+                    const upgradeRarityImpact: Record<string, { name: string, icon: string, impact: number, count: number, rarity: string }> = {};
+
+                    allMetaDecks.forEach(deck => {
+                      // Weigh the contribution by the current deck affinity (Cubic to focus heavily on mazzi migliori)
+                      const weight = Math.pow(deck.score / 10, 3);
+
                       deck.missingEvos.forEach(evo => {
                         const card = deck.cards.find(c => c.name === evo.name);
                         if (!card) return;
-                        if (!missingEvoCounts[card.id]) missingEvoCounts[card.id] = { name: evo.name, icon: evo.icon, count: 0, deckPotential: 0 };
-                        missingEvoCounts[card.id].count++;
-                        // Weighted by deck affinity score (Mazzi Migliori)
-                        missingEvoCounts[card.id].deckPotential += Math.pow(deck.score / 10, 2);
+                        if (!missingEvoImpact[card.id]) missingEvoImpact[card.id] = { name: evo.name, icon: evo.icon, impact: 0, count: 0 };
+                        missingEvoImpact[card.id].impact += weight;
+                        missingEvoImpact[card.id].count++;
                       });
                       deck.missingHeroes.forEach(hero => {
                         const card = deck.cards.find(c => c.name === hero.name);
                         if (!card) return;
-                        if (!missingHeroCounts[card.id]) missingHeroCounts[card.id] = { name: hero.name, icon: hero.icon, count: 0, deckPotential: 0 };
-                        missingHeroCounts[card.id].count++;
-                        missingHeroCounts[card.id].deckPotential += Math.pow(deck.score / 10, 2);
+                        if (!missingHeroImpact[card.id]) missingHeroImpact[card.id] = { name: hero.name, icon: hero.icon, impact: 0, count: 0 };
+                        missingHeroImpact[card.id].impact += weight;
+                        missingHeroImpact[card.id].count++;
+                      });
+
+                      deck.cards.forEach(metaCard => {
+                        const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
+                        const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
+                        if (displayLevel > 0 && displayLevel < 16) {
+                          const r = getRarityClass(metaCard);
+                          const gain = (16 - displayLevel) / 1.28 + 2; // Simulated Affinity point gain
+                          if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r };
+                          upgradeRarityImpact[metaCard.id].impact += (gain * weight);
+                          upgradeRarityImpact[metaCard.id].count++;
+                        }
                       });
                     });
 
-                    const recommendationEvos = Object.values(missingEvoCounts).sort((a, b) => b.deckPotential - a.deckPotential);
-                    const recommendationHeroes = Object.values(missingHeroCounts).sort((a, b) => b.deckPotential - a.deckPotential);
+                    const bestEvo = Object.values(missingEvoImpact).sort((a, b) => b.impact - a.impact)[0];
+                    const bestHero = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact)[0];
 
-                    const bestEvo = recommendationEvos[0];
-                    const bestHero = recommendationHeroes[0];
-
-                    // STRICT SORT BY FULL META USAGE % (Descending)
-                    const sortedEvosByUsage = Object.values(missingEvoCounts).sort((a, b) => b.count - a.count);
-                    const sortedHeroesByUsage = Object.values(missingHeroCounts).sort((a, b) => b.count - a.count);
+                    const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
+                    const nextUpgrades = rarities.map(r => {
+                      const available = Object.values(upgradeRarityImpact).filter(c => c.rarity === r);
+                      return available.sort((a, b) => b.impact - a.impact)[0];
+                    }).filter(Boolean);
 
                     return (
                       <>
@@ -604,7 +650,7 @@ function App() {
                                 <img src={bestEvo.icon} alt={bestEvo.name} />
                                 <div className="rec-info">
                                   <div className="rec-name">{bestEvo.name}</div>
-                                  <div className="rec-reason">Used in {Math.round(bestEvo.count)} archetypes</div>
+                                  <div className="rec-reason">Completes {bestEvo.count} meta archetypes</div>
                                 </div>
                               </div>
                             </div>
@@ -616,7 +662,7 @@ function App() {
                                 <img src={bestHero.icon} alt={bestHero.name} />
                                 <div className="rec-info">
                                   <div className="rec-name">{bestHero.name}</div>
-                                  <div className="rec-reason">Used in {Math.round(bestHero.count)} archetypes</div>
+                                  <div className="rec-reason">Boosts {bestHero.count} pro decks</div>
                                 </div>
                               </div>
                             </div>
@@ -627,7 +673,7 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
                             <div className="stats-list">
-                              {sortedEvosByUsage.map(evo => (
+                              {Object.values(absoluteEvoUsage).sort((a, b) => b.count - a.count).map(evo => (
                                 <div key={evo.name} className="stat-row-item">
                                   <img src={evo.icon} alt={evo.name} />
                                   <div className="stat-row-details">
@@ -642,7 +688,7 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
                             <div className="stats-list">
-                              {sortedHeroesByUsage.map(hero => (
+                              {Object.values(absoluteHeroUsage).sort((a, b) => b.count - a.count).map(hero => (
                                 <div key={hero.name} className="stat-row-item">
                                   <img src={hero.icon} alt={hero.name} />
                                   <div className="stat-row-details">
@@ -661,126 +707,47 @@ function App() {
                           <span>UPGRADE PRIORITY BY RARITY</span>
                         </div>
 
-                        {(() => {
-                          const rarityRecommendations: Record<string, { name: string, icon: string, totalGain: number, rarity: string, count: number }> = {};
-                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, rarity: string }> = {};
-                          const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
-                          
-                          // 1. First, identify all non-maxed cards and their meta usage
-                          allMetaDecks.forEach(deck => {
-                            deck.cards.forEach(metaCard => {
-                              const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
-                              const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
-                              
-                              if (displayLevel > 0 && displayLevel < 16) {
-                                if (!missingEliteCounts[metaCard.id]) {
-                                  missingEliteCounts[metaCard.id] = { 
-                                    name: metaCard.name, 
-                                    icon: metaCard.iconUrls.medium, 
-                                    count: 0, 
-                                    rarity: getRarityClass(metaCard)
-                                  };
-                                }
-                                missingEliteCounts[metaCard.id].count++;
-                              }
-                            });
-                          });
-
-                          // 2. SIMULATION: For each rarity, find the card that gives the most TOTAL Affinity % GAIN
-                          rarities.forEach(r => {
-                            const candidates = Object.keys(missingEliteCounts).filter(id => missingEliteCounts[Number(id)].rarity === r);
-                            let bestCandidate = null;
-                            let maxTotalGain = -1;
-
-                            candidates.forEach(cardIdStr => {
-                              const cardId = Number(cardIdStr);
-                              const candidateInfo = missingEliteCounts[cardId];
-                              const userCard = profile!.cards.find(c => Number(c.id) === cardId)!;
-                              const currentLvl = getDisplayLevel(userCard);
-                              
-                              let cumulativeGain = 0;
-
-                              // Check every single meta deck (the full 200)
-                              allMetaDecks.forEach(deck => {
-                                const hasCard = deck.cards.some(c => Number(c.id) === cardId);
-                                if (hasCard) {
-                                  // MATH: How much does THIS specific upgrade help THIS specific deck?
-                                  // A: Level boost: (1/128) * 100 per level gained
-                                  const levelsGained = 16 - currentLvl;
-                                  const levelGainPct = (levelsGained / 128) * 100;
-                                  // B: Elite bonus: If it becomes the 8th maxed card, or just adds +2% penalty removal
-                                  const eliteGainPct = 2; 
-                                  
-                                  const totalDeckGain = levelGainPct + eliteGainPct;
-                                  
-                                  // We weigh the gain by the deck's CURRENT quality. 
-                                  // Upgrading a card in a 90% deck is worth more than in a 10% deck.
-                                  const weight = deck.score / 100; 
-                                  cumulativeGain += (totalDeckGain * weight);
-                                }
-                              });
-
-                              if (cumulativeGain > maxTotalGain) {
-                                maxTotalGain = cumulativeGain;
-                                bestCandidate = { ...candidateInfo, totalGain: cumulativeGain };
-                              }
-                            });
-
-                            if (bestCandidate) rarityRecommendations[r] = bestCandidate;
-                          });
-
-                          return (
-                            <>
-                              <div className="upgrade-rec-grid">
-                                {rarities.map(r => {
-                                  const rec = rarityRecommendations[r];
-                                  if (!rec) return null;
-                                  return (
-                                    <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
-                                      <div className="rec-header">BEST NEXT {rec.rarity.toUpperCase()}</div>
-                                      <div className="rec-body-mini">
-                                        <img src={rec.icon} alt={rec.name} />
-                                        <div className="rec-mini-info">
-                                          <div className="name">{rec.name}</div>
-                                          <div className="meta-stats">Used in {rec.count} archetypes</div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                        <div className="upgrade-rec-grid">
+                          {nextUpgrades.map(rec => (
+                            <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
+                              <div className="rec-header">BEST NEXT {rec.rarity.toUpperCase()}</div>
+                              <div className="rec-body-mini">
+                                <img src={rec.icon} alt={rec.name} />
+                                <div className="rec-mini-info">
+                                  <div className="name">{rec.name}</div>
+                                  <div className="meta-stats">Boosts {rec.count} archetypes</div>
+                                </div>
                               </div>
+                            </div>
+                          ))}
+                        </div>
 
-                              <div className="stats-tables-grid-3">
-                                {rarities.map(r => {
-                                  const list = Object.values(missingEliteCounts)
-                                    .filter(c => c.rarity === r)
-                                    .sort((a, b) => b.count - a.count);
-                                  if (list.length === 0) return null;
+                        <div className="stats-tables-grid-3">
+                          {rarities.map(r => {
+                            const list = Object.values(absoluteRarityUsage[r]).sort((a, b) => b.count - a.count);
+                            if (list.length === 0) return null;
 
-                                  return (
-                                    <div key={r} className="stats-column">
-                                      <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
-                                        {r.toUpperCase()} USAGE
+                            return (
+                              <div key={r} className="stats-column">
+                                <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
+                                  {r.toUpperCase()} USAGE
+                                </div>
+                                <div className="stats-list mini">
+                                  {list.slice(0, 10).map(item => (
+                                    <div key={item.name} className="stat-row-item compact">
+                                      <img src={item.icon} alt={item.name} />
+                                      <div className="stat-row-details">
+                                        <span className="name">{item.name}</span>
+                                        <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span>
                                       </div>
-                                      <div className="stats-list mini">
-                                        {list.slice(0, 10).map(item => (
-                                          <div key={item.name} className="stat-row-item compact">
-                                            <img src={item.icon} alt={item.name} />
-                                            <div className="stat-row-details">
-                                              <span className="name">{item.name}</span>
-                                              <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span>
-                                            </div>
-                                            <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div>
-                                          </div>
-                                        ))}
-                                      </div>
+                                      <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div>
                                     </div>
-                                  );
-                                })}
+                                  ))}
+                                </div>
                               </div>
-                            </>
-                          );
-                        })()}
+                            );
+                          })}
+                        </div>
                       </>
                     );
                   })()}
