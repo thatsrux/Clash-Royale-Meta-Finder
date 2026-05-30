@@ -889,6 +889,73 @@ button {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.filter-sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+}
+
+.filter-section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 48px);
+  gap: 0.5rem;
+}
+
+.filter-grid-item {
+  width: 48px !important;
+  height: 58px !important;
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  border: 1.5px solid transparent;
+  border-radius: 4px;
+  background: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-grid-item:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+.filter-grid-item.selected {
+  opacity: 1;
+  border-color: var(--primary);
+  transform: scale(1.1);
+  z-index: 5;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.filter-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .filter-icon-bg {
   width: 32px;
   height: 32px;
