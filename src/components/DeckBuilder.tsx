@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, isChampion } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -140,6 +140,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
+    const champions: FilterItem[] = [];
     const heroes: FilterItem[] = [];
     const normal: FilterItem[] = [];
 
@@ -156,23 +157,32 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         
         // DYNAMIC DETECTION (No hardcoded lists)
         const isEvoBase = !!c.iconUrls?.evolutionMedium || c.name.toLowerCase().includes('evo');
-        const isHeroBase = rarity === 'champion' || rarity === 'hero' || c.name.toLowerCase().includes('hero');
+        const isChampionBase = rarity === 'champion';
+        const isHeroBase = rarity === 'hero' || c.name.toLowerCase().includes('hero');
 
         if (isEvoBase) {
           const evoIcon = c.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
           evos.push({ id: c.id, icon: evoIcon, name: c.name, isEvoFilter: true, rarity });
         }
         
-        if (isHeroBase) {
-          const heroIcon = (c.iconUrls as any)?.heroMedium || 
-                          (rarity === 'champion' ? iconUrl : `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`);
-          
+        if (isChampionBase) {
+          champions.push({ 
+            id: c.id, 
+            icon: iconUrl, 
+            name: c.name, 
+            isEvoFilter: false, 
+            rarity: 'champion' 
+          });
+        }
+
+        if (isHeroBase && !isChampionBase) {
+          const heroIcon = (c.iconUrls as any)?.heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
           heroes.push({ 
             id: c.id, 
             icon: heroIcon, 
             name: c.name.toLowerCase().includes('hero') ? c.name : `${c.name} (Hero)`, 
             isEvoFilter: false, 
-            rarity: rarity === 'champion' ? 'champion' : 'hero' 
+            rarity: 'hero' 
           });
         }
         
@@ -182,6 +192,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
     return {
       evos: evos.sort((a, b) => a.name.localeCompare(b.name)),
+      champions: champions.sort((a, b) => a.name.localeCompare(b.name)),
       heroes: heroes.sort((a, b) => a.name.localeCompare(b.name)),
       normal: normal.sort((a, b) => {
         const rA = rarityOrder[a.rarity.toLowerCase()] || 0;
@@ -192,7 +203,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     };
   }, [allGameCards]);
 
-  const FilterGrid = ({ items, title, icon: Icon, color }: { items: FilterItem[], title: string, icon: any, color: string }) => {
+  const FilterGrid = ({ items, title, icon: Icon, color, type }: { items: FilterItem[], title: string, icon: any, color: string, type?: string }) => {
     if (items.length === 0) return null;
     return (
       <div className="filter-section-group">
@@ -202,18 +213,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         <div className="filter-grid">
           {items.map((c, idx) => {
             const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
-            const isHeroVariantDisplay = c.rarity === 'hero';
             
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${isHeroVariantDisplay ? 'hero-filter-item' : ''}`}
+                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
                 <img src={c.icon} alt={c.name} onError={(e) => { (e.target as HTMLImageElement).src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png'; }} />
                 {c.isEvoFilter && <div className="evo-mini-icon"></div>}
-                {isHeroVariantDisplay && <div className="hero-mini-icon"></div>}
+                {type === 'hero' && <div className="hero-mini-icon"></div>}
+                {type === 'champion' && <div className="champion-mini-icon"></div>}
               </div>
             );
           })}
@@ -251,7 +262,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             
             <div className="filter-sections-container">
               <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-              <FilterGrid items={sections.heroes} title="HEROES / CHAMPIONS" icon={Crown} color="var(--hero-gold)" />
+              <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" type="champion" />
+              <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" type="hero" />
               <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
             </div>
           </div>
@@ -326,13 +338,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const missingLvls = Math.max(0, 16 - userLevel);
                       
                       const cardIsEvo = isEvoUnlocked(card);
-                      const cardIsHero = isAnyHeroUnlocked(card);
+                      const cardIsChamp = isChampion(card);
                       const heroVar = isHeroVariantUnlocked(card);
                       
                       const displayIcon = getCardIcon(card, heroVar, cardIsEvo);
 
                       return (
-                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
+                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${heroVar ? 'hero-slot' : ''}`}>
                           <div className="card-image-container">
                             {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
                           </div>
@@ -345,7 +357,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             </div>
                           )}
                           {cardIsEvo && <div className="evo-indicator-tiny"></div>}
-                          {cardIsHero && <div className="hero-indicator-tiny"></div>}
+                          {cardIsChamp && <div className="champion-indicator-tiny"></div>}
+                          {heroVar && <div className="hero-indicator-tiny"></div>}
                         </div>
                       );
                     })}
