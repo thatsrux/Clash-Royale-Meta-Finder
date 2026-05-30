@@ -481,11 +481,16 @@ function App() {
               </div>
 
               <div className="collection-header">
-                <h3>Card Collection ({profile.cards.length})</h3>
+                <h3>Card Collection ({sortedCards.length})</h3>
                 <div className="sort-controls">
-                  <span className="sort-label">Sort by:</span>
+                  <span className="sort-label">View:</span>
                   <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="sort-select">
-                    <option value="level">Level</option><option value="elixir">Elixir</option><option value="rarity">Rarity</option><option value="evo">Evolution</option>
+                    <option value="level">By Level</option>
+                    <option value="rarity">By Rarity</option>
+                    <option value="elixir">By Elixir</option>
+                    <option value="evo">By Evolution</option>
+                    <option value="hero-only">ONLY HEROES</option>
+                    <option value="evo-only">ONLY EVOS</option>
                   </select>
                   <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="order-toggle-btn">
                     {sortOrder === 'asc' ? <ArrowUpAZ size={18} /> : <ArrowDownAZ size={18} />}
@@ -493,28 +498,28 @@ function App() {
                 </div>
               </div>
 
-              <div className="card-grid">
+              <div className="card-grid pure-style">
                 {sortedCards.map((card) => {
                   const displayLevel = getDisplayLevel(card);
-                  const rarity = getRarityClass(card);
                   const heroVariant = isHeroVariantUnlocked(card);
                   const hero = isAnyHeroUnlocked(card);
                   const evo = isEvoUnlocked(card);
                   const icon = getCardIcon(card, heroVariant, evo);
+                  const elixir = cardMap[card.id]?.elixirCost;
 
                   return (
-                    <div key={card.id} className={`card-item ${rarity} ${heroVariant ? 'hero-variant' : ''}`}>
-                      <div className="card-image-container">
-                        <img src={icon} alt={card.name} className="card-image" onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
-                        <div className="card-badges">
-                          {hero && <div className="badge hero-badge" title="Hero / Champion"><Crown size={12} strokeWidth={3} /></div>}
-                          {evo && <div className="badge evo-badge" title="Evolution"><Sparkles size={12} strokeWidth={3} /></div>}
-                        </div>
-                      </div>
-                      <div className="card-level-badge">Level {displayLevel}</div>
-                      <div className="card-info">
-                        <div className="card-name">{card.name}</div>
-                        {cardMap[card.id]?.elixirCost !== undefined && <div className="elixir-badge">{cardMap[card.id].elixirCost}</div>}
+                    <div key={card.id} className="mini-card collection-item">
+                      <img src={icon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
+                      
+                      <div className="mini-level">{displayLevel}</div>
+                      
+                      {elixir !== undefined && (
+                        <div className="collection-elixir">{elixir}</div>
+                      )}
+
+                      <div className="card-badges-compact">
+                        {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
+                        {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
                       </div>
                     </div>
                   );
@@ -612,7 +617,7 @@ function App() {
 
                         <div className="stats-tables-row">
                           <div className="stats-column">
-                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE (Full Scan)</div>
+                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
                             <div className="stats-list">
                               {sortedEvosByUsage.map(evo => (
                                 <div key={evo.name} className="stat-row-item">

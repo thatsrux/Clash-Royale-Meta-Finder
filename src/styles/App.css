@@ -258,16 +258,14 @@ button {
   color: var(--text);
 }
 
-/* SORTING UI - RESTORED */
+/* COLLECTION UI OVERHAUL */
 .collection-header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .collection-header { flex-direction: row; justify-content: space-between; align-items: center; }
+  justify-content: space-between;
+  align-items: center;
+  margin: 3rem 0 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .sort-controls {
@@ -292,6 +290,12 @@ button {
   cursor: pointer;
 }
 
+/* Ensure options are legible on PC/Mac browsers */
+.sort-select option {
+  background-color: #1e293b;
+  color: white;
+}
+
 .order-toggle-btn {
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--border);
@@ -301,110 +305,111 @@ button {
   cursor: pointer;
 }
 
-/* PROFILE GRID */
-.card-grid {
+/* PROFILE GRID - PURE STYLE OVERHAUL */
+.card-grid.pure-style {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 75px);
-  gap: 0.75rem;
-  justify-content: center;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 1.5rem 0.6rem;
+  padding: 1rem 0;
 }
 
 @media (min-width: 768px) {
-  .card-grid { grid-template-columns: repeat(auto-fill, 105px); justify-content: flex-start; gap: 1rem; }
+  .card-grid.pure-style {
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+    gap: 2rem 1rem;
+  }
 }
 
-.card-item {
-  width: 100%;
-  background: #1e293b;
-  border-radius: 0.6rem;
-  position: relative;
-  border: 1px solid var(--border);
-  padding-bottom: 0.4rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-image-container {
-  padding: 0.25rem;
+.collection-item {
+  width: 100% !important;
+  margin: 0 !important;
+  transition: transform 0.2s;
+  background: transparent !important;
+  border: none !important;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.collection-item:hover {
+  transform: translateY(-5px);
+}
+
+.collection-item img {
   width: 100%;
-  box-sizing: border-box;
+  height: auto;
+  display: block;
+  object-fit: contain !important;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
-.card-image { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-.card-badges {
+.collection-elixir {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 30;
-}
-
-.badge {
+  top: -4px;
+  left: -4px;
+  background: #c026d3;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 900;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  border: 1px solid white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  background: var(--surface);
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 5;
 }
 
 @media (min-width: 768px) {
-  .badge { width: 18px; height: 18px; }
-  .card-badges { top: 4px; right: 4px; }
+  .collection-elixir {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    top: -6px;
+    left: -6px;
+  }
 }
 
-.evo-badge { background: var(--evo-purple) !important; color: white; }
-.hero-badge { background: var(--hero-gold) !important; color: #78350f; }
-
-.card-level-badge {
+.card-badges-compact {
   position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1e293b;
-  border: 1.5px solid #334155;
-  padding: 1px 6px;
-  border-radius: 1rem;
-  font-size: 0.55rem;
-  font-weight: 900;
-  z-index: 10;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 5;
 }
 
-@media (min-width: 768px) { .card-level-badge { bottom: 38px; font-size: 0.65rem; } }
+@media (min-width: 768px) {
+  .card-badges-compact {
+    top: -6px;
+    right: -6px;
+  }
+}
 
-.card-info {
+.hero-badge-tiny, .evo-badge-tiny {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 0.4rem;
-  margin-top: 8px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.card-name {
-  font-size: 0.5rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
+@media (min-width: 768px) {
+  .hero-badge-tiny, .evo-badge-tiny {
+    width: 16px;
+    height: 16px;
+  }
 }
 
-.elixir-badge {
-  width: 18px; height: 18px; background: #d946ef; border-radius: 50% 50% 50% 10%;
-  transform: rotate(5deg); display: flex; align-items: center; justify-content: center;
-  color: white; font-weight: bold; font-size: 0.6rem; border: 1px solid white; flex-shrink: 0;
-}
+.hero-badge-tiny { background: var(--hero-yellow); color: #000; }
+.evo-badge-tiny { background: var(--evo-purple); color: #fff; }
 
 /* DECK SUGGESTIONS */
 .deck-suggestion { background: var(--surface); border-radius: 1.25rem; border: 1px solid var(--border); margin-bottom: 2rem; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
