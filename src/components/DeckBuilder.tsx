@@ -84,27 +84,24 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
-    const allCards = cards.filter(c => c && c.id && c.id < 68000000);
-    const orderedDeck: Card[] = [...allCards].slice(0, 8);
-    const slots = new Array(8).fill(0);
     
-    let evoCount = 0;
+    // 1. Separate cards by type to reorder them correctly for the slots logic
+    const evoCards = cards.filter(c => isEvoUnlocked(c));
+    const otherCards = cards.filter(c => !isEvoUnlocked(c));
     
-    for (let i = 0; i < orderedDeck.length; i++) {
-      const card = orderedDeck[i];
-      // Only Evolutions use slot index 1 in the deep link.
-      // Using 2 for Heroes/Champions can cause the in-game paste to silently fail on some client versions.
-      if (isEvoUnlocked(card) && evoCount < 2) {
-        slots[i] = 1;
-        evoCount++;
-      }
-    }
-
+    // 2. The Link.ClashRoyale format (2024+) expects the evolved cards FIRST
+    // The number in &slots=N tells the game that the FIRST N cards in the &deck string are evolved.
+    const orderedDeck = [...evoCards, ...otherCards].slice(0, 8);
     const finalIds = orderedDeck.map(c => c.id).join(';');
-    const slotsString = slots.join(';');
+    const evoCount = Math.min(evoCards.length, 2);
+
+    // 3. Construct the official 2024 URL structure
+    // Format: ...?deck=ID1;ID2...&tower=TOWER_ID&slots=EVO_COUNT
+    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${evoCount}`;
     
-    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slotsString}`;
-    if (towerTroopId) link += `&tt=${towerTroopId}`;
+    // Tower Troop uses the 'tower' parameter in the modern format (RoyaleAPI/Official compatible)
+    // Note: 'tt' is also used but 'tower' is more standard in latest client deep links.
+    if (towerTroopId) link += `&tower=${towerTroopId}`;
     
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
