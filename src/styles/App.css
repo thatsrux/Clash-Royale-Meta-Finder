@@ -1235,6 +1235,51 @@ button {
   border-radius: 1.5rem;
   border: 1px solid var(--border);
   animation: fadeIn 0.5s ease-out;
+  position: relative;
+}
+
+.variant-insights-section.loading {
+  border-style: dashed;
+  background: rgba(15, 23, 42, 0.2);
+}
+
+.insights-loading-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  opacity: 0.9;
+}
+
+.loading-subtext {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.progress-track-mini {
+  width: 100%;
+  max-width: 300px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill-mini {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #c026d3);
+  border-radius: 10px;
+  transition: width 0.3s ease;
 }
 
 .insights-divider {

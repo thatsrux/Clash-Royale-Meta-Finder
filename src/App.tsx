@@ -521,7 +521,23 @@ function App() {
                 })}
               </div>
 
-              {metaDecksCache && (
+              {isMetaLoading && (
+                <div className="variant-insights-section loading">
+                  <div className="insights-divider">
+                    <RefreshCw size={20} className="spin" />
+                    <span>ANALYZING META STRATEGIES...</span>
+                  </div>
+                  <div className="insights-loading-body">
+                    <div className="loading-text">Calculating your next best moves based on Top 200 Pro Decks</div>
+                    <div className="progress-track-mini">
+                      <div className="progress-bar-fill-mini" style={{ width: `${metaProgress}%` }}></div>
+                    </div>
+                    <div className="loading-subtext">Scanning battle logs and calculating affinity scores ({metaProgress}%)</div>
+                  </div>
+                </div>
+              )}
+
+              {metaDecksCache && !isMetaLoading && (
                 <div className="variant-insights-section">
                   <div className="insights-divider">
                     <TrendingUp size={20} />
