@@ -341,12 +341,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const isMaxed = userLevel >= 16;
                       const missingLvls = Math.max(0, 16 - userLevel);
                       
-                      // STRICT VARIANT DETECTION
-                      // Priority: 1. Explicit analysis metadata (_forceForm)
-                      //           2. Detection logic based on key/form (isHeroVariantUnlocked)
+                      // STRICT VARIANT DETECTION (Restricted to slots 0, 1, 2)
                       const forcedForm = (card as any)._forceForm;
-                      const cardIsHero = forcedForm === 'hero' || isHeroVariantUnlocked(card);
-                      const cardIsEvo = forcedForm === 'evo' || (!cardIsHero && isEvoUnlocked(card));
+                      const canHaveVariant = index < 3;
+                      const cardIsHero = canHaveVariant && (forcedForm === 'hero' || isHeroVariantUnlocked(card));
+                      const cardIsEvo = canHaveVariant && (forcedForm === 'evo' || (!cardIsHero && isEvoUnlocked(card)));
                       const cardIsChamp = isChampion(card);
                       
                       const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);

@@ -204,7 +204,7 @@ function App() {
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
         
         // Map cards and preserve their EXPLICIT variant state from the API (RoyaleAPI 2026)
-        const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
+        const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
           // Detect variant type directly from the API object or ICON URL
           const key = (c.key || '').toLowerCase();
           const form = (c.form || '').toLowerCase();
@@ -213,11 +213,13 @@ function App() {
           
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
-          // ABSOLUTE PRIORITY: Metadata markers
-          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) {
-            forcedForm = 'hero';
-          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo') || !!c.iconUrls?.evolutionMedium) {
-            forcedForm = 'evo';
+          // ABSOLUTE PRIORITY: Metadata markers (ONLY for first 3 slots)
+          if (index < 3) {
+            if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) {
+              forcedForm = 'hero';
+            } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo') || !!c.iconUrls?.evolutionMedium) {
+              forcedForm = 'evo';
+            }
           }
 
           return { 
@@ -245,14 +247,16 @@ function App() {
             // Fallback to current deck if battle log is empty
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
-              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
+              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
                 const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
                 let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
                 
-                if (iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) forcedForm = 'hero';
-                else if (iconUrl.includes('evo')) forcedForm = 'evo';
-                else if (c.heroLevel > 0) forcedForm = 'hero';
-                else if (c.evolutionLevel > 0) forcedForm = 'evo';
+                if (index < 3) {
+                  if (iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) forcedForm = 'hero';
+                  else if (iconUrl.includes('evo')) forcedForm = 'evo';
+                  else if (c.heroLevel > 0) forcedForm = 'hero';
+                  else if (c.evolutionLevel > 0) forcedForm = 'evo';
+                }
 
                 return { ...c, _forceForm: forcedForm };
               });
