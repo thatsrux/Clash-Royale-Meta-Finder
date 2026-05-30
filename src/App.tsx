@@ -646,7 +646,7 @@ function App() {
                         </div>
 
                         {(() => {
-                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number, rarity: string }> = {};
+                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number, rarity: string, currentLevel: number }> = {};
                           const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
                           
                           metaDecksCache.forEach(deck => {
@@ -661,18 +661,28 @@ function App() {
                                     icon: metaCard.iconUrls.medium, 
                                     count: 0, 
                                     deckPotential: 0,
-                                    rarity: getRarityClass(metaCard)
+                                    rarity: getRarityClass(metaCard),
+                                    currentLevel: displayLevel
                                   };
                                 }
                                 missingEliteCounts[metaCard.id].count++;
-                                if (deck.score > 70) missingEliteCounts[metaCard.id].deckPotential += deck.score;
+                                // IMPACT CALCULATION:
+                                // We sum the squared score of each deck it's in. 
+                                // This heavily weights cards in high-affinity decks (mazzi migliori) 
+                                // while naturally scaling with usage (più mazzi).
+                                missingEliteCounts[metaCard.id].deckPotential += Math.pow(deck.score / 10, 2);
                               }
                             });
                           });
 
                           const nextUpgrades = rarities.map(r => {
                             const available = Object.values(missingEliteCounts).filter(c => c.rarity === r);
-                            return available.sort((a, b) => (b.deckPotential * 1.2 + b.count) - (a.deckPotential * 1.2 + a.count))[0];
+                            // We weigh the total potential by how much a single card upgrade helps (16 - currentLevel)
+                            return available.sort((a, b) => {
+                              const scoreA = a.deckPotential * (2 + (16 - a.currentLevel) / 1.28);
+                              const scoreB = b.deckPotential * (2 + (16 - b.currentLevel) / 1.28);
+                              return scoreB - scoreA;
+                            })[0];
                           }).filter(Boolean);
 
                           return (
