@@ -310,7 +310,7 @@ function App() {
         const missingHeroes: { name: string; icon: string }[] = [];
         
         meta.cards.forEach((metaCard) => {
-          const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
+          const userCard = activeProfile.cards.find(c => Number(c.id) === Number(metaCard.id));
           const forcedForm = (metaCard as any)._forceForm;
           const metaIsEvo = forcedForm === 'evo';
           const metaIsHero = forcedForm === 'hero';
@@ -465,7 +465,7 @@ function App() {
                           // Fallback calculation for Collection Level (Post-May 2026 update)
                           let totalLevels = 0;
                           let bonus = 0;
-                          const allOwnedCards = [...(profile.cards || []), ...(profile.supportCards || [])];
+                          const allOwnedCards = [...(profile!.cards || []), ...(profile!.supportCards || [])];
                           allOwnedCards.forEach(c => {
                             totalLevels += getDisplayLevel(c);
                             if (isEvoUnlocked(c)) bonus += 5;
@@ -635,7 +635,7 @@ function App() {
                           
                           metaDecksCache.forEach(deck => {
                             deck.cards.forEach(metaCard => {
-                              const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
+                              const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
                               const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
                               
                               if (displayLevel > 0 && displayLevel < 16) {
