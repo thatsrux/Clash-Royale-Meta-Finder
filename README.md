@@ -1,23 +1,69 @@
-# 👑 Clash Royale Meta Finder: Find the best meta deck for your profile
+# 👑 Clash Royale Meta Finder
 
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
-
-**Clash Royale Meta Finder** is a web application for Clash Royale players to analyze their card collection and discover the best pro-meta decks compatible with their current card levels, evolutions and heroes.
+A premium, data-driven web application designed to bridge the gap between your personal card collection and the professional meta. By analyzing the top 200 players in the world, this tool calculates exactly which pro decks are most compatible with your current levels and provides strategic insights for your next upgrades.
 
 ---
 
-## ✨ Key Features
+## 🚀 Key Features
 
-- 🔍 **Real-time Profile Sync:** Instantly fetch player trophies, experience levels, and full card collections using Player Tags.
-- 🎴 **Smart Collection Sort:** Organize your cards by Level, Rarity, Elixir Cost, or Evolution status.
-- 🧠 **Pro Meta Analysis:** Scans the **Top 200 Global Leaderboard** and thousands of battle logs to identify winning archetypes.
-- 🎯 **Affinity Scoring:** Our custom algorithm calculates which pro decks you can play *right now* based on your actual card levels.
-- ⚡ **Evo & Hero Detection:** Full support for Card Evolutions and Champions with visual badges.
-- 🛡️ **Privacy First:** Built with secure API proxying to keep developer keys safe and bypass IP restrictions.
+### 📊 Advanced Meta Analysis
+- **Top 200 Live Scanning**: Automatically scans Path of Legend and Global rankings to extract the most successful archetypes in the current season.
+- **Affinity Scoring (0-100%)**: A surgical algorithm that evaluates deck compatibility based on:
+  - **Card Levels**: Mathematical average vs. max level 16.
+  - **Elite Weight**: Heavy penalties for non-maxed cards to prioritize competitive readiness.
+  - **Variant Matching**: Strict verification of unlocked Evolutions and Hero versions.
+
+### 🧠 Intelligence & Progression Insights
+- **Background Auto-Analysis**: Recommendations are calculated silently as soon as you load your profile.
+- **Best Next Unlock**: Identifies the single most impactful **Evolution** and **Hero** to unlock based on their presence in high-affinity meta decks.
+- **Upgrade Priority by Rarity**: Uses a *Net Affinity Gain* simulation to suggest which card (Common, Rare, Epic, Legendary, Champion) will provide the biggest performance boost across the entire meta.
+- **Meta Usage Statistics**: Detailed tables showing the percentage of usage for all variants and rarities in the current pro meta.
+
+### card_index: Collection Management
+- **Pure Style Grid**: A clean, borderless card interface matching the in-game aesthetic.
+- **Dynamic Filtering**: Instantly isolate your collection with "ONLY HEROES" or "ONLY EVOS" views.
+- **Smart Sorting**: Order your cards by Level, Elixir Cost, Rarity, or Variant status.
+- **Symmetric Information**: Quick-glance badges for Elixir cost (bottom-left), Level (bottom-right), and compact variant indicators.
 
 ---
 
-<p align="center">Made with ❤️ for the Clash Royale Community</p>
+## 🛠️ Technical Stack
+- **Frontend**: React 18 + TypeScript (Vite)
+- **Styling**: Modern CSS with Glass-morphism and premium gradients.
+- **Data Source**: RoyaleAPI (Official Supercell API integration).
+- **Icons**: Lucide React.
+
+---
+
+## 🧪 The "Affinity" Formula
+The 100% score is the "Holy Grail" — it means you have every card at level 16 with the correct variants.
+- **Base**: `(Total Levels / 128) * 100`
+- **Elite Penalty**: `-2%` for every card not at level 16.
+- **Variant Penalty**: `-5%` for every missing required Evolution or Hero.
+- **Ownership Penalty**: `-10%` if a base card is missing.
+
+---
+
+## 📦 Getting Started
+
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/thatsrux/Clash-Royale-Meta-Finder.git
+   ```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+3. **Set up environment variables**
+   Create a `.env` file and add your RoyaleAPI key:
+   ```env
+   VITE_CLASH_API_KEY=your_api_key_here
+   ```
+4. **Run the app**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+*Built for players who want to stop guessing and start upgrading with data.* ⚔️
