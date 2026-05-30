@@ -448,10 +448,41 @@ button {
 @media (min-width: 1024px) { .deck-main-content { flex-direction: row; align-items: center; justify-content: space-between; } }
 .mini-card-grid { display: grid; grid-template-columns: repeat(4, 82px); gap: 0.6rem; }
 @media (min-width: 768px) { .mini-card-grid { grid-template-columns: repeat(4, 115px); gap: 0.8rem; } }
-.mini-card { background: transparent; border: none; position: relative; aspect-ratio: 1/1.1; display: flex; align-items: center; justify-content: center; overflow: visible; }
-.mini-card img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
-.mini-level { position: absolute; bottom: -2px; right: -2px; background: #1e293b; border: 1.5px solid #334155; padding: 1px 6px; border-radius: 6px; font-size: 0.65rem; font-weight: 900; z-index: 10; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-@media (min-width: 768px) { .mini-level { font-size: 0.75rem; padding: 2px 8px; bottom: 0; right: 0; } }
+.mini-card { 
+  background: transparent; 
+  border: none; 
+  position: relative; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 75px;
+  height: auto;
+}
+@media (min-width: 768px) { .mini-card { width: 105px; } }
+
+.mini-card img { 
+  width: 100%; 
+  height: auto; 
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.mini-level { 
+  position: absolute; 
+  bottom: 2px; 
+  right: 2px; 
+  background: rgba(30, 41, 59, 0.95); 
+  border: 1px solid rgba(255,255,255,0.2); 
+  padding: 1px 5px; 
+  border-radius: 4px; 
+  font-size: 0.6rem; 
+  font-weight: 900; 
+  z-index: 10; 
+  color: white; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+}
+@media (min-width: 768px) { .mini-level { font-size: 0.7rem; padding: 2px 6px; bottom: 5px; right: 5px; } }
 .missing-lvl-indicator { position: absolute; top: -4px; left: -4px; background: #ef4444; color: white; font-size: 0.55rem; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; font-weight: 900; z-index: 10; }
 .evo-slot { 
   border: none !important; 
