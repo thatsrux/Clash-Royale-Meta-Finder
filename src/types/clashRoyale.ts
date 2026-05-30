@@ -103,6 +103,7 @@ export interface PlayerProfile {
   tag: string;
   name: string;
   expLevel: number;
+  collectionLevel?: number;
   trophies: number;
   bestTrophies: number;
   wins: number;

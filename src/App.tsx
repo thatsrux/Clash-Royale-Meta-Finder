@@ -435,7 +435,25 @@ function App() {
                 <div><h2 className="profile-name">{profile.name}</h2><span className="profile-tag">{profile.tag}</span></div>
                 <div className="profile-stats">
                   <div className="stat-badge"><Trophy color="var(--secondary)" size={24} /><div className="stat-values"><div className="stat-main">{profile.trophies}</div><div className="stat-label">TROPHIES</div></div></div>
-                  <div className="stat-badge"><Shield color="var(--primary)" size={24} /><div className="stat-values"><div className="stat-main">{profile.expLevel}</div><div className="stat-label">LEVEL</div></div></div>
+                  <div className="stat-badge">
+                    <Shield color="var(--primary)" size={24} />
+                    <div className="stat-values">
+                      <div className="stat-main">
+                        {profile.collectionLevel !== undefined ? profile.collectionLevel : (() => {
+                          // Fallback calculation for Collection Level (Post-May 2026 update)
+                          let totalLevels = 0;
+                          let bonus = 0;
+                          profile.cards.forEach(c => {
+                            totalLevels += getDisplayLevel(c);
+                            if (isEvoUnlocked(c)) bonus += 5;
+                            if (isHeroVariantUnlocked(c)) bonus += 5;
+                          });
+                          return totalLevels + bonus;
+                        })()}
+                      </div>
+                      <div className="stat-label">COLLECTION</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
