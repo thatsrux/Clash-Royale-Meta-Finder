@@ -516,7 +516,7 @@ function App() {
                   const elixir = cardMap[card.id]?.elixirCost;
 
                   return (
-                    <div key={card.id} className="mini-card collection-item">
+                    <div key={card.id} className={`mini-card collection-item rarity-bg-${getRarityClass(card)}`}>
                       <img src={icon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
                       
                       <div className="mini-level">{displayLevel}</div>

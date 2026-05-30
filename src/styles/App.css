@@ -321,7 +321,6 @@ button {
 }
 
 .collection-item {
-  background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: 0.75rem !important;
   padding: 0.25rem !important;
@@ -331,13 +330,28 @@ button {
   align-items: center;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* RARITY BACKGROUNDS */
+.rarity-bg-common { background: rgba(255, 255, 255, 0.05) !important; }
+.rarity-bg-rare { background: linear-gradient(180deg, rgba(251, 191, 36, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
+.rarity-bg-epic { background: linear-gradient(180deg, rgba(217, 70, 239, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(217, 70, 239, 0.3) !important; }
+.rarity-bg-legendary { background: linear-gradient(180deg, rgba(56, 189, 248, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(56, 189, 248, 0.3) !important; }
+.rarity-bg-champion { background: linear-gradient(180deg, rgba(255, 206, 49, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(255, 206, 49, 0.3) !important; }
+.rarity-bg-hero { background: linear-gradient(180deg, rgba(255, 255, 0, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(255, 255, 0, 0.3) !important; }
+
 .collection-item:hover {
-  border-color: var(--primary) !important;
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
+
+.rarity-bg-common:hover { border-color: #fff !important; }
+.rarity-bg-rare:hover { border-color: #fbbf24 !important; }
+.rarity-bg-epic:hover { border-color: #d946ef !important; }
+.rarity-bg-legendary:hover { border-color: #38bdf8 !important; }
+.rarity-bg-champion:hover { border-color: #ffce31 !important; }
+.rarity-bg-hero:hover { border-color: #ffff00 !important; }
 
 .collection-item img {
   width: 100%;
