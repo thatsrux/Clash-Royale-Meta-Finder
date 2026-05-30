@@ -30,7 +30,7 @@ interface MetaDeck {
   towerTroopId?: number;
 }
 
-type SortOption = 'level' | 'elixir' | 'rarity' | 'evo';
+type SortOption = 'level' | 'elixir' | 'rarity' | 'evo' | 'hero-only' | 'evo-only';
 type SortOrder = 'asc' | 'desc';
 
 function App() {
