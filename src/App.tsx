@@ -228,7 +228,17 @@ function App() {
       
       const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number }> = {};
       decksWithRatings.forEach(item => {
-        const key = item.deck.map((c: any) => c.id).sort((a, b) => a - b).join(',');
+        const key = item.deck.map((c: any) => {
+          let suffix = '';
+          const cName = c.name?.toLowerCase() || '';
+          if (cName.includes('hero') || c.rarity?.toLowerCase() === 'hero' || (c as any).type?.toLowerCase() === 'hero' || (c.heroLevel && c.heroLevel > 0)) {
+            suffix = '-hero';
+          } else if ((c.evolutionLevel && c.evolutionLevel > 0) || cName.includes('evo')) {
+            suffix = '-evo';
+          }
+          return `${c.id}${suffix}`;
+        }).sort().join(',');
+
         if (deckCounts[key]) {
           deckCounts[key].count++;
           deckCounts[key].maxRating = Math.max(deckCounts[key].maxRating, item.rating);

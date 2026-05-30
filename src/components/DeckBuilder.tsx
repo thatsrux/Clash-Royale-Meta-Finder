@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -86,31 +86,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     const { cards, towerTroopId } = deck;
     const allCards = cards.filter(c => c && c.id && c.id < 68000000);
     const orderedDeck: Card[] = [...allCards].slice(0, 8);
-    const slots = new Array(8).fill(0);
-    
-    let evoCount = 0;
-    let heroChampCount = 0;
-    
-    for (let i = 0; i < orderedDeck.length; i++) {
-      const card = orderedDeck[i];
-      const cardIsEvo = isEvoUnlocked(card);
-      const cardIsHero = isAnyHeroUnlocked(card);
-      
-      if (cardIsEvo && evoCount < 2 && (evoCount + heroChampCount < 3)) {
-        slots[i] = 1;
-        evoCount++;
-      } else if (cardIsHero && heroChampCount < 2 && (evoCount + heroChampCount < 3)) {
-        slots[i] = 2;
-        heroChampCount++;
-      }
-    }
 
     const finalIds = orderedDeck.map(c => c.id).join(';');
-    const slotsString = slots.join(';');
     
-    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slotsString}`;
-    if (towerTroopId) link += `&towerTroop=${towerTroopId}`;
-    link += `&name=Meta%20Archetype`;
+    // Removing the complex 'slots' parameter because the native app handles standard deck links 
+    // more reliably and automatically assigns Evo/Hero slots to the correct cards if the player has them unlocked.
+    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}`;
+    
+    // Tower Troop uses the 'tt' parameter
+    if (towerTroopId) link += `&tt=${towerTroopId}`;
     
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
