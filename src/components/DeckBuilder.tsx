@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvo, isAnyHero } from '../types/clashRoyale';
+import { isEvo, isHeroVariant, isAnyHero } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -49,7 +49,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const THEORETICAL_MAX_SCORE = 1450;
+  const THEORETICAL_MAX_SCORE = 1530;
+  
+  const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
 
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
@@ -126,8 +128,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5, 'hero': 6
     };
 
-    const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
-
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
         if (!c) return;
@@ -136,8 +136,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = (c.rarity || 'common').toLowerCase();
         
-        // Use manual list for Hero variants if not present in rarity
-        const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
+        // Manual check for potential Hero variants during card list discovery
+        const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince'];
         const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
 
         if (evoIconUrl) {
@@ -303,20 +303,24 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     {deck.cards.map((card, index) => {
                       const userCard = profile.cards.find(c => Number(c.id) === Number(card.id));
                       const userLevel = userCard ? getDisplayLevel(userCard) : 0;
-                      const isMaxed = userLevel >= 15;
-                      const missingLvls = Math.max(0, 15 - userLevel);
+                      const isMaxed = userLevel >= 16;
+                      const missingLvls = Math.max(0, 16 - userLevel);
                       
                       const cardIsEvo = isEvo(card);
                       const cardIsHero = isAnyHero(card);
+                      const heroVar = isHeroVariant(card);
                       
-                      const displayIcon = (cardIsEvo && card.iconUrls?.evolutionMedium) 
-                        ? card.iconUrls.evolutionMedium 
-                        : card.iconUrls?.medium || '';
+                      const slug = getCardSlug(card.name);
+                      const displayIcon = heroVar 
+                        ? `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`
+                        : ((cardIsEvo && card.iconUrls?.evolutionMedium) 
+                          ? card.iconUrls.evolutionMedium 
+                          : card.iconUrls?.medium || '');
 
                       return (
                         <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
                           <div className="card-image-container">
-                            {displayIcon && <img src={displayIcon} alt={card.name} />}
+                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />}
                           </div>
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
                             {userLevel || '!'}

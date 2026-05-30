@@ -251,7 +251,7 @@ function App() {
             ownedCount++;
             const displayLevel = Number(getDisplayLevel(userCard));
             totalLevel += displayLevel;
-            if (displayLevel >= 15) eliteCount++;
+            if (displayLevel >= 16) eliteCount++;
             if (isEvo(metaCard) && !isEvo(userCard)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
             }
@@ -274,7 +274,7 @@ function App() {
           towerTroopId: meta.towerTroopId,
           count: meta.count,
           maxedCount: eliteCount,
-          isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0 && (totalLevel / 8) >= 14,
+          isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0 && (totalLevel / 8) >= 15,
           maxMedals: meta.maxRating,
           score,
           avgLevel: totalLevel / 8,

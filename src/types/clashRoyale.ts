@@ -22,10 +22,10 @@ export const isEvo = (card: Card) => {
   return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || !!card.iconUrls?.evolutionMedium;
 };
 
-// Hero variants are special versions of standard cards (Knight, Musketeer, Mini PEKKA, Giant)
+// Hero variants are special versions of standard cards (Knight, Musketeer, Mini PEKKA, Giant, Dark Prince, etc.)
 export const isHeroVariant = (card: Card) => {
-  const HERO_BASE_CARDS = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
-  return HERO_BASE_CARDS.includes(card.name) && (card.heroLevel !== undefined && card.heroLevel > 0);
+  // We check if the card has a heroLevel > 0 which is the most reliable indicator in the API
+  return card.heroLevel !== undefined && card.heroLevel > 0;
 };
 
 export const isAnyHero = (card: Card) => {
