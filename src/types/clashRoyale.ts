@@ -8,7 +8,7 @@ export interface Card {
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
-    heroMedium?: string; // Potential for future API updates
+    heroMedium?: string; // Provided dynamically by API proxy for Heroes
   };
   rarity: string;
   evolutionLevel?: number;
@@ -21,34 +21,43 @@ export const isChampion = (card: Card) => {
 
 /**
  * DYNAMIC DETECTION LOGIC
- * These helpers use card properties rather than hardcoded lists.
+ * Perfect disambiguation between Evolutions and Heroes.
  */
+
+// Check if the card definition has an Evolution version available
+export const hasEvoAvailable = (card: Card) => {
+  return !!card.iconUrls?.evolutionMedium || (card.name || '').toLowerCase().includes('evo');
+};
+
+// Check if the card definition has a Hero version available
+export const hasHeroAvailable = (card: Card) => {
+  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
+  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
+  const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
+  const hasHeroLevelProp = card.heroLevel !== undefined;
+  
+  return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
+};
 
 // Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || 
-         (card.name || '').toLowerCase().includes('evo');
-};
-
-// Check if the card definition has an Evolution version available (Dynamic via icons)
-export const hasEvoAvailable = (card: Card) => {
-  return !!card.iconUrls?.evolutionMedium || 
-         (card.name || '').toLowerCase().includes('evo');
+  // A card CANNOT be an Evolution if it doesn't have an Evolution version available
+  if (!hasEvoAvailable(card)) return false;
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || (card.name || '').toLowerCase().includes('evo');
 };
 
 // Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
-  return (card.heroLevel !== undefined && card.heroLevel > 0) || 
-         (card.name || '').toLowerCase().includes('hero');
-};
-
-// Check if the card is a Hero variant (Dynamic via metadata indicators)
-export const hasHeroAvailable = (card: Card) => {
-  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
-  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
-  const hasHeroIconProp = !!(card.iconUrls as any).heroMedium;
+  const name = card.name || '';
+  if (name.toLowerCase().includes('hero')) return true;
+  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
   
-  return isHeroRarity || hasHeroName || hasHeroIconProp;
+  // Crucial fallback: If the API uses 'evolutionLevel' for the special slot,
+  // but the card has NO Evolution available, it MUST be a Hero.
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
+    return true;
+  }
+  return false;
 };
 
 export const isAnyHeroUnlocked = (card: Card) => {

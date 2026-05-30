@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, isChampion } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -156,9 +156,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const rarity = (c.rarity || 'common').toLowerCase();
         
         // DYNAMIC DETECTION (No hardcoded lists)
-        const isEvoBase = !!c.iconUrls?.evolutionMedium || c.name.toLowerCase().includes('evo');
+        const isEvoBase = hasEvoAvailable(c);
         const isChampionBase = rarity === 'champion';
-        const isHeroBase = rarity === 'hero' || c.name.toLowerCase().includes('hero');
+        const isHeroBase = hasHeroAvailable(c);
 
         if (isEvoBase) {
           const evoIcon = c.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
