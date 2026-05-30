@@ -202,7 +202,30 @@ function App() {
         if (!recentMatch || !recentMatch.team || !recentMatch.team[0]) return null;
         const allCards = recentMatch.team[0].cards || [];
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
-        const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8);
+        
+        // Map cards and preserve their EXPLICIT variant state from the API
+        const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
+          // Detect variant type directly from the API object
+          let variant: 'normal' | 'evo' | 'hero' = 'normal';
+          
+          // Check for Evolution: explicit evolutionLevel or presence in an evolution slot
+          if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
+            variant = 'evo';
+          }
+          
+          // Check for Hero: explicit heroLevel or rarity
+          // Note: In 2026 update, cards like Knight can have heroLevel > 0
+          if (c.heroLevel !== undefined && c.heroLevel > 0) {
+            variant = 'hero';
+          }
+
+          // Use the explicit 'tag' or 'type' fields if the API proxy provides them
+          if (c.tag?.toLowerCase() === 'hero' || c.type?.toLowerCase() === 'hero') variant = 'hero';
+          if (c.tag?.toLowerCase() === 'evo' || c.type?.toLowerCase() === 'evo') variant = 'evo';
+
+          return { ...c, _variant: variant };
+        });
+
         return { deck, towerTroopId: towerTroop?.id };
       };
 
@@ -213,9 +236,14 @@ function App() {
             const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
             const logData = log ? extractDeckFromLog(log) : null;
             if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0 };
+            
+            // Fallback to current deck if battle log is empty (less precise for variants)
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
-              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
+              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => ({
+                ...c,
+                _variant: (c.heroLevel > 0) ? 'hero' : (c.evolutionLevel > 0 ? 'evo' : 'normal')
+              }));
               const tower = deck.find((c: any) => c.id >= 68000000);
               return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
             }
@@ -228,16 +256,8 @@ function App() {
       
       const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number }> = {};
       decksWithRatings.forEach(item => {
-        const key = item.deck.map((c: any) => {
-          let suffix = '';
-          const cName = c.name?.toLowerCase() || '';
-          if (cName.includes('hero') || c.rarity?.toLowerCase() === 'hero' || (c as any).type?.toLowerCase() === 'hero' || (c.heroLevel && c.heroLevel > 0)) {
-            suffix = '-hero';
-          } else if ((c.evolutionLevel && c.evolutionLevel > 0) || cName.includes('evo')) {
-            suffix = '-evo';
-          }
-          return `${c.id}${suffix}`;
-        }).sort().join(',');
+        // Group by ID + Explicit Variant to ensure Knight-Hero and Knight-Evo are distinct
+        const key = item.deck.map((c: any) => `${c.id}-${c._variant}`).sort().join(',');
 
         if (deckCounts[key]) {
           deckCounts[key].count++;
