@@ -339,8 +339,6 @@ button {
   border-color: #475569 !important; 
 }
 .rarity-bg-common .mini-level, .rarity-bg-common .collection-elixir { 
-  color: #fff !important; 
-  background: rgba(0,0,0,0.3) !important;
   border-color: rgba(255,255,255,0.1) !important;
 }
 
