@@ -546,11 +546,15 @@ function App() {
                       });
                     });
 
-                    const sortedEvos = Object.values(missingEvoCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
-                    const sortedHeroes = Object.values(missingHeroCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (b.deckPotential * 1.5 + a.count));
+                    const recommendationEvos = Object.values(missingEvoCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
+                    const recommendationHeroes = Object.values(missingHeroCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
 
-                    const bestEvo = sortedEvos[0];
-                    const bestHero = sortedHeroes[0];
+                    const bestEvo = recommendationEvos[0];
+                    const bestHero = recommendationHeroes[0];
+
+                    // STRICT SORT BY META USAGE % (Descending) for the tables
+                    const sortedEvosByUsage = Object.values(missingEvoCounts).sort((a, b) => b.count - a.count);
+                    const sortedHeroesByUsage = Object.values(missingHeroCounts).sort((a, b) => b.count - a.count);
 
                     return (
                       <>
@@ -585,7 +589,7 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
                             <div className="stats-list">
-                              {sortedEvos.map(evo => (
+                              {sortedEvosByUsage.map(evo => (
                                 <div key={evo.name} className="stat-row-item">
                                   <img src={evo.icon} alt={evo.name} />
                                   <div className="stat-row-details">
@@ -600,7 +604,7 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
                             <div className="stats-list">
-                              {sortedHeroes.map(hero => (
+                              {sortedHeroesByUsage.map(hero => (
                                 <div key={hero.name} className="stat-row-item">
                                   <img src={hero.icon} alt={hero.name} />
                                   <div className="stat-row-details">
