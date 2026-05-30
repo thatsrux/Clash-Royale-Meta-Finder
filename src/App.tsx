@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, Target, X as CloseIcon } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
+import { isChampion, isEvo, isHeroVariant, isAnyHero } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
-// Use environment variable for the API Key
 const INTEGRATED_API_KEY = import.meta.env.VITE_CLASH_API_KEY || "";
 
 interface CardInfo {
@@ -43,7 +43,6 @@ function App() {
   const [sortBy, setSortBy] = useState<SortOption>('level');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // CACHE FOR META DECKS
   const [metaDecksCache, setMetaDecksCache] = useState<MetaDeck[] | null>(null);
   const [isMetaLoading, setIsMetaLoading] = useState(false);
   const [metaProgress, setMetaProgress] = useState(0);
@@ -52,7 +51,6 @@ function App() {
   useEffect(() => {
     const saved = localStorage.getItem('cr_tag_history');
     if (saved) setRecentTags(JSON.parse(saved));
-    
     getAllCards(INTEGRATED_API_KEY).then(data => setAllGameCards(data.items || []));
   }, []);
 
@@ -84,7 +82,7 @@ function App() {
 
   const getRarityWeight = (rarity: string) => {
     switch (rarity.toLowerCase()) {
-      case 'champion': 
+      case 'champion': return 5;
       case 'hero': return 5;
       case 'legendary': return 4;
       case 'epic': return 3;
@@ -100,7 +98,7 @@ function App() {
       case 'rare': return 3;
       case 'epic': return 6;
       case 'legendary': return 9;
-      case 'champion': 
+      case 'champion': return 11;
       case 'hero': return 11;
       default: return 1;
     }
@@ -116,9 +114,7 @@ function App() {
 
   const getRarityClass = (card: Card) => {
     const info = cardMap[card.id];
-    const rarity = (info?.rarity || card.rarity || 'common').toLowerCase();
-    // For Giant and Mini Pekka, we can override rarity class if needed, but keeping original for border color
-    return rarity;
+    return (info?.rarity || card.rarity || 'common').toLowerCase();
   };
 
   const handleSearch = async (e: React.FormEvent | string) => {
@@ -166,7 +162,6 @@ function App() {
       try {
         const seasons = await getPathOfLegendSeasons(INTEGRATED_API_KEY);
         if (seasons.items && seasons.items.length > 0) {
-          // Latest season might be just starting
           seasonId = seasons.items[seasons.items.length - 1].id;
           if (seasons.items.length > 1) {
             prevSeasonId = seasons.items[seasons.items.length - 2].id;
@@ -175,18 +170,13 @@ function App() {
       } catch (e) { console.warn('[Meta] Seasons lookup failed'); }
 
       const pathsToTry = [
-        // 1. Current Season Ranked (Path of Legend)
         '/locations/global/pathoflegend/players?limit=100',
-        // 2. Specific Ranked Season rankings
         seasonId ? `/locations/global/rankings/seasons/${seasonId}/players?limit=100` : null,
         prevSeasonId ? `/locations/global/rankings/seasons/${prevSeasonId}/players?limit=100` : null,
-        // 3. Official Seasons (Trophy Road rankings)
         seasonId ? `/locations/global/seasons/${seasonId}/rankings/players?limit=100` : null,
         prevSeasonId ? `/locations/global/seasons/${prevSeasonId}/rankings/players?limit=100` : null,
-        // 4. Global Trophy Road (Standard Ladder)
         '/locations/global/rankings/players?limit=100',
-        // 5. Regional fallback
-        '/locations/57000000/rankings/players?limit=100' // Global/International ID fallback
+        '/locations/57000000/rankings/players?limit=100'
       ].filter(Boolean) as string[];
       
       let rankingsData: any = null;
@@ -196,60 +186,43 @@ function App() {
           const data = await fetchRankings(INTEGRATED_API_KEY, path);
           if (data && data.items && data.items.length > 0) {
             rankingsData = data;
-            console.log(`[Meta] Successfully synced from: ${path}`);
             break;
           }
-          console.log(`[Meta] Path empty or invalid: ${path}`);
-        } catch (e) {
-          console.warn(`[Meta] Error on path: ${path}`);
-        }
+        } catch (e) { console.warn(`[Meta] Error on path: ${path}`); }
       }
 
-      if (!rankingsData || !rankingsData.items || rankingsData.items.length === 0) {
-        throw new Error('Could not find any active rankings in the Royale API. The season might be resetting.');
-      }
+      if (!rankingsData) throw new Error('Could not find any active rankings.');
 
-      const items = rankingsData.items;
-      const sampleSize = 200;
-      const playersToFetch = items.slice(0, sampleSize);
+      const playersToFetch = rankingsData.items.slice(0, 200);
       const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number }[] = [];
-      const batchSize = 20; // Increased from 8 to 20 for faster scanning
+      const batchSize = 20;
       
       const extractDeckFromLog = (log: any[]) => {
         const recentMatch = log.find(entry => entry.type === 'pathOfLegend' || entry.type === 'PvP');
         if (!recentMatch || !recentMatch.team || !recentMatch.team[0]) return null;
-        
-        const allMatchCards = recentMatch.team[0].cards || [];
-        const towerTroop = allMatchCards.find((c: any) => c.id >= 68000000);
-        const deck = allMatchCards.filter((c: any) => c.id < 68000000).slice(0, 8);
-        
+        const allCards = recentMatch.team[0].cards || [];
+        const towerTroop = allCards.find((c: any) => c.id >= 68000000);
+        const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8);
         return { deck, towerTroopId: towerTroop?.id };
       };
 
       for (let i = 0; i < playersToFetch.length; i += batchSize) {
         const batch = playersToFetch.slice(i, i + batchSize);
-        const batchResults = await Promise.all(
-          batch.map(async (p: any) => {
-            try { 
-              const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
-              const logData = log ? extractDeckFromLog(log) : null;
-              
-              if (logData && logData.deck.length === 8) {
-                return { deck: logData.deck, towerTroopId: logData.towerTroopId, rating: p.eloRating || p.trophies || 0 };
-              }
-              
-              // Fallback to getPlayerDeck if log fails
-              const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
-              if (deck && Array.isArray(deck)) {
-                const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
-                const tower = deck.find((c: any) => c.id >= 68000000);
-                return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
-              }
-              return null;
-            } catch { return null; }
-          })
-        );
-        decksWithRatings.push(...batchResults.filter((d): d is { deck: Card[], towerTroopId?: number, rating: number } => d !== null));
+        const results = await Promise.all(batch.map(async (p: any) => {
+          try { 
+            const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
+            const logData = log ? extractDeckFromLog(log) : null;
+            if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0 };
+            const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
+            if (deck && Array.isArray(deck)) {
+              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8);
+              const tower = deck.find((c: any) => c.id >= 68000000);
+              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
+            }
+          } catch { return null; }
+          return null;
+        }));
+        decksWithRatings.push(...results.filter((d): d is any => d !== null));
         setMetaProgress(Math.round(((i + batch.length) / playersToFetch.length) * 100));
       }
       
@@ -259,7 +232,7 @@ function App() {
         if (deckCounts[key]) {
           deckCounts[key].count++;
           deckCounts[key].maxRating = Math.max(deckCounts[key].maxRating, item.rating);
-          if (!deckCounts[key].towerTroopId && item.towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
+          if (!deckCounts[key].towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
         } else {
           deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: item.rating };
         }
@@ -268,42 +241,32 @@ function App() {
       const scoredDecks = Object.values(deckCounts).map(meta => {
         let totalLevel = 0;
         let eliteCount = 0;
-        let allAtLeast14 = true;
+        let ownedCount = 0;
         const missingEvos: { name: string; icon: string }[] = [];
         const missingHeroes: { name: string; icon: string }[] = [];
         
-        // Affinity MUST be calculated ONLY on the 8 deck cards.
-        // The towerTroopId is stored separately and does not affect the score.
         meta.cards.forEach((metaCard) => {
           const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
           if (userCard) {
+            ownedCount++;
             const displayLevel = Number(getDisplayLevel(userCard));
             totalLevel += displayLevel;
             if (displayLevel >= 15) eliteCount++;
-            if (displayLevel < 14) allAtLeast14 = false;
-            
-            // Evo check
-            if (metaCard.evolutionLevel && metaCard.evolutionLevel > 0 && !(userCard.evolutionLevel && userCard.evolutionLevel > 0)) {
+            if (isEvo(metaCard) && !isEvo(userCard)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
             }
-            // Hero check
-            if (metaCard.heroLevel && metaCard.heroLevel > 0 && !(userCard.heroLevel && userCard.heroLevel > 0)) {
+            if (isAnyHero(metaCard) && !isAnyHero(userCard)) {
               missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
             }
           } else { 
             totalLevel += 1; 
-            allAtLeast14 = false; 
-            if (metaCard.evolutionLevel && metaCard.evolutionLevel > 0) {
-              missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
-            }
-            if (metaCard.heroLevel && metaCard.heroLevel > 0) {
-              missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
-            }
+            if (isEvo(metaCard)) missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+            if (isAnyHero(metaCard)) missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
           }
         });
 
-        const avgLevel = totalLevel / 8;
-        const affinityScore = (eliteCount * 100.0) + avgLevel - (missingEvos.length * 10.0) - (missingHeroes.length * 10.0) + (meta.count * 0.1);
+        // SCORING: Base(Level*10) + Elite(Elite*25) - OwnershipPenalty(Missing*150) - FeaturePenalty(Missing*100) + MetaBonus(Count*2)
+        const score = (totalLevel * 10) + (eliteCount * 25) - ((8 - ownedCount) * 150) - ((missingEvos.length + missingHeroes.length) * 100) + Math.min(meta.count * 2, 50);
 
         return {
           name: `Meta Archetype`,
@@ -311,46 +274,36 @@ function App() {
           towerTroopId: meta.towerTroopId,
           count: meta.count,
           maxedCount: eliteCount,
-          isBestSynergy: allAtLeast14,
+          isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0 && (totalLevel / 8) >= 14,
           maxMedals: meta.maxRating,
-          score: affinityScore,
-          avgLevel: avgLevel,
+          score,
+          avgLevel: totalLevel / 8,
           missingEvos,
           missingHeroes
         };
       });
 
       setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
-    } catch (err: any) {
-      setError('Meta analysis sync failed.');
-    } finally {
-      setIsMetaLoading(false);
-    }
+    } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
 
   const sortedCards = profile?.cards ? [...profile.cards].sort((a, b) => {
-    let comparison = 0;
-    switch (sortBy) {
-      case 'elixir': comparison = (cardMap[b.id]?.elixirCost || 0) - (cardMap[a.id]?.elixirCost || 0); break;
-      case 'rarity': 
-        comparison = getRarityWeight(getRarityClass(b)) - getRarityWeight(getRarityClass(a)); 
-        break;
-      case 'evo':
-        const isEvoA = a.evolutionLevel !== undefined && a.evolutionLevel > 0;
-        const isEvoB = b.evolutionLevel !== undefined && b.evolutionLevel > 0;
-        comparison = isEvoA === isEvoB ? getDisplayLevel(b) - getDisplayLevel(a) : (isEvoB ? 1 : -1);
-        break;
-      case 'level': default: comparison = getDisplayLevel(b) - getDisplayLevel(a); break;
-    }
-    if (comparison === 0) comparison = a.name.localeCompare(b.name);
-    return sortOrder === 'desc' ? comparison : -comparison;
+    let comp = 0;
+    if (sortBy === 'elixir') comp = (cardMap[b.id]?.elixirCost || 0) - (cardMap[a.id]?.elixirCost || 0);
+    else if (sortBy === 'rarity') comp = getRarityWeight(getRarityClass(b)) - getRarityWeight(getRarityClass(a));
+    else if (sortBy === 'evo') comp = (isEvo(b) ? 1 : 0) - (isEvo(a) ? 1 : 0);
+    else comp = getDisplayLevel(b) - getDisplayLevel(a);
+    if (comp === 0) comp = a.name.localeCompare(b.name);
+    return sortOrder === 'desc' ? comp : -comp;
   }) : [];
+
+  const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
 
   return (
     <div className="app-container">
       <header className="main-header-centered">
         <h1>Clash Royale Meta Finder</h1>
-        <p>Load your profile to check your collection and find meta decks</p>
+        <p>Analyze your collection and find the best pro decks for your levels</p>
       </header>
 
       <div className="search-section">
@@ -358,12 +311,7 @@ function App() {
           <label className="input-label-premium">PLAYER TAG</label>
           <div className="modern-input-wrapper">
             <div className="input-prefix">#</div>
-            <input 
-              type="text" 
-              placeholder="P802VR..." 
-              value={playerTag} 
-              onChange={(e) => setPlayerTag(e.target.value.replace('#', ''))} 
-            />
+            <input type="text" placeholder="P802VR..." value={playerTag} onChange={(e) => setPlayerTag(e.target.value.replace('#', ''))} />
             <button type="submit" disabled={loading} className="modern-search-btn">
               {loading ? <RefreshCw size={20} className="spin" /> : <Search size={20} />}
               <span>SEARCH</span>
@@ -383,51 +331,16 @@ function App() {
             </div>
           </div>
         )}
-        {error && <p style={{ color: '#ff4d4d', fontSize: '0.9rem', margin: '0.5rem 0 0 0' }}>{error}</p>}
+        {error && <p style={{ color: '#ff4d4d', fontSize: '0.9rem', marginTop: '0.5rem' }}>{error}</p>}
       </div>
 
-      {!profile && !loading && (
-        <div className="hero-landing">
-          <div className="hero-content">
-            <h2>Master the Meta with <span>Your</span> Cards.</h2>
-            <p>Enter your Player Tag to analyze your collection, track your progress, and discover pro-level decks you can actually play.</p>
-            <div className="hero-features-grid">
-              <div className="h-feat"><div className="h-icon"><Trophy size={20} /></div><span>Pro Meta Sync</span></div>
-              <div className="h-feat"><div className="h-icon"><Target size={20} /></div><span>Affinity Scoring</span></div>
-            </div>
-          </div>
-          <div className="hero-visual">
-            <div className="floating-card c1">👑</div>
-            <div className="floating-card c2">⚔️</div>
-            <div className="floating-card c3">💎</div>
-          </div>
-        </div>
-      )}
-
-      {loading && (
-        <div className="loading-state">
-          <RefreshCw size={48} className="spin" color="var(--primary)" />
-          <p>Fetching Royale Data...</p>
-        </div>
-      )}
+      {loading && <div className="loading-state"><RefreshCw size={48} className="spin" color="var(--primary)" /><p>Fetching Royale Data...</p></div>}
 
       {profile && !loading && (
         <div className="profile-view">
           <div className="tabs-premium-container">
-            <button 
-              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} 
-              onClick={() => setActiveTab('profile')}
-            >
-              <UserCircle2 size={24} />
-              <span>PROFILE</span>
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`} 
-              onClick={() => setActiveTab('decks')}
-            >
-              <LayoutDashboard size={24} />
-              <span>META DECKS</span>
-            </button>
+            <button className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}><UserCircle2 size={24} /><span>PROFILE</span></button>
+            <button className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`} onClick={() => setActiveTab('decks')}><LayoutDashboard size={24} /><span>META DECKS</span></button>
           </div>
 
           {activeTab === 'profile' ? (
@@ -455,70 +368,31 @@ function App() {
 
               <div className="card-grid">
                 {sortedCards.map((card) => {
-                    const displayLevel = getDisplayLevel(card);
-                    
-                    // ULTIMATE HERO/EVO DETECTION (STRICT ALLOW-LIST)
-                    const HERO_CARDS = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
-                    const rarity = getRarityClass(card);
-                    const isActualChampion = rarity === 'champion' || rarity === 'hero';
-                    
-                    const isHeroAllowed = HERO_CARDS.includes(card.name);
-                    const heroData = (card as any).hero;
-                    const isHeroVariant = isHeroAllowed && ((card as any).heroLevel > 0 || heroData?.unlocked === true || heroData?.active === true);
-                    
-                    const isHero = isHeroVariant || isActualChampion;
-                    // Only show Evo if it's NOT showing as a Hero variant and has the properties
-                    const isEvo = !isHeroVariant && card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !!card.iconUrls.evolutionMedium;
-                    
-                    const getCardSlug = (name: string) => {
-                      return name.toLowerCase()
-                        .replace(/\./g, '')
-                        .replace(/ /g, '-')
-                        .replace('mini-p-e-k-k-a', 'mini-pekka')
-                        .replace('p-e-k-k-a', 'pekka');
-                    };
-                    
-                    const slug = getCardSlug(card.name);
-                    const heroIcon = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
-                    const evoIcon = card.iconUrls.evolutionMedium;
-                    
-                    return (
-                      <div key={card.id} className={`card-item ${rarity} ${isHero ? 'hero-variant' : ''}`}>
-                        <div className="card-image-container">
-                          <img 
-                            src={isHeroVariant ? heroIcon : (isEvo ? evoIcon : card.iconUrls.medium)} 
-                            alt={card.name} 
-                            className="card-image" 
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              if (target.src !== card.iconUrls.medium) {
-                                target.src = card.iconUrls.medium;
-                              }
-                            }}
-                          />
-                          <div className="card-badges">
-                            {isHero && (
-                              <div className="badge hero-badge" title="Hero / Champion">
-                                <Crown size={12} strokeWidth={3} />
-                              </div>
-                            )}
-                            {isEvo && (
-                              <div className="badge evo-badge" title="Evolution">
-                                <Sparkles size={12} strokeWidth={3} />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="card-level-badge">Level {displayLevel}</div>
-                        <div className="card-info">
-                          <div className="card-name">{card.name}</div>
-                          {cardMap[card.id]?.elixirCost !== undefined && (
-                            <div className="elixir-badge">{cardMap[card.id].elixirCost}</div>
-                          )}
+                  const displayLevel = getDisplayLevel(card);
+                  const rarity = getRarityClass(card);
+                  const heroVariant = isHeroVariant(card);
+                  const hero = isAnyHero(card);
+                  const evo = isEvo(card);
+                  const slug = getCardSlug(card.name);
+                  const icon = heroVariant ? `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png` : (evo ? card.iconUrls.evolutionMedium : card.iconUrls.medium);
+
+                  return (
+                    <div key={card.id} className={`card-item ${rarity} ${heroVariant ? 'hero-variant' : ''}`}>
+                      <div className="card-image-container">
+                        <img src={icon} alt={card.name} className="card-image" onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
+                        <div className="card-badges">
+                          {hero && <div className="badge hero-badge" title="Hero / Champion"><Crown size={12} strokeWidth={3} /></div>}
+                          {evo && <div className="badge evo-badge" title="Evolution"><Sparkles size={12} strokeWidth={3} /></div>}
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="card-level-badge">Level {displayLevel}</div>
+                      <div className="card-info">
+                        <div className="card-name">{card.name}</div>
+                        {cardMap[card.id]?.elixirCost !== undefined && <div className="elixir-badge">{cardMap[card.id].elixirCost}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (

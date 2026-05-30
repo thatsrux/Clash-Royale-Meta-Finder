@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
+import { isChampion, isEvo, isHeroVariant, isAnyHero } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -48,6 +49,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
+  const THEORETICAL_MAX_SCORE = 1450;
+
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
       const exists = prev.find(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
@@ -60,12 +63,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
-    
-    // 1. Filter out Tower Troops (ID >= 68000000)
     const allCards = cards.filter(c => c && c.id && c.id < 68000000);
-    
-    // In 2026, we have 3 special slots: Evolution, Hero, and Wild (2nd Evo or 2nd Hero/Champ)
-    // We prioritize assigning cards to these slots.
     const orderedDeck: Card[] = [...allCards].slice(0, 8);
     const slots = new Array(8).fill(0);
     
@@ -74,13 +72,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     
     for (let i = 0; i < orderedDeck.length; i++) {
       const card = orderedDeck[i];
-      const isEvo = card.evolutionLevel !== undefined && card.evolutionLevel > 0;
-      const isHeroChamp = (card.rarity?.toLowerCase() === 'champion' || card.rarity?.toLowerCase() === 'hero' || (card.heroLevel !== undefined && card.heroLevel > 0));
+      const cardIsEvo = isEvo(card);
+      const cardIsHero = isAnyHero(card);
       
-      if (isEvo && evoCount < 2 && (evoCount + heroChampCount < 3)) {
+      if (cardIsEvo && evoCount < 2 && (evoCount + heroChampCount < 3)) {
         slots[i] = 1;
         evoCount++;
-      } else if (isHeroChamp && heroChampCount < 2 && (evoCount + heroChampCount < 3)) {
+      } else if (cardIsHero && heroChampCount < 2 && (evoCount + heroChampCount < 3)) {
         slots[i] = 2;
         heroChampCount++;
       }
@@ -90,9 +88,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     const slotsString = slots.join(';');
     
     let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slotsString}`;
-    if (towerTroopId) {
-      link += `&towerTroop=${towerTroopId}`;
-    }
+    if (towerTroopId) link += `&towerTroop=${towerTroopId}`;
     link += `&name=Meta%20Archetype`;
     
     navigator.clipboard.writeText(link).then(() => {
@@ -110,11 +106,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
-            const cardInSlot1 = deck.cards[0] ? Number(deck.cards[0].id) === filter.id : false;
-            const cardInSlot2 = deck.cards[1] ? Number(deck.cards[1].id) === filter.id : false;
-            return cardInSlot1 || cardInSlot2;
+            return deck.cards.some(c => Number(c.id) === filter.id && isEvo(c));
           } else {
-            return deck.cards.some(c => c && Number(c.id) === filter.id);
+            return deck.cards.some(c => Number(c.id) === filter.id);
           }
         })
       )
@@ -123,28 +117,16 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     return { filteredRecommendations: filtered };
   }, [cachedDecks, selectedFilters]);
 
-  // Theoretical max score: 800 (8 elite cards) + 15 (avg level) + 35 (max meta popularity bonus) = 850
-  const THEORETICAL_MAX_SCORE = 850;
-
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
     const heroes: FilterItem[] = [];
     const normal: FilterItem[] = [];
 
     const rarityOrder: Record<string, number> = {
-      'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5
+      'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4, 'champion': 5, 'hero': 6
     };
 
-    // ULTIMATE 2026 HERO LIST (STRICT)
-    const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
-
-    const getCardSlug = (name: string) => {
-      return name.toLowerCase()
-        .replace(/\./g, '')
-        .replace(/ /g, '-')
-        .replace('mini-p-e-k-k-a', 'mini-pekka')
-        .replace('p-e-k-k-a', 'pekka');
-    };
+    const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
 
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
@@ -153,6 +135,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const iconUrl = c.iconUrls?.medium || '';
         const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = (c.rarity || 'common').toLowerCase();
+        
+        // Use manual list for Hero variants if not present in rarity
+        const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant'];
         const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
 
         if (evoIconUrl) {
@@ -161,13 +146,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         
         if (rarity === 'champion' || rarity === 'hero') {
           heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
-        }
-        
-        if (isKnownHeroBase) {
+        } else if (isKnownHeroBase) {
           const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
-          // We add the Hero variant to the heroes list. 
-          // Since allGameCards includes everything in the game, this will trigger for these 4 cards 
-          // regardless of player's personal collection.
           heroes.push({ 
             id: c.id, 
             icon: heroIconUrl, 
@@ -202,19 +182,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         </div>
         <div className="filter-grid">
           {items.map((c, idx) => {
-            const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter && f.rarity === c.rarity);
-            const isHeroVariant = c.rarity === 'hero';
+            const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
+            const isHeroVariantDisplay = c.rarity === 'hero';
             
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${isHeroVariant ? 'hero-filter-item' : ''}`}
+                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${isHeroVariantDisplay ? 'hero-filter-item' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
                 <img src={c.icon} alt={c.name} />
                 {c.isEvoFilter && <div className="evo-mini-icon"></div>}
-                {isHeroVariant && <div className="hero-mini-icon"></div>}
+                {isHeroVariantDisplay && <div className="hero-mini-icon"></div>}
               </div>
             );
           })}
@@ -278,145 +258,119 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             <span className="status-percent">{progress}%</span>
           </div>
           <div className="progress-track">
-            <div 
-              className="progress-bar-fill" 
-              style={{ width: `${progress}%` }}
-            >
+            <div className="progress-bar-fill" style={{ width: `${progress}%` }}>
               <div className="progress-glow"></div>
               <div className="progress-shimmer"></div>
             </div>
           </div>
-          <p className="analysis-hint">
-            Deep scanning battle logs and calculating card synergies...
-          </p>
+          <p className="analysis-hint">Scanning battle logs and calculating card synergies...</p>
         </div>
       )}
 
       {cachedDecks && !isLoading ? (
         <div className="recommendations-list">
-          {filteredRecommendations.map((deck, idx) => (
-            <div key={idx} className="deck-suggestion">
-              <div className="deck-header">
-                <div className="deck-info-primary">
-                  <div className="uses-badge">
-                    <Trophy size={12} />
-                    <span>{deck.count} PRO USES</span>
+          {filteredRecommendations.map((deck, idx) => {
+            const affinityPercent = Math.min(100, Math.max(0, Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)));
+            const affinityColor = affinityPercent > 80 ? '#4ade80' : (affinityPercent > 50 ? '#fbbf24' : '#ef4444');
+
+            return (
+              <div key={idx} className="deck-suggestion">
+                <div className="deck-header">
+                  <div className="deck-info-primary">
+                    <div className="uses-badge"><Trophy size={12} /><span>{deck.count} PRO USES</span></div>
+                    {deck.maxMedals > 0 && <div className="medals-badge"><Medal size={12} /><span>{deck.maxMedals}</span></div>}
+                    {deck.isBestSynergy && <span className="best-synergy-badge">MAX POTENTIAL</span>}
+                    <button 
+                      className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
+                      onClick={() => handleCopyDeck(deck, idx)}
+                    >
+                      {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
+                      <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
+                    </button>
                   </div>
-                  {deck.maxMedals > 0 && (
-                    <div className="medals-badge">
-                      <Medal size={12} />
-                      <span>{deck.maxMedals}</span>
+                  
+                  <div className="affinity-pill" style={{ borderColor: affinityColor }}>
+                    <Target size={14} style={{ color: affinityColor }} />
+                    <div className="affinity-content">
+                      <span className="label">AFFINITY</span>
+                      <span className="value" style={{ color: affinityColor }}>{affinityPercent}%</span>
                     </div>
-                  )}
-                  {deck.isBestSynergy && (
-                    <span className="best-synergy-badge">BEST SYNERGY</span>
-                  )}
-                  <button 
-                    className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
-                    onClick={() => handleCopyDeck(deck, idx)}
-                    title="Copy to Clash Royale"
-                  >
-
-                    {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
-                    <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
-                  </button>
-                </div>
-                
-                <div className="affinity-pill" style={{ borderColor: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
-                  <Target size={14} style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }} />
-                  <div className="affinity-content">
-                    <span className="label">AFFINITY</span>
-                    <span className="value" style={{ color: (deck.score / THEORETICAL_MAX_SCORE) > 0.7 ? '#4ade80' : '#fbbf24' }}>
-                      {Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)}%
-                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="deck-main-content">
-                <div className="mini-card-grid">
-                  {deck.cards.map((card, index) => {
-                    const userCard = profile.cards.find(c => c && Number(c.id) === Number(card.id));
-                    const userLevel = userCard ? getDisplayLevel(userCard) : 0;
-                    const isMaxed = userLevel >= 15;
-                    const missingLvls = Math.max(0, 15 - userLevel);
-                    
-                    const isEvo = card.evolutionLevel && card.evolutionLevel > 0;
-                    const isHero = card.heroLevel && card.heroLevel > 0;
-                    
-                    const displayIcon = (isEvo && card.iconUrls?.evolutionMedium) 
-                      ? card.iconUrls.evolutionMedium 
-                      : card.iconUrls?.medium || '';
+                <div className="deck-main-content">
+                  <div className="mini-card-grid">
+                    {deck.cards.map((card, index) => {
+                      const userCard = profile.cards.find(c => Number(c.id) === Number(card.id));
+                      const userLevel = userCard ? getDisplayLevel(userCard) : 0;
+                      const isMaxed = userLevel >= 15;
+                      const missingLvls = Math.max(0, 15 - userLevel);
+                      
+                      const cardIsEvo = isEvo(card);
+                      const cardIsHero = isAnyHero(card);
+                      
+                      const displayIcon = (cardIsEvo && card.iconUrls?.evolutionMedium) 
+                        ? card.iconUrls.evolutionMedium 
+                        : card.iconUrls?.medium || '';
 
-                    return (
-                      <div key={card.id || index} className={`mini-card ${isEvo ? 'evo-slot' : ''} ${isHero ? 'hero-slot' : ''}`}>
-                        <div className="card-image-container">
-                          {displayIcon && <img src={displayIcon} alt={card.name} />}
-                        </div>
-                        <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
-                          {userLevel || '!'}
-                        </div>
-                        {!isMaxed && userLevel > 0 && (
-                          <div className="missing-lvl-indicator">
-                            <ArrowUp size={6} /> {missingLvls}
+                      return (
+                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
+                          <div className="card-image-container">
+                            {displayIcon && <img src={displayIcon} alt={card.name} />}
                           </div>
-                        )}
-                        {isEvo && <div className="evo-indicator-tiny"></div>}
-                        {isHero && <div className="hero-indicator-tiny"></div>}
-                      </div>
-                    );
-                  })}
+                          <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
+                            {userLevel || '!'}
+                          </div>
+                          {!isMaxed && userLevel > 0 && (
+                            <div className="missing-lvl-indicator">
+                              <ArrowUp size={6} /> {missingLvls}
+                            </div>
+                          )}
+                          {cardIsEvo && <div className="evo-indicator-tiny"></div>}
+                          {cardIsHero && <div className="hero-indicator-tiny"></div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="deck-stats-group">
+                    <div className="deck-stat-item">
+                      <div className="stat-icon"><Activity size={14} /></div>
+                      <div className="stat-info"><span className="stat-label">AVG LEVEL</span><span className="stat-value">{deck.avgLevel.toFixed(1)}</span></div>
+                    </div>
+                    <div className={`deck-stat-item ${deck.maxedCount === 8 ? 'maxed' : ''}`}>
+                      <div className="stat-icon"><CheckCircle2 size={14} /></div>
+                      <div className="stat-info"><span className="stat-label">MAXED CARDS</span><span className="stat-value">{deck.maxedCount}/8</span></div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="deck-stats-group">
-                  <div className="deck-stat-item">
-                    <div className="stat-icon"><Activity size={14} /></div>
-                    <div className="stat-info">
-                      <span className="stat-label">AVG LEVEL</span>
-                      <span className="stat-value">{deck.avgLevel.toFixed(1)}</span>
+                {(deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) && (
+                  <div className="deck-missing-section">
+                    <div className="missing-label"><AlertCircle size={12} /><span>MISSING REQUIREMENTS</span></div>
+                    <div className="missing-icons-list">
+                      {deck.missingEvos?.map((evo, eIdx) => (
+                        <div key={`evo-${eIdx}`} className="missing-item-badge evo">
+                          <img src={evo.icon} alt={evo.name} />
+                          <span>{evo.name} (EVO)</span>
+                        </div>
+                      ))}
+                      {deck.missingHeroes?.map((hero, hIdx) => (
+                        <div key={`hero-${hIdx}`} className="missing-item-badge hero">
+                          <img src={hero.icon} alt={hero.name} />
+                          <span>{hero.name}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className={`deck-stat-item ${deck.maxedCount === 8 ? 'maxed' : ''}`}>
-                    <div className="stat-icon"><CheckCircle2 size={14} /></div>
-                    <div className="stat-info">
-                      <span className="stat-label">MAXED CARDS</span>
-                      <span className="stat-value">{deck.maxedCount}/8</span>
-                    </div>
-                  </div>
-                </div>
+                )}
+                
+                {(!deck.missingEvos || deck.missingEvos.length === 0) && (!deck.missingHeroes || deck.missingHeroes.length === 0) && (
+                  <div className="deck-ready-footer"><CheckCircle2 size={12} /><span>DECK FULLY READY</span></div>
+                )}
               </div>
-
-              {(deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) && (
-                <div className="deck-missing-section">
-                  <div className="missing-label">
-                    <AlertCircle size={12} />
-                    <span>MISSING UPGRADES</span>
-                  </div>
-                  <div className="missing-icons-list">
-                    {deck.missingEvos?.map((evo, eIdx) => (
-                      <div key={`evo-${eIdx}`} className="missing-item-badge evo">
-                        <img src={evo.icon} alt={evo.name} />
-                        <span>{evo.name} (EVO)</span>
-                      </div>
-                    ))}
-                    {deck.missingHeroes?.map((hero, hIdx) => (
-                      <div key={`hero-${hIdx}`} className="missing-item-badge hero">
-                        <img src={hero.icon} alt={hero.name} />
-                        <span>{hero.name} (HERO)</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {(!deck.missingEvos || deck.missingEvos.length === 0) && (!deck.missingHeroes || deck.missingHeroes.length === 0) && (
-                <div className="deck-ready-footer">
-                  <CheckCircle2 size={12} />
-                  <span>DECK FULLY READY</span>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : null}
     </div>
