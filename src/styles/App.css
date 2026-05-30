@@ -427,7 +427,7 @@ button {
   margin-bottom: 2rem;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 0.9s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 .deck-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
 .deck-info-primary { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
@@ -984,7 +984,7 @@ button {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateY(-10px) scale(0.98);
   margin-bottom: 0;
   pointer-events: none;
@@ -1221,7 +1221,7 @@ button {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
-  animation: fadeIn 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   position: relative;
 }
 
@@ -1493,7 +1493,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 1.0s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .expanded-alternatives {
@@ -1505,7 +1505,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  animation: slideDown 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideDown 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   transform-origin: top center;
 }
 
