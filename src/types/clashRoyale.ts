@@ -41,17 +41,22 @@ export const hasHeroAvailable = (card: Card) => {
 
 // Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
-  // Check the explicit 'tag' property first
-  if ((card as any).tag?.toLowerCase() === 'hero') return true;
+  const rarity = (card.rarity || '').toLowerCase();
+  const type = (card as any).type?.toLowerCase() || '';
+  const tag = (card as any).tag?.toLowerCase() || '';
+  const name = (card.name || '').toLowerCase();
+
+  // HIGHEST PRIORITY: Explicit Hero marking
+  if (rarity === 'hero' || type === 'hero' || tag === 'hero' || name.includes('hero')) {
+    return true;
+  }
   
-  const name = card.name || '';
-  if (name.toLowerCase().includes('hero')) return true;
-  if (card.rarity?.toLowerCase() === 'hero') return true;
-  if ((card as any).type?.toLowerCase() === 'hero') return true;
-  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+  // SECOND PRIORITY: Explicit hero level
+  if (card.heroLevel !== undefined && card.heroLevel > 0) {
+    return true;
+  }
   
-  // Crucial fallback: If the API uses 'evolutionLevel' for the special slot,
-  // but the card has NO Evolution available, it MUST be a Hero.
+  // THIRD PRIORITY: Fallback for cards that use the evolution slot for Hero versions
   if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
     return true;
   }
@@ -60,17 +65,23 @@ export const isHeroVariantUnlocked = (card: Card) => {
 
 // Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
-  // Check the explicit 'tag' property first
-  if ((card as any).tag?.toLowerCase() === 'evo') return true;
-  if ((card as any).tag?.toLowerCase() === 'hero') return false;
+  const rarity = (card.rarity || '').toLowerCase();
+  const type = (card as any).type?.toLowerCase() || '';
+  const tag = (card as any).tag?.toLowerCase() || '';
+  const name = (card.name || '').toLowerCase();
 
   // A card CANNOT be an Evolution if it is definitively a Hero
   if (isHeroVariantUnlocked(card)) return false;
   
+  // Explicit Evo marking
+  if (rarity === 'evo' || type === 'evo' || tag === 'evo' || name.includes('evo')) {
+    return true;
+  }
+
   // A card CANNOT be an Evolution if it doesn't have an Evolution version available
   if (!hasEvoAvailable(card)) return false;
   
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || (card.name || '').toLowerCase().includes('evo');
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
 };
 
 export const isAnyHeroUnlocked = (card: Card) => {

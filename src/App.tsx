@@ -336,12 +336,12 @@ function App() {
 
   const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
     const slug = getCardSlug(card.name);
+    // Modern CDN pattern for RoyaleAPI (2026 Season)
     if (isHero) {
-      // Prioritize explicit heroMedium if provided by API, otherwise fallback to CDN pattern
-      return (card.iconUrls as any).heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+      return (card.iconUrls as any).heroMedium || `https://cdns3.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
     }
     if (isEvo) {
-      return card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+      return card.iconUrls.evolutionMedium || `https://cdns3.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
     }
     return card.iconUrls.medium;
   };
