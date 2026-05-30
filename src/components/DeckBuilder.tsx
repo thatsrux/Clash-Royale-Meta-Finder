@@ -262,8 +262,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             
             <div className="filter-sections-container">
               <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-              <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" type="champion" />
-              <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" type="hero" />
+              <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" />
+              <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" />
               <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
             </div>
           </div>
