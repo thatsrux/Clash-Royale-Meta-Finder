@@ -206,7 +206,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     };
   }, [allGameCards]);
 
-  const FilterGrid = ({ items, title, icon: Icon, color, type }: { items: FilterItem[], title: string, icon: any, color: string, type?: string }) => {
+  const FilterGrid = ({ items, title, icon: Icon, color }: { items: FilterItem[], title: string, icon: any, color: string }) => {
     if (items.length === 0) return null;
     return (
       <div className="filter-section-group">
