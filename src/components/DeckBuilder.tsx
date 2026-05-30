@@ -152,31 +152,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         if (!c) return;
         const slug = getCardSlug(c.name);
         const iconUrl = c.iconUrls?.medium || '';
-        const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = (c.rarity || 'common').toLowerCase();
         
-        // Manual check for potential Hero variants during card list discovery (2026 update)
-        const HERO_VARIANTS_NAMES = [
-          'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince',
-          'Wizard', 'Bowler', 'Magic Archer', 'Balloon', 'Tombstone', 'Barbarian Barrel'
-        ];
-        const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
+        // DYNAMIC DETECTION (No hardcoded lists)
+        const isEvoBase = !!c.iconUrls?.evolutionMedium || c.name.toLowerCase().includes('evo');
+        const isHeroBase = rarity === 'champion' || rarity === 'hero' || c.name.toLowerCase().includes('hero');
 
-        if (evoIconUrl) {
-          evos.push({ id: c.id, icon: evoIconUrl, name: c.name, isEvoFilter: true, rarity });
+        if (isEvoBase) {
+          const evoIcon = c.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+          evos.push({ id: c.id, icon: evoIcon, name: c.name, isEvoFilter: true, rarity });
         }
         
-        if (rarity === 'champion' || rarity === 'hero') {
-          heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
-        } else if (isKnownHeroBase) {
-          // Use the CDN pattern for Hero versions during discovery
-          const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+        if (isHeroBase) {
+          const heroIcon = (c.iconUrls as any)?.heroMedium || 
+                          (rarity === 'champion' ? iconUrl : `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`);
+          
           heroes.push({ 
             id: c.id, 
-            icon: heroIconUrl, 
-            name: `${c.name} (Hero)`, 
+            icon: heroIcon, 
+            name: c.name.toLowerCase().includes('hero') ? c.name : `${c.name} (Hero)`, 
             isEvoFilter: false, 
-            rarity: 'hero' 
+            rarity: rarity === 'champion' ? 'champion' : 'hero' 
           });
         }
         

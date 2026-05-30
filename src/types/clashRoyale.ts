@@ -8,6 +8,7 @@ export interface Card {
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
+    heroMedium?: string; // Potential for future API updates
   };
   rarity: string;
   evolutionLevel?: number;
@@ -18,44 +19,45 @@ export const isChampion = (card: Card) => {
   return card.rarity?.toLowerCase() === 'champion';
 };
 
-// Check if the specific card instance has Evolution unlocked or is an Evo variant
+/**
+ * DYNAMIC DETECTION LOGIC
+ * These helpers use card properties rather than hardcoded lists.
+ */
+
+// Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
-  const name = card.name || '';
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || name.includes('Evo');
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || 
+         (card.name || '').toLowerCase().includes('evo');
 };
 
-// Check if the card definition has an Evolution version available
+// Check if the card definition has an Evolution version available (Dynamic via icons)
 export const hasEvoAvailable = (card: Card) => {
-  return !!card.iconUrls?.evolutionMedium || (card.name || '').includes('Evo');
+  return !!card.iconUrls?.evolutionMedium || 
+         (card.name || '').toLowerCase().includes('evo');
 };
 
-// Legacy helper - defaults to unlocked check for profile/collection
-export const isEvo = (card: Card) => isEvoUnlocked(card);
-
-// Check if the specific card instance has Hero Variant active/unlocked or is a Hero variant
+// Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
-  const name = card.name || '';
-  return (card.heroLevel !== undefined && card.heroLevel > 0) || name.includes('Hero');
+  return (card.heroLevel !== undefined && card.heroLevel > 0) || 
+         (card.name || '').toLowerCase().includes('hero');
 };
 
-// Check if the card is one of the base cards that CAN be a Hero in the 2026 update
+// Check if the card is a Hero variant (Dynamic via metadata indicators)
 export const hasHeroAvailable = (card: Card) => {
-  const name = card.name || '';
-  const HERO_BASE_CARDS = [
-    'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince', 
-    'Wizard', 'Bowler', 'Magic Archer', 'Balloon', 'Tombstone', 'Barbarian Barrel'
-  ];
-  return HERO_BASE_CARDS.includes(name) || card.rarity?.toLowerCase() === 'hero' || name.includes('Hero');
+  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
+  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
+  const hasHeroIconProp = !!(card.iconUrls as any).heroMedium;
+  
+  return isHeroRarity || hasHeroName || hasHeroIconProp;
 };
-
-// Legacy helper
-export const isHeroVariant = (card: Card) => isHeroVariantUnlocked(card);
 
 export const isAnyHeroUnlocked = (card: Card) => {
   return isChampion(card) || isHeroVariantUnlocked(card) || card.rarity?.toLowerCase() === 'hero';
 };
 
-// Legacy helper
+// Aliases for backward compatibility
+export const isEvo = (card: Card) => isEvoUnlocked(card);
+export const isHeroVariant = (card: Card) => isHeroVariantUnlocked(card);
 export const isAnyHero = (card: Card) => isAnyHeroUnlocked(card);
 
 export interface PlayerProfile {
