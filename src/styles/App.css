@@ -420,7 +420,15 @@ button {
 .evo-badge-tiny { background: var(--evo-purple); color: #fff; }
 
 /* DECK SUGGESTIONS */
-.deck-suggestion { background: var(--surface); border-radius: 1.25rem; border: 1px solid var(--border); margin-bottom: 2rem; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.deck-suggestion {
+  background: var(--surface);
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
 .deck-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
 .deck-info-primary { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 .uses-badge, .medals-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.6rem; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
@@ -976,16 +984,18 @@ button {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(-10px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-10px) scale(0.98);
   margin-bottom: 0;
+  pointer-events: none;
 }
 
 .filter-animation-wrapper.expanded {
-  max-height: 1000px; /* High enough to contain all filters */
+  max-height: 1200px;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   margin-bottom: 2rem;
+  pointer-events: auto;
 }
 
 .card-filter-grid-section {
@@ -1211,7 +1221,7 @@ button {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
-  animation: fadeIn 0.5s ease-out;
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   position: relative;
 }
 
@@ -1426,7 +1436,7 @@ button {
 
 @media (min-width: 900px) {
   .upgrade-rec-grid { 
-    grid-template-columns: repeat(5, 1fr); /* Exactly one row for all 5 rarities */
+    grid-template-columns: repeat(5, 1fr); 
     gap: 0.75rem;
   }
 }
@@ -1442,7 +1452,8 @@ button {
   border-top-width: 3px;
   cursor: pointer;
   height: fit-content;
-  min-width: 0; /* Prevents overflow in grid */
+  min-width: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .rec-body, .rec-body-mini {
@@ -1482,7 +1493,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .expanded-alternatives {
@@ -1494,7 +1505,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: top center;
 }
 
 .expanded-alternatives.mini {
@@ -1565,9 +1577,15 @@ button {
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 }
 
 .rec-mini-info .name {
