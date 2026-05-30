@@ -545,36 +545,39 @@ function App() {
                   </div>
 
                   {(() => {
-                    // CALCULATE RECOMMENDATIONS & STATS
+                    // CALCULATE RECOMMENDATIONS & STATS ON THE ENTIRE META (all scanned decks)
                     const missingEvoCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
                     const missingHeroCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
-                    let totalDecks = metaDecksCache.length;
+                    
+                    // We use the FULL cache, not a sliced version
+                    const allMetaDecks = metaDecksCache;
+                    const totalDecksCount = allMetaDecks.length;
 
-                    metaDecksCache.forEach(deck => {
+                    allMetaDecks.forEach(deck => {
                       deck.missingEvos.forEach(evo => {
                         const card = deck.cards.find(c => c.name === evo.name);
                         if (!card) return;
                         if (!missingEvoCounts[card.id]) missingEvoCounts[card.id] = { name: evo.name, icon: evo.icon, count: 0, deckPotential: 0 };
                         missingEvoCounts[card.id].count++;
-                        // If deck is high score (>70%) but missing this variant, increase priority
-                        if (deck.score > 70) missingEvoCounts[card.id].deckPotential += deck.score;
+                        // Weighted by deck affinity score (Mazzi Migliori)
+                        missingEvoCounts[card.id].deckPotential += Math.pow(deck.score / 10, 2);
                       });
                       deck.missingHeroes.forEach(hero => {
                         const card = deck.cards.find(c => c.name === hero.name);
                         if (!card) return;
                         if (!missingHeroCounts[card.id]) missingHeroCounts[card.id] = { name: hero.name, icon: hero.icon, count: 0, deckPotential: 0 };
                         missingHeroCounts[card.id].count++;
-                        if (deck.score > 70) missingHeroCounts[card.id].deckPotential += deck.score;
+                        missingHeroCounts[card.id].deckPotential += Math.pow(deck.score / 10, 2);
                       });
                     });
 
-                    const recommendationEvos = Object.values(missingEvoCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
-                    const recommendationHeroes = Object.values(missingHeroCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
+                    const recommendationEvos = Object.values(missingEvoCounts).sort((a, b) => b.deckPotential - a.deckPotential);
+                    const recommendationHeroes = Object.values(missingHeroCounts).sort((a, b) => b.deckPotential - a.deckPotential);
 
                     const bestEvo = recommendationEvos[0];
                     const bestHero = recommendationHeroes[0];
 
-                    // STRICT SORT BY META USAGE % (Descending) for the tables
+                    // STRICT SORT BY FULL META USAGE % (Descending)
                     const sortedEvosByUsage = Object.values(missingEvoCounts).sort((a, b) => b.count - a.count);
                     const sortedHeroesByUsage = Object.values(missingHeroCounts).sort((a, b) => b.count - a.count);
 
@@ -588,7 +591,7 @@ function App() {
                                 <img src={bestEvo.icon} alt={bestEvo.name} />
                                 <div className="rec-info">
                                   <div className="rec-name">{bestEvo.name}</div>
-                                  <div className="rec-reason">Boosts {Math.round(bestEvo.count)} meta decks</div>
+                                  <div className="rec-reason">Used in {Math.round(bestEvo.count)} archetypes</div>
                                 </div>
                               </div>
                             </div>
@@ -600,7 +603,7 @@ function App() {
                                 <img src={bestHero.icon} alt={bestHero.name} />
                                 <div className="rec-info">
                                   <div className="rec-name">{bestHero.name}</div>
-                                  <div className="rec-reason">Unlocks {Math.round(bestHero.count)} pro archetypes</div>
+                                  <div className="rec-reason">Used in {Math.round(bestHero.count)} archetypes</div>
                                 </div>
                               </div>
                             </div>
@@ -609,31 +612,31 @@ function App() {
 
                         <div className="stats-tables-row">
                           <div className="stats-column">
-                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
+                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE (Full Scan)</div>
                             <div className="stats-list">
                               {sortedEvosByUsage.map(evo => (
                                 <div key={evo.name} className="stat-row-item">
                                   <img src={evo.icon} alt={evo.name} />
                                   <div className="stat-row-details">
                                     <span className="name">{evo.name}</span>
-                                    <span className="percent">{Math.round((evo.count / totalDecks) * 100)}% Usage</span>
+                                    <span className="percent">{Math.round((evo.count / totalDecksCount) * 100)}% Usage</span>
                                   </div>
-                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecks) * 100}%` }}></div></div>
+                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecksCount) * 100}%` }}></div></div>
                                 </div>
                               ))}
                             </div>
                           </div>
                           <div className="stats-column">
-                            <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
+                            <div className="stats-header"><Crown size={14} /> HERO META USAGE (Full Scan)</div>
                             <div className="stats-list">
                               {sortedHeroesByUsage.map(hero => (
                                 <div key={hero.name} className="stat-row-item">
                                   <img src={hero.icon} alt={hero.name} />
                                   <div className="stat-row-details">
                                     <span className="name">{hero.name}</span>
-                                    <span className="percent">{Math.round((hero.count / totalDecks) * 100)}% Usage</span>
+                                    <span className="percent">{Math.round((hero.count / totalDecksCount) * 100)}% Usage</span>
                                   </div>
-                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecks) * 100}%` }}></div></div>
+                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecksCount) * 100}%` }}></div></div>
                                 </div>
                               ))}
                             </div>
@@ -649,7 +652,7 @@ function App() {
                           const missingEliteCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number, rarity: string, currentLevel: number }> = {};
                           const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
                           
-                          metaDecksCache.forEach(deck => {
+                          allMetaDecks.forEach(deck => {
                             deck.cards.forEach(metaCard => {
                               const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
                               const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
@@ -666,10 +669,7 @@ function App() {
                                   };
                                 }
                                 missingEliteCounts[metaCard.id].count++;
-                                // IMPACT CALCULATION:
-                                // We sum the squared score of each deck it's in. 
-                                // This heavily weights cards in high-affinity decks (mazzi migliori) 
-                                // while naturally scaling with usage (più mazzi).
+                                // IMPACT: Sum of squares of affinities where this card is missing elite level
                                 missingEliteCounts[metaCard.id].deckPotential += Math.pow(deck.score / 10, 2);
                               }
                             });
@@ -677,12 +677,7 @@ function App() {
 
                           const nextUpgrades = rarities.map(r => {
                             const available = Object.values(missingEliteCounts).filter(c => c.rarity === r);
-                            // We weigh the total potential by how much a single card upgrade helps (16 - currentLevel)
-                            return available.sort((a, b) => {
-                              const scoreA = a.deckPotential * (2 + (16 - a.currentLevel) / 1.28);
-                              const scoreB = b.deckPotential * (2 + (16 - b.currentLevel) / 1.28);
-                              return scoreB - scoreA;
-                            })[0];
+                            return available.sort((a, b) => b.deckPotential - a.deckPotential)[0];
                           }).filter(Boolean);
 
                           return (
@@ -695,7 +690,7 @@ function App() {
                                       <img src={rec.icon} alt={rec.name} />
                                       <div className="rec-mini-info">
                                         <div className="name">{rec.name}</div>
-                                        <div className="meta-stats">{Math.round((rec.count / totalDecks) * 100)}% Meta Usage</div>
+                                        <div className="meta-stats">{Math.round((rec.count / totalDecksCount) * 100)}% Meta Usage</div>
                                       </div>
                                     </div>
                                   </div>
@@ -720,9 +715,9 @@ function App() {
                                             <img src={item.icon} alt={item.name} />
                                             <div className="stat-row-details">
                                               <span className="name">{item.name}</span>
-                                              <span className="percent">{Math.round((item.count / totalDecks) * 100)}%</span>
+                                              <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}%</span>
                                             </div>
-                                            <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecks) * 100}%` }}></div></div>
+                                            <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div>
                                           </div>
                                         ))}
                                       </div>
