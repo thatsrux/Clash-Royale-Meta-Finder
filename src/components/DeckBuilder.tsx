@@ -85,24 +85,40 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
     
-    // 1. Separate cards by type to reorder them correctly for the slots logic
-    const evoCards = cards.filter(c => isEvoUnlocked(c));
-    const otherCards = cards.filter(c => !isEvoUnlocked(c));
+    // EXHAUSTIVE FIX FOR DECK PASTE (2024/2026 Format)
+    // Based on RoyaleAPI and official client behavior.
     
-    // 2. The Link.ClashRoyale format (2024+) expects the evolved cards FIRST
-    // The number in &slots=N tells the game that the FIRST N cards in the &deck string are evolved.
-    const orderedDeck = [...evoCards, ...otherCards].slice(0, 8);
-    const finalIds = orderedDeck.map(c => c.id).join(';');
-    const evoCount = Math.min(evoCards.length, 2);
+    // 1. Extract and normalize the 8 cards
+    const deckCards = cards.filter(c => c && c.id && c.id < 68000000).slice(0, 8);
+    
+    // 2. Identify Evolutions. In the new format, 'evols' is preferred over 'slots'.
+    const evolvedCards = deckCards.filter(c => isEvoUnlocked(c));
+    const evolvedIds = evolvedCards.map(c => c.id).join(';');
+    
+    // 3. Build the deck ID list
+    const deckIds = deckCards.map(c => c.id).join(';');
 
-    // 3. Construct the official 2024 URL structure
-    // Format: ...?deck=ID1;ID2...&tower=TOWER_ID&slots=EVO_COUNT
-    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${evoCount}`;
+    // 4. Construct the deep link using BOTH legacy and modern parameters for maximum safety
+    // - towerTroop: Used by modern client
+    // - evols: Explicitly lists evolved card IDs
+    // - slots: Number of evo slots (1 or 2)
+    const evoCount = Math.min(evolvedCards.length, 2);
     
-    // Tower Troop uses the 'tower' parameter in the modern format (RoyaleAPI/Official compatible)
-    // Note: 'tt' is also used but 'tower' is more standard in latest client deep links.
-    if (towerTroopId) link += `&tower=${towerTroopId}`;
+    // We use the absolute path /deck/en/ to ensure the router catches it
+    let link = `https://link.clashroyale.com/deck/en?deck=${deckIds}`;
     
+    if (towerTroopId) {
+      link += `&towerTroop=${towerTroopId}`;
+    }
+    
+    if (evolvedIds) {
+      link += `&evols=${evolvedIds}`;
+    }
+    
+    if (evoCount > 0) {
+      link += `&slots=${evoCount}`;
+    }
+
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
