@@ -446,13 +446,13 @@ button {
 @media (min-width: 1024px) { .deck-main-content { flex-direction: row; align-items: center; justify-content: space-between; } }
 .mini-card-grid { 
   display: grid; 
-  grid-template-columns: repeat(4, 82px); 
-  gap: 1.5rem 0.6rem; /* Increased vertical gap to accommodate labels below */
+  grid-template-columns: repeat(4, 88px); 
+  gap: 0.6rem 0.6rem;
 }
 @media (min-width: 768px) { 
   .mini-card-grid { 
-    grid-template-columns: repeat(4, 115px); 
-    gap: 2rem 0.8rem; 
+    grid-template-columns: repeat(4, 125px); 
+    gap: 0.8rem 0.8rem; 
   } 
 }
 
@@ -463,11 +463,11 @@ button {
   display: flex; 
   align-items: center; 
   justify-content: center; 
-  width: 75px;
+  width: 82px;
   height: auto;
   overflow: visible;
 }
-@media (min-width: 768px) { .mini-card { width: 105px; } }
+@media (min-width: 768px) { .mini-card { width: 115px; } }
 
 .mini-card img { 
   width: 100%; 
