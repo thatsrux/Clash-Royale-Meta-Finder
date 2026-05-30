@@ -33,6 +33,7 @@ interface MetaDeck {
 type SortOption = 'level' | 'elixir' | 'rarity' | 'evo' | 'hero-only' | 'evo-only';
 type SortOrder = 'asc' | 'desc';
 
+// Clash Royale Meta Finder - Main Application Entry
 function App() {
   const [playerTag, setPlayerTag] = useState('');
   const [recentTags, setRecentTags] = useState<string[]>([]);
