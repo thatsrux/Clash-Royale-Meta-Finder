@@ -144,6 +144,11 @@ function App() {
       setPlayerTag(tagToSearch);
       setActiveTab('profile');
       setMetaDecksCache(null);
+      
+      // AUTO-TRIGGER META ANALYSIS IN BACKGROUND
+      // We don't await this so the user can see their profile immediately
+      setTimeout(() => performMetaAnalysis(data), 100);
+
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching data.');
     } finally {
@@ -151,8 +156,9 @@ function App() {
     }
   };
 
-  const performMetaAnalysis = async () => {
-    if (!profile) return;
+  const performMetaAnalysis = async (customProfile?: PlayerProfile) => {
+    const activeProfile = customProfile || profile;
+    if (!activeProfile) return;
     setIsMetaLoading(true);
     setMetaProgress(0);
     
