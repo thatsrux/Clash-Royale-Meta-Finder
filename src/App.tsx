@@ -24,6 +24,7 @@ interface MetaDeck {
   maxedCount: number;
   isBestSynergy: boolean;
   maxMedals: number;
+  bestPlayerName?: string;
   missingEvos: { name: string; icon: string }[];
   missingHeroes: { name: string; icon: string }[];
   towerTroopId?: number;
@@ -194,7 +195,7 @@ function App() {
       if (!rankingsData) throw new Error('Could not find any active rankings.');
 
       const playersToFetch = rankingsData.items.slice(0, 200);
-      const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number }[] = [];
+      const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number, playerName: string }[] = [];
       const batchSize = 20;
       
       const extractDeckFromLog = (log: any[]) => {
@@ -242,7 +243,7 @@ function App() {
             console.log(`[API] Fetching Battle Log for: ${p.tag}`);
             const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
             const logData = log ? extractDeckFromLog(log) : null;
-            if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0 };
+            if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0, playerName: p.name };
             
             // Fallback to current deck if battle log is empty
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
@@ -261,7 +262,7 @@ function App() {
                 return { ...c, _forceForm: forcedForm };
               });
               const tower = deck.find((c: any) => c.id >= 68000000);
-              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
+              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0, playerName: p.name } : null;
             }
           } catch { return null; }
           return null;
@@ -270,17 +271,20 @@ function App() {
         setMetaProgress(Math.round(((i + batch.length) / playersToFetch.length) * 100));
       }
       
-      const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number }> = {};
+      const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number, bestPlayerName: string }> = {};
       decksWithRatings.forEach(item => {
         // Group by ID + ForceForm to ensure Knight-Hero and Knight-Evo are distinct archetypes
         const key = item.deck.map((c: any) => `${c.id}-${c._forceForm}`).sort().join(',');
 
         if (deckCounts[key]) {
           deckCounts[key].count++;
-          deckCounts[key].maxRating = Math.max(deckCounts[key].maxRating, item.rating);
+          if (item.rating > deckCounts[key].maxRating) {
+            deckCounts[key].maxRating = item.rating;
+            deckCounts[key].bestPlayerName = item.playerName;
+          }
           if (!deckCounts[key].towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
         } else {
-          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: item.rating };
+          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: item.rating, bestPlayerName: item.playerName };
         }
       });
 
@@ -328,6 +332,7 @@ function App() {
           maxedCount: eliteCount,
           isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0 && (totalLevel / 8) >= 15,
           maxMedals: meta.maxRating,
+          bestPlayerName: meta.bestPlayerName,
           score,
           avgLevel: totalLevel / 8,
           missingEvos,

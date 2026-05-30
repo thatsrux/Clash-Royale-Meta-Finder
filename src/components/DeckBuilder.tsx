@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2 } from 'lucide-react';
 
 interface MetaDeck {
   name: string;
@@ -12,6 +12,7 @@ interface MetaDeck {
   maxedCount: number;
   isBestSynergy: boolean;
   maxMedals: number;
+  bestPlayerName?: string;
   missingEvos: { name: string; icon: string }[];
   missingHeroes: { name: string; icon: string }[];
   towerTroopId?: number;
@@ -314,6 +315,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   <div className="deck-info-primary">
                     <div className="uses-badge"><Trophy size={12} /><span>{deck.count} PRO USES</span></div>
                     {deck.maxMedals > 0 && <div className="medals-badge"><Medal size={12} /><span>{deck.maxMedals}</span></div>}
+                    {deck.bestPlayerName && <div className="player-badge"><UserCircle2 size={12} /><span>{deck.bestPlayerName}</span></div>}
                     {deck.isBestSynergy && <span className="best-synergy-badge">MAX POTENTIAL</span>}
                     <button 
                       className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
