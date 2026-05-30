@@ -512,33 +512,6 @@ button {
 }
 @media (min-width: 768px) { .mini-level { font-size: 0.7rem; padding: 2px 6px; bottom: 5px; right: 5px; } }
 
-/* RARITY BACKGROUNDS - SOLID & VIBRANT */
-.rarity-bg-common { 
-  background: #f8fafc !important; 
-  color: #1e293b !important;
-  border: 1.5px solid #cbd5e1 !important; 
-}
-.rarity-bg-rare { 
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important; 
-  border: 1.5px solid #fbbf24 !important; 
-}
-.rarity-bg-epic { 
-  background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%) !important; 
-  border: 1.5px solid #d946ef !important; 
-}
-.rarity-bg-legendary { 
-  background: linear-gradient(180deg, #0ea5e9 0%, #2563eb 100%) !important; 
-  border: 1.5px solid #38bdf8 !important; 
-}
-.rarity-bg-champion { 
-  background: linear-gradient(180deg, #eab308 0%, #a16207 100%) !important; 
-  border: 1.5px solid #ffce31 !important; 
-}
-.rarity-bg-hero { 
-  background: linear-gradient(180deg, #facc15 0%, #854d0e 100%) !important; 
-  border: 1.5px solid #ffff00 !important; 
-}
-
 .hero-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--hero-yellow); border-radius: 50%; border: 1px solid white; }
 .champion-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--champion-gold); border-radius: 50%; border: 1px solid white; }
 .evo-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--evo-purple); border-radius: 50%; border: 1px solid white; }
