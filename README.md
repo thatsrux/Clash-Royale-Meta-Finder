@@ -44,26 +44,4 @@ The 100% score is the "Holy Grail" — it means you have every card at level 16 
 
 ---
 
-## 📦 Getting Started
-
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/thatsrux/Clash-Royale-Meta-Finder.git
-   ```
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-3. **Set up environment variables**
-   Create a `.env` file and add your RoyaleAPI key:
-   ```env
-   VITE_CLASH_API_KEY=your_api_key_here
-   ```
-4. **Run the app**
-   ```bash
-   npm run dev
-   ```
-
----
-
 *Built for players who want to stop guessing and start upgrading with data.* ⚔️
