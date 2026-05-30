@@ -327,13 +327,11 @@ button {
 .card-image-container {
   padding: 0.25rem;
   position: relative;
-  aspect-ratio: 1/1.1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .card-image { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -449,14 +447,15 @@ button {
 .mini-card-grid { display: grid; grid-template-columns: repeat(4, 82px); gap: 0.6rem; }
 @media (min-width: 768px) { .mini-card-grid { grid-template-columns: repeat(4, 115px); gap: 0.8rem; } }
 .mini-card { 
-  background: transparent; 
-  border: none; 
+  background: transparent !important; 
+  border: none !important; 
   position: relative; 
   display: flex; 
   align-items: center; 
   justify-content: center; 
   width: 75px;
   height: auto;
+  overflow: visible;
 }
 @media (min-width: 768px) { .mini-card { width: 105px; } }
 
@@ -464,7 +463,7 @@ button {
   width: 100%; 
   height: auto; 
   display: block;
-  object-fit: contain;
+  object-fit: contain !important;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
@@ -484,21 +483,11 @@ button {
 }
 @media (min-width: 768px) { .mini-level { font-size: 0.7rem; padding: 2px 6px; bottom: 5px; right: 5px; } }
 .missing-lvl-indicator { position: absolute; top: -4px; left: -4px; background: #ef4444; color: white; font-size: 0.55rem; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; font-weight: 900; z-index: 10; }
-.evo-slot { 
-  border: none !important; 
-  background: transparent !important; 
-}
 
-.hero-slot {
-  position: relative;
+.evo-slot, .hero-slot, .champion-slot { 
   border: none !important; 
   background: transparent !important; 
-}
-
-.champion-slot {
   position: relative;
-  border: none !important; 
-  background: transparent !important; 
 }
 
 .hero-indicator-tiny {
@@ -541,8 +530,8 @@ button {
 }
 
 .hero-variant {
-  border: 1.5px solid var(--hero-yellow) !important;
-  box-shadow: 0 0 15px rgba(255, 255, 0, 0.4) !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .hero-badge {
@@ -569,18 +558,6 @@ button {
 .hero-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--hero-yellow); border-radius: 50%; border: 1px solid white; }
 .champion-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--champion-gold); border-radius: 50%; border: 1px solid white; }
 .evo-mini-icon { position: absolute; bottom: 2px; right: 2px; width: 6px; height: 6px; background: var(--evo-purple); border-radius: 50%; border: 1px solid white; }
-
-.hero-slot {
-  position: relative;
-  border: 1.5px solid var(--hero-yellow) !important;
-  background: linear-gradient(180deg, #422006 0%, #0f172a 100%) !important;
-}
-
-.champion-slot {
-  position: relative;
-  border: 1.5px solid var(--champion-gold) !important;
-  background: linear-gradient(180deg, #78350f 0%, #0f172a 100%) !important;
-}
 
 /* DECK STATS & MISSING/READY FOOTERS (POLISHED) */
 .deck-stats-group {
