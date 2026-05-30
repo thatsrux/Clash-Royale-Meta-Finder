@@ -345,8 +345,8 @@ button {
 }
 
 .rarity-bg-rare { 
-  background: #9a3412 !important; 
-  border-color: #c2410c !important; 
+  background: #854d0e !important; 
+  border-color: #a16207 !important; 
 }
 .rarity-bg-epic { 
   background: #6b21a8 !important; 
@@ -357,8 +357,8 @@ button {
   border-color: #0284c7 !important; 
 }
 .rarity-bg-champion { 
-  background: #854d0e !important; 
-  border-color: #a16207 !important; 
+  background: #71710a !important; 
+  border-color: #85850b !important; 
 }
 
 .collection-item:hover {
@@ -368,10 +368,10 @@ button {
 }
 
 .rarity-bg-common:hover { border-color: #64748b !important; }
-.rarity-bg-rare:hover { border-color: #f97316 !important; }
+.rarity-bg-rare:hover { border-color: #eab308 !important; }
 .rarity-bg-epic:hover { border-color: #a855f7 !important; }
 .rarity-bg-legendary:hover { border-color: #0ea5e9 !important; }
-.rarity-bg-champion:hover { border-color: #eab308 !important; }
+.rarity-bg-champion:hover { border-color: #ffff00 !important; }
 
 .collection-item img {
   width: 100%;
