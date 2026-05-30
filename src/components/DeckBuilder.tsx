@@ -49,8 +49,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-
-  const THEORETICAL_MAX_SCORE = 1530;
   
   const getCardSlug = (name: string) => {
     return name.toLowerCase()
