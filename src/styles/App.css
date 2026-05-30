@@ -480,9 +480,21 @@ button {
   z-index: 10; 
   color: white; 
   box-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 @media (min-width: 768px) { .mini-level { font-size: 0.7rem; padding: 2px 6px; bottom: 5px; right: 5px; } }
-.missing-lvl-indicator { position: absolute; top: -4px; left: -4px; background: #ef4444; color: white; font-size: 0.55rem; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; font-weight: 900; z-index: 10; }
+.missing-lvl-indicator { 
+  background: #ef4444; 
+  color: white; 
+  font-size: 0.55rem; 
+  padding: 1px 3px; 
+  border-radius: 3px; 
+  display: flex; 
+  align-items: center; 
+  font-weight: 900; 
+}
 
 .evo-slot, .hero-slot, .champion-slot { 
   border: none !important; 
@@ -490,43 +502,8 @@ button {
   position: relative;
 }
 
-.hero-indicator-tiny {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 14px;
-  height: 14px;
-  background: var(--hero-yellow);
-  border-radius: 50%;
-  border: 2px solid #fff;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.champion-indicator-tiny {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 14px;
-  height: 14px;
-  background: var(--champion-gold);
-  border-radius: 50%;
-  border: 2px solid #fff;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.evo-indicator-tiny {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 14px;
-  height: 14px;
-  background: var(--evo-purple);
-  border-radius: 50%;
-  border: 2px solid #fff;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.hero-indicator-tiny, .champion-indicator-tiny, .evo-indicator-tiny {
+  display: none !important;
 }
 
 .hero-variant {
