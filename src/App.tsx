@@ -205,19 +205,19 @@ function App() {
         
         // Map cards and preserve their EXPLICIT variant state from the API (RoyaleAPI 2026)
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
-          // Detect variant type directly from the API object (RoyaleAPI Key/Form)
+          // Detect variant type directly from the API object (RoyaleAPI Key/Form or Official activeForm)
           const key = (c.key || '').toLowerCase();
           const form = (c.form || '').toLowerCase();
+          const activeForm = (c.activeForm || '').toLowerCase();
           
           let variant: 'normal' | 'evo' | 'hero' = 'normal';
           
-          if (key.endsWith('-hero') || form === 'hero') {
+          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero') {
             variant = 'hero';
-          } else if (key.endsWith('-evo') || form === 'evolution' || form === 'evo') {
+          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo') {
             variant = 'evo';
           } else {
-            // Fallback for cases where key/form are missing but levels are present
-            // This is secondary to the explicit metadata.
+            // Fallback for cases where explicit metadata is missing
             if (c.heroLevel !== undefined && c.heroLevel > 0 && (!c.evolutionLevel || c.evolutionLevel === 0)) {
               variant = 'hero';
             } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
@@ -225,8 +225,15 @@ function App() {
             }
           }
 
-          // Inject the explicit variant and key into the card object
-          return { ...c, _variant: variant, key: c.key, form: c.form };
+          // Inject all 2026 metadata into the card object
+          return { 
+            ...c, 
+            _variant: variant, 
+            key: c.key, 
+            form: c.form,
+            activeForm: c.activeForm,
+            slot: c.slot
+          };
         });
 
         return { deck, towerTroopId: towerTroop?.id };

@@ -62,12 +62,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const getCardIcon = (card: any, isHero: boolean, isEvo: boolean) => {
     const slug = getCardSlug(card.name || '');
+    const BASE_CDN = "https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d";
+    
     if (isHero) {
-      // Prioritize explicit heroMedium if provided by API, otherwise fallback to CDN pattern
-      return (card.iconUrls as any)?.heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+      return (card.iconUrls as any)?.heroMedium || `${BASE_CDN}/${slug}-hero.png`;
     }
     if (isEvo) {
-      return card.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+      return card.iconUrls?.evolutionMedium || `${BASE_CDN}/${slug}-evo.png`;
     }
     return card.iconUrls?.medium || '';
   };
