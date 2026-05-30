@@ -214,9 +214,9 @@ function App() {
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
           // ABSOLUTE PRIORITY: Metadata markers
-          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero')) {
+          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) {
             forcedForm = 'hero';
-          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo')) {
+          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo') || !!c.iconUrls?.evolutionMedium) {
             forcedForm = 'evo';
           }
 
@@ -249,7 +249,7 @@ function App() {
                 const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
                 let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
                 
-                if (iconUrl.includes('hero')) forcedForm = 'hero';
+                if (iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) forcedForm = 'hero';
                 else if (iconUrl.includes('evo')) forcedForm = 'evo';
                 else if (c.heroLevel > 0) forcedForm = 'hero';
                 else if (c.evolutionLevel > 0) forcedForm = 'evo';

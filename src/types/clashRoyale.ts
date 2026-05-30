@@ -42,7 +42,10 @@ export const isEvoUnlocked = (card: Card) => {
   if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return false;
 
   // Fallback to levels for User Collection
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
+  if (!!card.iconUrls?.evolutionMedium) return true;
+  
+  return false;
 };
 
 export const isHeroVariantUnlocked = (card: Card) => {
@@ -59,6 +62,7 @@ export const isHeroVariantUnlocked = (card: Card) => {
   // Fallback for User Collection
   if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
   if (card.rarity?.toLowerCase() === 'hero' || (card.name || '').toLowerCase().includes('hero')) return true;
+  if (!!(card.iconUrls as any)?.heroMedium) return true;
   
   return false;
 };
