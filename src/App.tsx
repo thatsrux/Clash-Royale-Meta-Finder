@@ -673,7 +673,13 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
                             <div className="stats-list">
-                              {Object.values(absoluteEvoUsage).sort((a, b) => b.count - a.count).map(evo => (
+                              {Object.values(absoluteEvoUsage)
+                                .filter(evo => {
+                                  const card = profile!.cards.find(c => c.name === evo.name);
+                                  return !card || !isEvoUnlocked(card);
+                                })
+                                .sort((a, b) => b.count - a.count)
+                                .map(evo => (
                                 <div key={evo.name} className="stat-row-item">
                                   <img src={evo.icon} alt={evo.name} />
                                   <div className="stat-row-details">
@@ -688,7 +694,13 @@ function App() {
                           <div className="stats-column">
                             <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
                             <div className="stats-list">
-                              {Object.values(absoluteHeroUsage).sort((a, b) => b.count - a.count).map(hero => (
+                              {Object.values(absoluteHeroUsage)
+                                .filter(hero => {
+                                  const card = profile!.cards.find(c => c.name === hero.name);
+                                  return !card || !isHeroVariantUnlocked(card);
+                                })
+                                .sort((a, b) => b.count - a.count)
+                                .map(hero => (
                                 <div key={hero.name} className="stat-row-item">
                                   <img src={hero.icon} alt={hero.name} />
                                   <div className="stat-row-details">
@@ -724,7 +736,13 @@ function App() {
 
                         <div className="stats-tables-grid-3">
                           {rarities.map(r => {
-                            const list = Object.values(absoluteRarityUsage[r]).sort((a, b) => b.count - a.count);
+                            const list = Object.values(absoluteRarityUsage[r])
+                              .filter(item => {
+                                const cardId = Object.keys(absoluteRarityUsage[r]).find(id => absoluteRarityUsage[r][Number(id)].name === item.name);
+                                const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId));
+                                return !userCard || getDisplayLevel(userCard) < 16;
+                              })
+                              .sort((a, b) => b.count - a.count);
                             if (list.length === 0) return null;
 
                             return (
