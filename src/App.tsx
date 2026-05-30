@@ -411,10 +411,10 @@ function App() {
             )}
           </div>
         </div>
-        {isExpanded && (
+        <div className="expand-wrapper">
           <div className="expanded-alternatives">
-            {others.map((item: any) => (
-              <div key={item.name} className="alt-row">
+            {others.map((item: any, idx: number) => (
+              <div key={item.name} className="alt-row" style={{ animationDelay: `${idx * 0.1}s` }}>
                 <img src={item.icon} alt={item.name} />
                 <div className="alt-info">
                   <span className="alt-name">{item.name}</span>
@@ -423,7 +423,7 @@ function App() {
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -433,7 +433,7 @@ function App() {
     if (list.length === 0) return null;
     const featured = list[0];
     const others = list.slice(1, 6).sort((a, b) => b.count - a.count);
-    
+
     return (
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
         <div className={`upgrade-rec-card ${rarity}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
@@ -451,10 +451,10 @@ function App() {
             )}
           </div>
         </div>
-        {isExpanded && (
+        <div className="expand-wrapper">
           <div className="expanded-alternatives mini">
-            {others.map((item: any) => (
-              <div key={item.name} className="alt-row mini">
+            {others.map((item: any, idx: number) => (
+              <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
                 <img src={item.icon} alt={item.name} />
                 <div className="alt-info">
                   <span className="alt-name">{item.name}</span>
@@ -463,7 +463,7 @@ function App() {
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
     );
   };

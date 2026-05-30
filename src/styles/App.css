@@ -1489,25 +1489,9 @@ button {
   height: 24px;
 }
 
-.recommendation-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  transition: all 1.0s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-.expanded-alternatives {
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  padding: 0.75rem;
-  margin-top: -0.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  animation: slideDown 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  transform-origin: top center;
-}
+
+
 
 .expanded-alternatives.mini {
   padding: 0.5rem;
@@ -1629,3 +1613,47 @@ button {
 .stat-row-bar-fill.rarity-champion { background: var(--rarity-champion); }
 
 /* EXISTING STYLES... */
+
+.expand-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 1s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.is-expanded > .expand-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.expanded-alternatives {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.alt-row {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.is-expanded .alt-row {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.expand-trigger {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.recommendation-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
