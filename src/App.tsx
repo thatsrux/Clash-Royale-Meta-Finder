@@ -632,7 +632,7 @@ function App() {
                             </div>
                           </div>
                           <div className="stats-column">
-                            <div className="stats-header"><Crown size={14} /> HERO META USAGE (Full Scan)</div>
+                            <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
                             <div className="stats-list">
                               {sortedHeroesByUsage.map(hero => (
                                 <div key={hero.name} className="stat-row-item">
@@ -752,7 +752,7 @@ function App() {
                                   return (
                                     <div key={r} className="stats-column">
                                       <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
-                                        {r.toUpperCase()} USAGE (Full Scan)
+                                        {r.toUpperCase()} USAGE
                                       </div>
                                       <div className="stats-list mini">
                                         {list.slice(0, 10).map(item => (
@@ -772,7 +772,7 @@ function App() {
                               </div>
                             </>
                           );
-                        })()}
+                        })()};
                       </>
                     );
                   })()}
