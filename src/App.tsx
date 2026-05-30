@@ -413,7 +413,6 @@ function App() {
         </div>
         {isExpanded && (
           <div className="expanded-alternatives">
-            <div className="alternatives-header">OTHER TOP CHOICES (by usage)</div>
             {others.map((item: any) => (
               <div key={item.name} className="alt-row">
                 <img src={item.icon} alt={item.name} />

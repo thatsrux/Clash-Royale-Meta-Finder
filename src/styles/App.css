@@ -1418,14 +1418,17 @@ button {
 /* UPGRADE PRIORITY STYLES */
 .upgrade-rec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
   margin-bottom: 3rem;
   justify-content: center;
 }
 
-@media (min-width: 1024px) {
-  .upgrade-rec-grid { justify-content: flex-start; }
+@media (min-width: 900px) {
+  .upgrade-rec-grid { 
+    grid-template-columns: repeat(5, 1fr); /* Exactly one row for all 5 rarities */
+    gap: 0.75rem;
+  }
 }
 
 .upgrade-rec-card {
@@ -1439,6 +1442,7 @@ button {
   border-top-width: 3px;
   cursor: pointer;
   height: fit-content;
+  min-width: 0; /* Prevents overflow in grid */
 }
 
 .rec-body, .rec-body-mini {
