@@ -649,9 +649,11 @@ function App() {
                         </div>
 
                         {(() => {
-                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number, rarity: string, currentLevel: number }> = {};
+                          const rarityRecommendations: Record<string, { name: string, icon: string, totalGain: number, rarity: string, count: number }> = {};
+                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, rarity: string }> = {};
                           const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
                           
+                          // 1. First, identify all non-maxed cards and their meta usage
                           allMetaDecks.forEach(deck => {
                             deck.cards.forEach(metaCard => {
                               const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
@@ -663,38 +665,76 @@ function App() {
                                     name: metaCard.name, 
                                     icon: metaCard.iconUrls.medium, 
                                     count: 0, 
-                                    deckPotential: 0,
-                                    rarity: getRarityClass(metaCard),
-                                    currentLevel: displayLevel
+                                    rarity: getRarityClass(metaCard)
                                   };
                                 }
                                 missingEliteCounts[metaCard.id].count++;
-                                // IMPACT: Sum of squares of affinities where this card is missing elite level
-                                missingEliteCounts[metaCard.id].deckPotential += Math.pow(deck.score / 10, 2);
                               }
                             });
                           });
 
-                          const nextUpgrades = rarities.map(r => {
-                            const available = Object.values(missingEliteCounts).filter(c => c.rarity === r);
-                            return available.sort((a, b) => b.deckPotential - a.deckPotential)[0];
-                          }).filter(Boolean);
+                          // 2. SIMULATION: For each rarity, find the card that gives the most TOTAL Affinity % GAIN
+                          rarities.forEach(r => {
+                            const candidates = Object.keys(missingEliteCounts).filter(id => missingEliteCounts[Number(id)].rarity === r);
+                            let bestCandidate = null;
+                            let maxTotalGain = -1;
+
+                            candidates.forEach(cardIdStr => {
+                              const cardId = Number(cardIdStr);
+                              const candidateInfo = missingEliteCounts[cardId];
+                              const userCard = profile!.cards.find(c => Number(c.id) === cardId)!;
+                              const currentLvl = getDisplayLevel(userCard);
+                              
+                              let cumulativeGain = 0;
+
+                              // Check every single meta deck (the full 200)
+                              allMetaDecks.forEach(deck => {
+                                const hasCard = deck.cards.some(c => Number(c.id) === cardId);
+                                if (hasCard) {
+                                  // MATH: How much does THIS specific upgrade help THIS specific deck?
+                                  // A: Level boost: (1/128) * 100 per level gained
+                                  const levelsGained = 16 - currentLvl;
+                                  const levelGainPct = (levelsGained / 128) * 100;
+                                  // B: Elite bonus: If it becomes the 8th maxed card, or just adds +2% penalty removal
+                                  const eliteGainPct = 2; 
+                                  
+                                  const totalDeckGain = levelGainPct + eliteGainPct;
+                                  
+                                  // We weigh the gain by the deck's CURRENT quality. 
+                                  // Upgrading a card in a 90% deck is worth more than in a 10% deck.
+                                  const weight = deck.score / 100; 
+                                  cumulativeGain += (totalDeckGain * weight);
+                                }
+                              });
+
+                              if (cumulativeGain > maxTotalGain) {
+                                maxTotalGain = cumulativeGain;
+                                bestCandidate = { ...candidateInfo, totalGain: cumulativeGain };
+                              }
+                            });
+
+                            if (bestCandidate) rarityRecommendations[r] = bestCandidate;
+                          });
 
                           return (
                             <>
                               <div className="upgrade-rec-grid">
-                                {nextUpgrades.map(rec => (
-                                  <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
-                                    <div className="rec-header">NEXT {rec.rarity.toUpperCase()}</div>
-                                    <div className="rec-body-mini">
-                                      <img src={rec.icon} alt={rec.name} />
-                                      <div className="rec-mini-info">
-                                        <div className="name">{rec.name}</div>
-                                        <div className="meta-stats">{Math.round((rec.count / totalDecksCount) * 100)}% Meta Usage</div>
+                                {rarities.map(r => {
+                                  const rec = rarityRecommendations[r];
+                                  if (!rec) return null;
+                                  return (
+                                    <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
+                                      <div className="rec-header">BEST NEXT {rec.rarity.toUpperCase()}</div>
+                                      <div className="rec-body-mini">
+                                        <img src={rec.icon} alt={rec.name} />
+                                        <div className="rec-mini-info">
+                                          <div className="name">{rec.name}</div>
+                                          <div className="meta-stats">Used in {rec.count} archetypes</div>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
 
                               <div className="stats-tables-grid-3">
@@ -707,7 +747,7 @@ function App() {
                                   return (
                                     <div key={r} className="stats-column">
                                       <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
-                                        {r.toUpperCase()} USAGE
+                                        {r.toUpperCase()} USAGE (Full Scan)
                                       </div>
                                       <div className="stats-list mini">
                                         {list.slice(0, 10).map(item => (
@@ -715,7 +755,7 @@ function App() {
                                             <img src={item.icon} alt={item.name} />
                                             <div className="stat-row-details">
                                               <span className="name">{item.name}</span>
-                                              <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}%</span>
+                                              <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span>
                                             </div>
                                             <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div>
                                           </div>
