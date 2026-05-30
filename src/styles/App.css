@@ -815,14 +815,6 @@ button {
   align-items: center;
 }
 
-.inactive-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .active-badge {
   background: var(--primary);
   color: #fff;
@@ -836,16 +828,20 @@ button {
 .visual-projection {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(20, 1fr); /* More columns for a full row */
   gap: 4px;
-  width: 240px;
+  width: 100%; /* Much wider projection */
   height: 60px;
   overflow: hidden;
-  opacity: 0.4;
-  mask-image: linear-gradient(to right, #000, transparent);
-  -webkit-mask-image: linear-gradient(to right, #000, transparent);
-  filter: grayscale(0.5);
-  transition: all 0.3s;
+  opacity: 0.25;
+  mask-image: linear-gradient(to right, #000 95%, transparent 100%); /* Fade only at the very end */
+  -webkit-mask-image: linear-gradient(to right, #000 95%, transparent 100%);
+  filter: grayscale(0.2) brightness(0.8);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 900px) {
+  .visual-projection { width: 240px; grid-template-columns: repeat(7, 1fr); }
 }
 
 @media (max-width: 640px) {
@@ -853,13 +849,13 @@ button {
 }
 
 .filter-preview-trigger:hover .visual-projection {
-  opacity: 0.7;
-  filter: grayscale(0);
-  transform: scale(1.05);
+  opacity: 0.6;
+  filter: grayscale(0) brightness(1);
+  transform: translateX(5px);
 }
 
 .tiny-card-asset {
-  width: 30px;
+  width: 32px;
   height: auto;
   object-fit: contain;
 }

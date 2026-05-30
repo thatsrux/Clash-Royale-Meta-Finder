@@ -252,10 +252,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 <span>FILTER BY CARDS</span>
               </div>
               <div className="preview-status">
-                {selectedFilters.length > 0 ? (
+                {selectedFilters.length > 0 && (
                   <span className="active-badge">{selectedFilters.length} SELECTED</span>
-                ) : (
-                  <span className="inactive-label">Tap to expand library</span>
                 )}
               </div>
             </div>
