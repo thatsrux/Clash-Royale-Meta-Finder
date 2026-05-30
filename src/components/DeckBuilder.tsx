@@ -282,8 +282,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 
                 <div className="active-filters-visual-stack">
                   {selectedFilters.map((f) => (
-                    <div key={`${f.id}-${f.isEvoFilter}`} className="active-filter-icon-wrapper">
-                      <img src={f.icon} alt={f.name} title={f.name} />
+                    <div 
+                      key={`${f.id}-${f.isEvoFilter}`} 
+                      className="active-filter-icon-wrapper"
+                      onClick={() => toggleFilter(f)}
+                      title={`Remove ${f.name}`}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <img src={f.icon} alt={f.name} />
                     </div>
                   ))}
                 </div>
