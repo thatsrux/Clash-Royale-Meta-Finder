@@ -281,10 +281,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 </div>
                 
                 <div className="active-filters-visual-stack">
-                  {selectedFilters.map((f, fIdx) => (
-                    <div key={`${f.id}-${f.isEvoFilter}`} className="active-filter-icon-wrapper" style={{ zIndex: selectedFilters.length - fIdx }}>
+                  {selectedFilters.map((f) => (
+                    <div key={`${f.id}-${f.isEvoFilter}`} className="active-filter-icon-wrapper">
                       <img src={f.icon} alt={f.name} title={f.name} />
-                      {f.isEvoFilter && <div className="evo-dot-tiny"></div>}
                     </div>
                   ))}
                 </div>
