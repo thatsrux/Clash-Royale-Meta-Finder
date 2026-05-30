@@ -5,10 +5,12 @@ export interface Card {
   starLevel?: number;
   maxLevel: number;
   count: number;
+  key?: string; // Added for RoyaleAPI 2026 key detection (e.g., 'knight-hero')
+  form?: string; // Added for explicit form mapping
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
-    heroMedium?: string; // Provided dynamically by API proxy for Heroes
+    heroMedium?: string; 
   };
   rarity: string;
   evolutionLevel?: number;
@@ -21,7 +23,7 @@ export const isChampion = (card: Card) => {
 
 /**
  * DYNAMIC DETECTION LOGIC
- * Perfect disambiguation between Evolutions and Heroes.
+ * Perfect disambiguation using the '-hero' and '-evo' suffixes.
  */
 
 // Check if the card definition has an Evolution version available
@@ -34,54 +36,50 @@ export const hasHeroAvailable = (card: Card) => {
   const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
   const hasHeroName = (card.name || '').toLowerCase().includes('hero');
   const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
-  const hasHeroLevelProp = card.heroLevel !== undefined;
   
-  return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
+  return isHeroRarity || hasHeroName || hasHeroIconProp || (card.heroLevel !== undefined);
 };
 
 // Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
-  const rarity = (card.rarity || '').toLowerCase();
-  const type = (card as any).type?.toLowerCase() || '';
-  const tag = (card as any).tag?.toLowerCase() || '';
+  const explicitVariant = (card as any)._variant || card.form || card.key || '';
   const name = (card.name || '').toLowerCase();
+  
+  // PRIMARY: Check for explicit hero markers in key or name
+  if (explicitVariant.includes('hero') || name.includes('hero')) {
+    return true;
+  }
 
-  // HIGHEST PRIORITY: Explicit Hero marking
-  if (rarity === 'hero' || type === 'hero' || tag === 'hero' || name.includes('hero')) {
-    return true;
+  // SECONDARY: If it's an evo, it's definitely not a hero
+  if (explicitVariant.includes('evo') || name.includes('evo')) {
+    return false;
   }
   
-  // SECOND PRIORITY: Explicit hero level
+  // TERTIARY: Fallback to heroLevel if no other info
   if (card.heroLevel !== undefined && card.heroLevel > 0) {
-    return true;
+    // If both levels exist, we only assume Hero if explicit. 
+    // But if ONLY heroLevel > 0, then it's a hero.
+    if (!card.evolutionLevel || card.evolutionLevel === 0) return true;
   }
   
-  // THIRD PRIORITY: Fallback for cards that use the evolution slot for Hero versions
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
-    return true;
-  }
-  return false;
+  return (card.rarity || '').toLowerCase() === 'hero';
 };
 
 // Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
-  const rarity = (card.rarity || '').toLowerCase();
-  const type = (card as any).type?.toLowerCase() || '';
-  const tag = (card as any).tag?.toLowerCase() || '';
+  const explicitVariant = (card as any)._variant || card.form || card.key || '';
   const name = (card.name || '').toLowerCase();
 
-  // A card CANNOT be an Evolution if it is definitively a Hero
-  if (isHeroVariantUnlocked(card)) return false;
-  
-  // Explicit Evo marking
-  if (rarity === 'evo' || type === 'evo' || tag === 'evo' || name.includes('evo')) {
+  // PRIMARY: Check for explicit evo markers
+  if (explicitVariant.includes('evo') || name.includes('evo')) {
     return true;
   }
-
-  // A card CANNOT be an Evolution if it doesn't have an Evolution version available
-  if (!hasEvoAvailable(card)) return false;
   
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
+  // SECONDARY: If it's a hero, it's not an evo
+  if (isHeroVariantUnlocked(card)) return false;
+
+  // TERTIARY: Fallback to evolutionLevel
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && hasEvoAvailable(card));
 };
 
 export const isAnyHeroUnlocked = (card: Card) => {
