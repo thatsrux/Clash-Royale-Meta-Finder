@@ -338,8 +338,10 @@ function App() {
         const missingCardPenalty = (8 - ownedCount) * 10;
         // Missing a REQUIRED Evo or Hero variant: -5% penalty each.
         const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
+        // Non-maxed card penalty: -2% for each card not at level 16. Heavily penalizes decks with few maxed cards.
+        const missingElitePenalty = (8 - eliteCount) * 2;
         
-        let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty;
+        let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingElitePenalty;
         affinityRaw = Math.max(0, Math.min(100, affinityRaw));
         
         // 3. Sorting Tie-Breakers (micro-decimals so 100% decks are sorted by pro uses, then by medals)
