@@ -335,43 +335,43 @@ button {
 
 /* RARITY BACKGROUNDS - BASE RARITY ONLY (SOLID & VIBRANT) */
 .rarity-bg-common { 
-  background: #ffffff !important; 
-  border-color: #cbd5e1 !important; 
+  background: #334155 !important; 
+  border-color: #475569 !important; 
 }
 .rarity-bg-common .mini-level, .rarity-bg-common .collection-elixir { 
-  color: #0f172a !important; 
-  background: rgba(0,0,0,0.1) !important;
-  border-color: rgba(0,0,0,0.2) !important;
+  color: #fff !important; 
+  background: rgba(0,0,0,0.3) !important;
+  border-color: rgba(255,255,255,0.1) !important;
 }
 
 .rarity-bg-rare { 
-  background: #f97316 !important; 
-  border-color: #fdba74 !important; 
+  background: #9a3412 !important; 
+  border-color: #c2410c !important; 
 }
 .rarity-bg-epic { 
-  background: #a855f7 !important; 
-  border-color: #d8b4fe !important; 
+  background: #6b21a8 !important; 
+  border-color: #9333ea !important; 
 }
 .rarity-bg-legendary { 
-  background: #0ea5e9 !important; 
-  border-color: #7dd3fc !important; 
+  background: #0369a1 !important; 
+  border-color: #0284c7 !important; 
 }
 .rarity-bg-champion { 
-  background: #eab308 !important; 
-  border-color: #fde047 !important; 
+  background: #854d0e !important; 
+  border-color: #a16207 !important; 
 }
 
 .collection-item:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  filter: brightness(1.1);
+  filter: brightness(1.2);
 }
 
-.rarity-bg-common:hover { border-color: #94a3b8 !important; }
-.rarity-bg-rare:hover { border-color: #fbbf24 !important; }
-.rarity-bg-epic:hover { border-color: #d946ef !important; }
-.rarity-bg-legendary:hover { border-color: #38bdf8 !important; }
-.rarity-bg-champion:hover { border-color: #ffce31 !important; }
+.rarity-bg-common:hover { border-color: #64748b !important; }
+.rarity-bg-rare:hover { border-color: #f97316 !important; }
+.rarity-bg-epic:hover { border-color: #a855f7 !important; }
+.rarity-bg-legendary:hover { border-color: #0ea5e9 !important; }
+.rarity-bg-champion:hover { border-color: #eab308 !important; }
 
 .collection-item img {
   width: 100%;
