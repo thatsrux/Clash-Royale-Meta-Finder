@@ -225,9 +225,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
                 <img src={c.icon} alt={c.name} onError={(e) => { (e.target as HTMLImageElement).src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png'; }} />
-                {c.isEvoFilter && <div className="evo-mini-icon"></div>}
-                {type === 'hero' && <div className="hero-mini-icon"></div>}
-                {type === 'champion' && <div className="champion-mini-icon"></div>}
               </div>
             );
           })}

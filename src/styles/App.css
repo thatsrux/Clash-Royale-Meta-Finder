@@ -1059,42 +1059,41 @@ button {
 .filter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 48px);
-  gap: 0.5rem;
+  gap: 0.8rem;
 }
 
 .filter-grid-item {
   width: 48px !important;
-  height: 58px !important;
+  height: auto !important;
   position: relative;
   overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.5;
-  border: 1.5px solid transparent;
-  border-radius: 4px;
-  background: #0f172a;
+  background: transparent !important;
+  border: none !important;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .filter-grid-item:hover {
   opacity: 0.8;
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .filter-grid-item.selected {
   opacity: 1;
-  border-color: var(--primary);
-  transform: scale(1.1);
+  transform: scale(1.2);
   z-index: 5;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 .filter-grid-item img {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
+  display: block;
+  object-fit: contain !important;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
 }
 
 .filter-icon-bg {
