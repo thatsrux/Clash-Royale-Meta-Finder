@@ -323,15 +323,15 @@ function App() {
             
             // CHECK IF USER HAS THE SPECIFIC VERSION REQUIRED BY THE META DECK
             if (metaIsEvo && !isEvoUnlocked(userCard)) {
-              missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+              missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
             }
             if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
-              missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
+              missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
             }
           } else { 
             totalLevel += 1; 
-            if (metaIsEvo) missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
-            if (metaIsHero) missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
+            if (metaIsEvo) missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+            if (metaIsHero) missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
           }
         });
 
