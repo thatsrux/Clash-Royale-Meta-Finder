@@ -31,43 +31,45 @@ export const isChampion = (card: Card) => {
 };
 
 export const isEvoUnlocked = (card: Card) => {
-  // If we have explicit deck metadata (from meta analysis), USE IT
   if (card._forceForm === 'evo') return true;
   if (card._forceForm === 'hero' || card._forceForm === 'normal') return false;
 
-  // Fallback to levels for User Collection (Crucial for profile accuracy)
-  // We prioritize Evolution check if both are present in some weird API response
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
+  // The card MUST actually support Evolution forms
+  if (!hasEvoAvailable(card)) return false;
 
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
   
-  // Detection for cards in Meta Decks / Battle Logs (where levels might be missing)
   if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return true;
+
+  // If it supports Evo and has progression > 0, it's unlocked
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
   
   return false;
 };
 
 export const isHeroVariantUnlocked = (card: Card) => {
-  // If we have explicit deck metadata (from meta analysis), USE IT
   if (card._forceForm === 'hero') return true;
   if (card._forceForm === 'evo' || card._forceForm === 'normal') return false;
 
-  // Fallback for User Collection (Crucial for profile accuracy)
-  // For user profile cards, if it's an EVO, it cannot be a HERO variant at the same time in the UI
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return false;
-  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+  // The card MUST actually support Hero forms
+  if (!hasHeroAvailable(card)) return false;
 
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
 
-  // Detection for cards in Meta Decks / Battle Logs
   if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return true;
-
-  // Final rarity check for base Champions/Heroes
   if (card.rarity?.toLowerCase() === 'hero' || (card.name || '').toLowerCase().includes('hero')) return true;
+
+  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+  
+  // CRITICAL API QUIRK: The API uses `evolutionLevel` to indicate progression for BOTH Evos and Heroes.
+  // If the card supports Hero but DOES NOT support Evo, `evolutionLevel > 0` means the HERO is unlocked.
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
+    return true;
+  }
   
   return false;
 };
