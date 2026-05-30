@@ -111,6 +111,7 @@ export interface PlayerProfile {
   battleCount: number;
   threeWeaponWins: number;
   cards: Card[];
+  supportCards?: Card[];
   currentDeck: Card[];
   currentFavouriteCard?: Card;
 }

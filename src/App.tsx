@@ -443,7 +443,8 @@ function App() {
                           // Fallback calculation for Collection Level (Post-May 2026 update)
                           let totalLevels = 0;
                           let bonus = 0;
-                          profile.cards.forEach(c => {
+                          const allOwnedCards = [...(profile.cards || []), ...(profile.supportCards || [])];
+                          allOwnedCards.forEach(c => {
                             totalLevels += getDisplayLevel(c);
                             if (isEvoUnlocked(c)) bonus += 5;
                             if (isAnyHeroUnlocked(c)) bonus += 5;
