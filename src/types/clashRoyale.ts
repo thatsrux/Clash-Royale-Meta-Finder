@@ -5,12 +5,10 @@ export interface Card {
   starLevel?: number;
   maxLevel: number;
   count: number;
-  key?: string; // Added for RoyaleAPI 2026 key detection (e.g., 'knight-hero')
-  form?: string; // Added for explicit form mapping
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
-    heroMedium?: string; 
+    heroMedium?: string; // Provided dynamically by API proxy for Heroes
   };
   rarity: string;
   evolutionLevel?: number;
@@ -23,7 +21,7 @@ export const isChampion = (card: Card) => {
 
 /**
  * DYNAMIC DETECTION LOGIC
- * Perfect disambiguation using the '-hero' and '-evo' suffixes.
+ * Perfect disambiguation between Evolutions and Heroes.
  */
 
 // Check if the card definition has an Evolution version available
@@ -36,50 +34,54 @@ export const hasHeroAvailable = (card: Card) => {
   const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
   const hasHeroName = (card.name || '').toLowerCase().includes('hero');
   const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
+  const hasHeroLevelProp = card.heroLevel !== undefined;
   
-  return isHeroRarity || hasHeroName || hasHeroIconProp || (card.heroLevel !== undefined);
+  return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
 };
 
 // Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
-  const explicitVariant = (card as any)._variant || card.form || card.key || '';
+  const rarity = (card.rarity || '').toLowerCase();
+  const type = (card as any).type?.toLowerCase() || '';
+  const tag = (card as any).tag?.toLowerCase() || '';
   const name = (card.name || '').toLowerCase();
-  
-  // PRIMARY: Check for explicit hero markers in key or name
-  if (explicitVariant.includes('hero') || name.includes('hero')) {
+
+  // HIGHEST PRIORITY: Explicit Hero marking
+  if (rarity === 'hero' || type === 'hero' || tag === 'hero' || name.includes('hero')) {
     return true;
   }
-
-  // SECONDARY: If it's an evo, it's definitely not a hero
-  if (explicitVariant.includes('evo') || name.includes('evo')) {
-    return false;
-  }
   
-  // TERTIARY: Fallback to heroLevel if no other info
+  // SECOND PRIORITY: Explicit hero level
   if (card.heroLevel !== undefined && card.heroLevel > 0) {
-    // If both levels exist, we only assume Hero if explicit. 
-    // But if ONLY heroLevel > 0, then it's a hero.
-    if (!card.evolutionLevel || card.evolutionLevel === 0) return true;
+    return true;
   }
   
-  return (card.rarity || '').toLowerCase() === 'hero';
+  // THIRD PRIORITY: Fallback for cards that use the evolution slot for Hero versions
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
+    return true;
+  }
+  return false;
 };
 
 // Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
-  const explicitVariant = (card as any)._variant || card.form || card.key || '';
+  const rarity = (card.rarity || '').toLowerCase();
+  const type = (card as any).type?.toLowerCase() || '';
+  const tag = (card as any).tag?.toLowerCase() || '';
   const name = (card.name || '').toLowerCase();
 
-  // PRIMARY: Check for explicit evo markers
-  if (explicitVariant.includes('evo') || name.includes('evo')) {
+  // A card CANNOT be an Evolution if it is definitively a Hero
+  if (isHeroVariantUnlocked(card)) return false;
+  
+  // Explicit Evo marking
+  if (rarity === 'evo' || type === 'evo' || tag === 'evo' || name.includes('evo')) {
     return true;
   }
-  
-  // SECONDARY: If it's a hero, it's not an evo
-  if (isHeroVariantUnlocked(card)) return false;
 
-  // TERTIARY: Fallback to evolutionLevel
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && hasEvoAvailable(card));
+  // A card CANNOT be an Evolution if it doesn't have an Evolution version available
+  if (!hasEvoAvailable(card)) return false;
+  
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
 };
 
 export const isAnyHeroUnlocked = (card: Card) => {

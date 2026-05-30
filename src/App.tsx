@@ -205,22 +205,23 @@ function App() {
         
         // Map cards and preserve their EXPLICIT variant state from the API
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
-          // Detect variant type directly from the API object (2026 Update)
-          // Prioritize 'key' (e.g. 'knight-hero') or 'form' attribute from RoyaleAPI
-          const key = c.key || '';
-          let variant: 'normal' | 'evo' | 'hero' = c.form || 'normal';
+          // Detect variant type directly from the API object
+          // PRIORITIZE HERO: In the 2026 update, if a card has heroLevel > 0, 
+          // it MUST be treated as a Hero even if it also has evolution capabilities.
+          let variant: 'normal' | 'evo' | 'hero' = 'normal';
           
-          if (key.includes('hero')) variant = 'hero';
-          else if (key.includes('evo')) variant = 'evo';
-          else if (variant === 'normal') {
-            if (c.heroLevel !== undefined && c.heroLevel > 0 && (!c.evolutionLevel || c.evolutionLevel === 0)) {
-              variant = 'hero';
-            } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
-              variant = 'evo';
-            }
+          if (c.heroLevel !== undefined && c.heroLevel > 0) {
+            variant = 'hero';
+          } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
+            variant = 'evo';
           }
 
-          return { ...c, _variant: variant, key: c.key };
+          // Use the explicit 'tag' or 'type' fields if the API proxy provides them
+          if (c.tag?.toLowerCase() === 'hero' || c.type?.toLowerCase() === 'hero') variant = 'hero';
+          if (c.tag?.toLowerCase() === 'evo' || c.type?.toLowerCase() === 'evo') variant = 'evo';
+
+          // Inject the explicit variant into the card object so DeckBuilder can see it
+          return { ...c, _variant: variant };
         });
 
         return { deck, towerTroopId: towerTroop?.id };
