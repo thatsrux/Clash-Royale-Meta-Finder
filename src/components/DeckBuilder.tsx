@@ -275,9 +275,21 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         {Array.isArray(allGameCards) && allGameCards.length > 0 && (
           <div className="card-filter-grid-section">
             <div className="filter-header-minimal">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                <Sparkles size={14} /> ACTIVE FILTERS
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+                  <Sparkles size={14} /> ACTIVE FILTERS
+                </div>
+                
+                <div className="active-filters-visual-stack">
+                  {selectedFilters.map((f, fIdx) => (
+                    <div key={`${f.id}-${f.isEvoFilter}`} className="active-filter-icon-wrapper" style={{ zIndex: selectedFilters.length - fIdx }}>
+                      <img src={f.icon} alt={f.name} title={f.name} />
+                      {f.isEvoFilter && <div className="evo-dot-tiny"></div>}
+                    </div>
+                  ))}
+                </div>
               </div>
+
               {selectedFilters.length > 0 && (
                 <button onClick={() => setSelectedFilters([])} className="clear-btn">
                   <X size={12} /> Reset
