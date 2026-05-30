@@ -375,15 +375,23 @@ function App() {
     } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
 
-  const sortedCards = profile?.cards ? [...profile.cards].sort((a, b) => {
-    let comp = 0;
-    if (sortBy === 'elixir') comp = (cardMap[b.id]?.elixirCost || 0) - (cardMap[a.id]?.elixirCost || 0);
-    else if (sortBy === 'rarity') comp = getRarityWeight(getRarityClass(b)) - getRarityWeight(getRarityClass(a));
-    else if (sortBy === 'evo') comp = (isEvoUnlocked(b) ? 1 : 0) - (isEvoUnlocked(a) ? 1 : 0);
-    else comp = getDisplayLevel(b) - getDisplayLevel(a);
-    if (comp === 0) comp = a.name.localeCompare(b.name);
-    return sortOrder === 'desc' ? comp : -comp;
-  }) : [];
+  const sortedCards = profile?.cards ? [...profile.cards]
+    .filter(c => {
+      if (sortBy === 'hero-only') return isHeroVariantUnlocked(c);
+      if (sortBy === 'evo-only') return isEvoUnlocked(c);
+      return true;
+    })
+    .sort((a, b) => {
+      let comp = 0;
+      if (sortBy === 'elixir') comp = (cardMap[b.id]?.elixirCost || 0) - (cardMap[a.id]?.elixirCost || 0);
+      else if (sortBy === 'rarity') comp = getRarityWeight(getRarityClass(b)) - getRarityWeight(getRarityClass(a));
+      else if (sortBy === 'evo' || sortBy === 'evo-only') comp = (isEvoUnlocked(b) ? 1 : 0) - (isEvoUnlocked(a) ? 1 : 0);
+      else if (sortBy === 'hero-only') comp = (isHeroVariantUnlocked(b) ? 1 : 0) - (isHeroVariantUnlocked(a) ? 1 : 0);
+      else comp = getDisplayLevel(b) - getDisplayLevel(a);
+      
+      if (comp === 0) comp = a.name.localeCompare(b.name);
+      return sortOrder === 'desc' ? comp : -comp;
+    }) : [];
 
   const getCardSlug = (name: string) => {
     return name.toLowerCase()
