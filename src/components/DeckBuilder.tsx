@@ -341,7 +341,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const userCard = profile.cards.find(c => Number(c.id) === Number(card.id));
                       const userLevel = userCard ? getDisplayLevel(userCard) : 0;
                       const isMaxed = userLevel >= 16;
-                      const missingLvls = Math.max(0, 16 - userLevel);
                       
                       // STRICT VARIANT DETECTION (Restricted to slots 0, 1, 2)
                       const forcedForm = (card as any)._forceForm;
