@@ -210,31 +210,27 @@ function App() {
           const form = (c.form || '').toLowerCase();
           const activeForm = (c.activeForm || '').toLowerCase();
           
-          let variant: 'normal' | 'evo' | 'hero' = 'normal';
+          let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
           if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero') {
-            variant = 'hero';
+            forcedForm = 'hero';
           } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo') {
-            variant = 'evo';
-          } else {
-            // Fallback for cases where explicit metadata is missing
-            if (c.heroLevel !== undefined && c.heroLevel > 0 && (!c.evolutionLevel || c.evolutionLevel === 0)) {
-              variant = 'hero';
-            } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
-              variant = 'evo';
-            }
+            forcedForm = 'evo';
           }
 
-          // Inject all 2026 metadata into the card object
+          // Inject all 2026 metadata and FORCE the form for display
           return { 
             ...c, 
-            _variant: variant, 
+            _forceForm: forcedForm, 
             key: c.key, 
             form: c.form,
             activeForm: c.activeForm,
             slot: c.slot
           };
         });
+
+        return { deck, towerTroopId: towerTroop?.id };
+      };
 
         return { deck, towerTroopId: towerTroop?.id };
       };

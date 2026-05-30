@@ -7,8 +7,9 @@ export interface Card {
   count: number;
   key?: string; 
   form?: string; 
-  activeForm?: string; // 2026 API: 'hero', 'evolution', 'champion', 'normal'
-  slot?: string; // 2026 API: 'wildSlot', 'evolutionSlot', 'heroSlot'
+  activeForm?: string; 
+  slot?: string; 
+  _forceForm?: 'hero' | 'evo' | 'normal'; // Internal override for deck visualization
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
@@ -19,75 +20,43 @@ export interface Card {
   heroLevel?: number;
 }
 
-export const isChampion = (card: Card) => {
-  return card.rarity?.toLowerCase() === 'champion' || card.activeForm === 'champion';
-};
-
 /**
- * DYNAMIC DETECTION LOGIC (2026)
- * Strict disambiguation using 'activeForm' and 'slot' metadata.
+ * SOURCE OF TRUTH RENDERING LOGIC
+ * The form displayed in a deck depends ONLY on API metadata, NOT levels.
  */
 
-// Check if the card definition has an Evolution version available
-export const hasEvoAvailable = (card: Card) => {
-  return !!card.iconUrls?.evolutionMedium || (card.name || '').toLowerCase().includes('evo');
+export const getCardVisualForm = (card: Card): 'hero' | 'evo' | 'normal' | 'champion' => {
+  // 1. ABSOLUTE PRIORITY: Forced form from Deck Analysis/API Response
+  if (card._forceForm === 'hero') return 'hero';
+  if (card._forceForm === 'evo') return 'evo';
+  if (card._forceForm === 'normal') return 'normal';
+
+  // 2. 2026 API Metadata
+  const activeForm = (card.activeForm || '').toLowerCase();
+  if (activeForm === 'hero') return 'hero';
+  if (activeForm === 'evolution' || activeForm === 'evo') return 'evo';
+  if (activeForm === 'champion') return 'champion';
+
+  // 3. RoyaleAPI Key-based detection
+  const key = (card.key || '').toLowerCase();
+  if (key.endsWith('-hero')) return 'hero';
+  if (key.endsWith('-evo')) return 'evo';
+
+  // 4. FALLBACK: Static properties (Only for collection view where no deck metadata exists)
+  if (card.rarity?.toLowerCase() === 'champion') return 'champion';
+  if (card.rarity?.toLowerCase() === 'hero') return 'hero';
+  if ((card.name || '').toLowerCase().includes('hero')) return 'hero';
+  if ((card.name || '').toLowerCase().includes('evo')) return 'evo';
+
+  return 'normal';
 };
 
-// Check if the card definition has a Hero version available
-export const hasHeroAvailable = (card: Card) => {
-  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
-  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
-  const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
-  
-  return isHeroRarity || hasHeroName || hasHeroIconProp || (card.heroLevel !== undefined);
-};
+// Wrappers for backward compatibility, now using the unified visual logic
+export const isHeroVariantUnlocked = (card: Card) => getCardVisualForm(card) === 'hero';
+export const isEvoUnlocked = (card: Card) => getCardVisualForm(card) === 'evo';
+export const isChampion = (card: Card) => getCardVisualForm(card) === 'champion';
+export const isAnyHeroUnlocked = (card: Card) => isChampion(card) || isHeroVariantUnlocked(card);
 
-// Check if the specific card instance is a Hero Variant
-export const isHeroVariantUnlocked = (card: Card) => {
-  // 1. HIGHEST PRIORITY: 2026 Official API 'activeForm'
-  if (card.activeForm === 'hero') return true;
-  if (card.activeForm === 'evolution' || card.activeForm === 'evo') return false;
-
-  // 2. SECOND PRIORITY: RoyaleAPI 'form' or 'key' metadata
-  const variant = (card as any)._variant || card.form || '';
-  const key = card.key || '';
-  if (variant === 'hero' || key.endsWith('-hero')) return true;
-  if (variant === 'evo' || key.endsWith('-evo')) return false;
-
-  // 3. THIRD PRIORITY: Definitive Rarity/Name
-  const rarity = (card.rarity || '').toLowerCase();
-  const name = (card.name || '').toLowerCase();
-  if (rarity === 'hero' || name.includes('hero')) return true;
-  
-  // 4. FOURTH PRIORITY: Levels (Fallback)
-  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) return true;
-  
-  return false;
-};
-
-// Check if the specific card instance is an Evolution
-export const isEvoUnlocked = (card: Card) => {
-  // 1. HIGHEST PRIORITY: 2026 Official API 'activeForm'
-  if (card.activeForm === 'evolution' || card.activeForm === 'evo') return true;
-  if (card.activeForm === 'hero' || card.activeForm === 'champion') return false;
-
-  // 2. SECOND PRIORITY: RoyaleAPI 'form' or 'key' metadata
-  const variant = (card as any)._variant || card.form || '';
-  const key = card.key || '';
-  if (variant === 'evo' || key.endsWith('-evo')) return true;
-  if (variant === 'hero' || key.endsWith('-hero')) return false;
-
-  // 3. THIRD PRIORITY: Rarity or Name
-  const rarity = (card.rarity || '').toLowerCase();
-  const name = (card.name || '').toLowerCase();
-  if (rarity === 'evo' || name.includes('evo')) return true;
-
-  // 4. FOURTH PRIORITY: Levels
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && hasEvoAvailable(card)) return true;
-
-  return false;
-};
 
 export const isAnyHeroUnlocked = (card: Card) => {
   return isChampion(card) || isHeroVariantUnlocked(card) || card.rarity?.toLowerCase() === 'hero';
