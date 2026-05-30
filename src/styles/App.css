@@ -427,7 +427,7 @@ button {
   margin-bottom: 2rem;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: fadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 .deck-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
 .deck-info-primary { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
@@ -757,6 +757,139 @@ button {
   100% { left: 100%; }
 }
 
+/* PREMIUM FILTER PREVIEW TRIGGER */
+.filter-preview-trigger {
+  width: 100%;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.filter-preview-trigger:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -10px rgba(43, 115, 255, 0.3);
+}
+
+.filter-preview-trigger.active {
+  background: rgba(43, 115, 255, 0.1);
+  border-color: var(--primary);
+}
+
+.preview-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 140px;
+}
+
+.preview-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.preview-status {
+  display: flex;
+  align-items: center;
+}
+
+.inactive-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.active-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 2rem;
+  box-shadow: 0 0 10px rgba(43, 115, 255, 0.4);
+}
+
+.visual-projection {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 240px;
+  height: 60px;
+  overflow: hidden;
+  opacity: 0.4;
+  mask-image: linear-gradient(to right, #000, transparent);
+  -webkit-mask-image: linear-gradient(to right, #000, transparent);
+  filter: grayscale(0.5);
+  transition: all 0.3s;
+}
+
+@media (max-width: 640px) {
+  .visual-projection { display: none; }
+}
+
+.filter-preview-trigger:hover .visual-projection {
+  opacity: 0.7;
+  filter: grayscale(0);
+  transform: scale(1.05);
+}
+
+.tiny-card-asset {
+  width: 30px;
+  height: auto;
+  object-fit: contain;
+}
+
+.projection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8));
+}
+
+.expand-chevron {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.3s;
+}
+
+.filter-preview-trigger:hover .expand-chevron {
+  background: var(--primary);
+  color: #fff;
+}
+
 /* HERO LANDING PAGE */
 .hero-landing {
   display: flex;
@@ -984,7 +1117,7 @@ button {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease-out;
   transform: translateY(-10px) scale(0.98);
   margin-bottom: 0;
   pointer-events: none;
@@ -1221,7 +1354,7 @@ button {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
-  animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   position: relative;
 }
 
@@ -1617,7 +1750,7 @@ button {
 .expand-wrapper {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-rows 1.5s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
@@ -1655,5 +1788,5 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -47,7 +47,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   allGameCards 
 }) => {
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
-  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
   const getCardSlug = (name: string) => {
@@ -57,6 +57,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       .replace('mini-p-e-k-k-a', 'mini-pekka')
       .replace('p-e-k-k-a', 'pekka')
       .replace('hero-', ''); // Avoid double hero in slug
+  };
+
+  const getCardIconUrl = (name: string) => {
+    const slug = getCardSlug(name);
+    return `https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d/${slug}.png`;
   };
 
   const getCardIcon = (card: any, isHero: boolean, isEvo: boolean) => {
@@ -236,14 +241,36 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   return (
     <div className="deck-builder">
       <div className="builder-header-simple">
-        <button 
-          onClick={() => setIsFilterExpanded(!isFilterExpanded)} 
-          className={`explore-meta-btn ${isFilterExpanded ? 'active' : ''}`}
+        <div 
+          className={`filter-preview-trigger ${isFilterExpanded ? 'active' : ''}`}
+          onClick={() => setIsFilterExpanded(!isFilterExpanded)}
         >
-          <Filter size={18} />
-          <span>FILTER CARDS</span>
-          {selectedFilters.length > 0 && <span className="filter-count-badge">{selectedFilters.length}</span>}
-        </button>
+          <div className="preview-content">
+            <div className="preview-info">
+              <div className="preview-label">
+                <Filter size={18} />
+                <span>FILTER BY CARDS</span>
+              </div>
+              <div className="preview-status">
+                {selectedFilters.length > 0 ? (
+                  <span className="active-badge">{selectedFilters.length} SELECTED</span>
+                ) : (
+                  <span className="inactive-label">Tap to expand library</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="visual-projection">
+              {allGameCards.slice(0, 28).map((c, i) => (
+                <img key={i} src={getCardIconUrl(c.name)} alt="" className="tiny-card-asset" />
+              ))}
+              <div className="projection-overlay"></div>
+            </div>
+          </div>
+          <div className="expand-chevron">
+            {isFilterExpanded ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
+          </div>
+        </div>
       </div>
 
       <div className={`filter-animation-wrapper ${isFilterExpanded ? 'expanded' : ''}`}>
