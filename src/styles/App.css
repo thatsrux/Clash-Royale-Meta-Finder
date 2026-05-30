@@ -1393,4 +1393,82 @@ button {
 .stat-row-bar-fill.evo { background: var(--evo-purple); }
 .stat-row-bar-fill.hero { background: var(--hero-yellow); }
 
+/* UPGRADE PRIORITY STYLES */
+.upgrade-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.upgrade-rec-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top-width: 3px;
+}
+
+.upgrade-rec-card.common { border-top-color: var(--rarity-common); }
+.upgrade-rec-card.rare { border-top-color: var(--rarity-rare); }
+.upgrade-rec-card.epic { border-top-color: var(--rarity-epic); }
+.upgrade-rec-card.legendary { border-top-color: var(--rarity-legendary); }
+.upgrade-rec-card.champion { border-top-color: var(--rarity-champion); }
+
+.rec-body-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rec-body-mini img {
+  width: 38px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.rec-mini-info .name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.rec-mini-info .meta-stats {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.stats-tables-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+}
+
+.rarity-header {
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 0.5rem;
+}
+
+.stats-list.mini {
+  gap: 0.5rem;
+}
+
+.stat-row-item.compact {
+  grid-template-columns: 24px 1fr 60px;
+  gap: 0.75rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.stat-row-bar-fill.rarity-common { background: var(--rarity-common); }
+.stat-row-bar-fill.rarity-rare { background: var(--rarity-rare); }
+.stat-row-bar-fill.rarity-epic { background: var(--rarity-epic); }
+.stat-row-bar-fill.rarity-legendary { background: var(--rarity-legendary); }
+.stat-row-bar-fill.rarity-champion { background: var(--rarity-champion); }
+
 /* EXISTING STYLES... */

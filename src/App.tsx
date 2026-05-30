@@ -617,6 +617,90 @@ function App() {
                             </div>
                           </div>
                         </div>
+
+                        <div className="insights-divider" style={{ marginTop: '3rem' }}>
+                          <ArrowUp size={20} />
+                          <span>UPGRADE PRIORITY BY RARITY</span>
+                        </div>
+
+                        {(() => {
+                          const missingEliteCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number, rarity: string }> = {};
+                          const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
+                          
+                          metaDecksCache.forEach(deck => {
+                            deck.cards.forEach(metaCard => {
+                              const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
+                              const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
+                              
+                              if (displayLevel > 0 && displayLevel < 16) {
+                                if (!missingEliteCounts[metaCard.id]) {
+                                  missingEliteCounts[metaCard.id] = { 
+                                    name: metaCard.name, 
+                                    icon: metaCard.iconUrls.medium, 
+                                    count: 0, 
+                                    deckPotential: 0,
+                                    rarity: getRarityClass(metaCard)
+                                  };
+                                }
+                                missingEliteCounts[metaCard.id].count++;
+                                if (deck.score > 70) missingEliteCounts[metaCard.id].deckPotential += deck.score;
+                              }
+                            });
+                          });
+
+                          const nextUpgrades = rarities.map(r => {
+                            const available = Object.values(missingEliteCounts).filter(c => c.rarity === r);
+                            return available.sort((a, b) => (b.deckPotential * 1.2 + b.count) - (a.deckPotential * 1.2 + a.count))[0];
+                          }).filter(Boolean);
+
+                          return (
+                            <>
+                              <div className="upgrade-rec-grid">
+                                {nextUpgrades.map(rec => (
+                                  <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
+                                    <div className="rec-header">NEXT {rec.rarity.toUpperCase()}</div>
+                                    <div className="rec-body-mini">
+                                      <img src={rec.icon} alt={rec.name} />
+                                      <div className="rec-mini-info">
+                                        <div className="name">{rec.name}</div>
+                                        <div className="meta-stats">{Math.round((rec.count / totalDecks) * 100)}% Meta Usage</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="stats-tables-grid-3">
+                                {rarities.map(r => {
+                                  const list = Object.values(missingEliteCounts)
+                                    .filter(c => c.rarity === r)
+                                    .sort((a, b) => b.count - a.count);
+                                  if (list.length === 0) return null;
+
+                                  return (
+                                    <div key={r} className="stats-column">
+                                      <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
+                                        {r.toUpperCase()} USAGE
+                                      </div>
+                                      <div className="stats-list mini">
+                                        {list.slice(0, 10).map(item => (
+                                          <div key={item.name} className="stat-row-item compact">
+                                            <img src={item.icon} alt={item.name} />
+                                            <div className="stat-row-details">
+                                              <span className="name">{item.name}</span>
+                                              <span className="percent">{Math.round((item.count / totalDecks) * 100)}%</span>
+                                            </div>
+                                            <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecks) * 100}%` }}></div></div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </>
                     );
                   })()}
