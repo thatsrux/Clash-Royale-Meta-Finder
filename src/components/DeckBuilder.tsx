@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvo, isHeroVariant, isAnyHero } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check } from 'lucide-react';
 
 interface MetaDeck {
@@ -51,7 +51,26 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const THEORETICAL_MAX_SCORE = 1530;
   
-  const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
+  const getCardSlug = (name: string) => {
+    return name.toLowerCase()
+      .replace(/\./g, '')
+      .replace(/ /g, '-')
+      .replace('mini-p-e-k-k-a', 'mini-pekka')
+      .replace('p-e-k-k-a', 'pekka')
+      .replace('hero-', ''); // Avoid double hero in slug
+  };
+
+  const getCardIcon = (card: any, isHero: boolean, isEvo: boolean) => {
+    const slug = getCardSlug(card.name || '');
+    if (isHero) {
+      // Prioritize explicit heroMedium if provided by API, otherwise fallback to CDN pattern
+      return (card.iconUrls as any)?.heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+    }
+    if (isEvo) {
+      return card.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+    }
+    return card.iconUrls?.medium || '';
+  };
 
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
@@ -74,8 +93,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     
     for (let i = 0; i < orderedDeck.length; i++) {
       const card = orderedDeck[i];
-      const cardIsEvo = isEvo(card);
-      const cardIsHero = isAnyHero(card);
+      const cardIsEvo = isEvoUnlocked(card);
+      const cardIsHero = isAnyHeroUnlocked(card);
       
       if (cardIsEvo && evoCount < 2 && (evoCount + heroChampCount < 3)) {
         slots[i] = 1;
@@ -108,7 +127,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
-            return deck.cards.some(c => Number(c.id) === filter.id && isEvo(c));
+            return deck.cards.some(c => Number(c.id) === filter.id && isEvoUnlocked(c));
           } else {
             return deck.cards.some(c => Number(c.id) === filter.id);
           }
@@ -136,8 +155,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const evoIconUrl = c.iconUrls?.evolutionMedium;
         const rarity = (c.rarity || 'common').toLowerCase();
         
-        // Manual check for potential Hero variants during card list discovery
-        const HERO_VARIANTS_NAMES = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince'];
+        // Manual check for potential Hero variants during card list discovery (2026 update)
+        const HERO_VARIANTS_NAMES = [
+          'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince',
+          'Wizard', 'Bowler', 'Magic Archer', 'Balloon', 'Tombstone', 'Barbarian Barrel'
+        ];
         const isKnownHeroBase = HERO_VARIANTS_NAMES.includes(c.name);
 
         if (evoIconUrl) {
@@ -147,6 +169,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         if (rarity === 'champion' || rarity === 'hero') {
           heroes.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
         } else if (isKnownHeroBase) {
+          // Use the CDN pattern for Hero versions during discovery
           const heroIconUrl = `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
           heroes.push({ 
             id: c.id, 
@@ -192,7 +215,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
-                <img src={c.icon} alt={c.name} />
+                <img src={c.icon} alt={c.name} onError={(e) => { (e.target as HTMLImageElement).src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png'; }} />
                 {c.isEvoFilter && <div className="evo-mini-icon"></div>}
                 {isHeroVariantDisplay && <div className="hero-mini-icon"></div>}
               </div>
@@ -306,21 +329,16 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const isMaxed = userLevel >= 16;
                       const missingLvls = Math.max(0, 16 - userLevel);
                       
-                      const cardIsEvo = isEvo(card);
-                      const cardIsHero = isAnyHero(card);
-                      const heroVar = isHeroVariant(card);
+                      const cardIsEvo = isEvoUnlocked(card);
+                      const cardIsHero = isAnyHeroUnlocked(card);
+                      const heroVar = isHeroVariantUnlocked(card);
                       
-                      const slug = getCardSlug(card.name);
-                      const displayIcon = heroVar 
-                        ? `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`
-                        : ((cardIsEvo && card.iconUrls?.evolutionMedium) 
-                          ? card.iconUrls.evolutionMedium 
-                          : card.iconUrls?.medium || '');
+                      const displayIcon = getCardIcon(card, heroVar, cardIsEvo);
 
                       return (
                         <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
                           <div className="card-image-container">
-                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />}
+                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
                           </div>
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
                             {userLevel || '!'}

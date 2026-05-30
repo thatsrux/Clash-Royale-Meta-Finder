@@ -18,28 +18,34 @@ export const isChampion = (card: Card) => {
   return card.rarity?.toLowerCase() === 'champion';
 };
 
-// Check if the specific card instance has Evolution unlocked
+// Check if the specific card instance has Evolution unlocked or is an Evo variant
 export const isEvoUnlocked = (card: Card) => {
-  return card.evolutionLevel !== undefined && card.evolutionLevel > 0;
+  const name = card.name || '';
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || name.includes('Evo');
 };
 
 // Check if the card definition has an Evolution version available
 export const hasEvoAvailable = (card: Card) => {
-  return !!card.iconUrls?.evolutionMedium;
+  return !!card.iconUrls?.evolutionMedium || (card.name || '').includes('Evo');
 };
 
 // Legacy helper - defaults to unlocked check for profile/collection
 export const isEvo = (card: Card) => isEvoUnlocked(card);
 
-// Check if the specific card instance has Hero Variant active/unlocked
+// Check if the specific card instance has Hero Variant active/unlocked or is a Hero variant
 export const isHeroVariantUnlocked = (card: Card) => {
-  return card.heroLevel !== undefined && card.heroLevel > 0;
+  const name = card.name || '';
+  return (card.heroLevel !== undefined && card.heroLevel > 0) || name.includes('Hero');
 };
 
-// Check if the card is one of the base cards that CAN be a Hero
+// Check if the card is one of the base cards that CAN be a Hero in the 2026 update
 export const hasHeroAvailable = (card: Card) => {
-  const HERO_BASE_CARDS = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince'];
-  return HERO_BASE_CARDS.includes(card.name);
+  const name = card.name || '';
+  const HERO_BASE_CARDS = [
+    'Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince', 
+    'Wizard', 'Bowler', 'Magic Archer', 'Balloon', 'Tombstone', 'Barbarian Barrel'
+  ];
+  return HERO_BASE_CARDS.includes(name) || card.rarity?.toLowerCase() === 'hero' || name.includes('Hero');
 };
 
 // Legacy helper

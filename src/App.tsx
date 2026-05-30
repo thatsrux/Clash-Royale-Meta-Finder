@@ -297,7 +297,26 @@ function App() {
     return sortOrder === 'desc' ? comp : -comp;
   }) : [];
 
-  const getCardSlug = (name: string) => name.toLowerCase().replace(/\./g, '').replace(/ /g, '-').replace('mini-p-e-k-k-a', 'mini-pekka').replace('p-e-k-k-a', 'pekka');
+  const getCardSlug = (name: string) => {
+    return name.toLowerCase()
+      .replace(/\./g, '')
+      .replace(/ /g, '-')
+      .replace('mini-p-e-k-k-a', 'mini-pekka')
+      .replace('p-e-k-k-a', 'pekka')
+      .replace('hero-', ''); // Avoid double hero in slug
+  };
+
+  const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
+    const slug = getCardSlug(card.name);
+    if (isHero) {
+      // Prioritize explicit heroMedium if provided by API, otherwise fallback to CDN pattern
+      return (card.iconUrls as any).heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+    }
+    if (isEvo) {
+      return card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+    }
+    return card.iconUrls.medium;
+  };
 
   return (
     <div className="app-container">
@@ -373,8 +392,7 @@ function App() {
                   const heroVariant = isHeroVariantUnlocked(card);
                   const hero = isAnyHeroUnlocked(card);
                   const evo = isEvoUnlocked(card);
-                  const slug = getCardSlug(card.name);
-                  const icon = heroVariant ? `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png` : (evo ? card.iconUrls.evolutionMedium : card.iconUrls.medium);
+                  const icon = getCardIcon(card, heroVariant, evo);
 
                   return (
                     <div key={card.id} className={`card-item ${rarity} ${heroVariant ? 'hero-variant' : ''}`}>
