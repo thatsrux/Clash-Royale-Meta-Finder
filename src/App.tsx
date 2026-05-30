@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp } from 'lucide-react';
+import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked } from './types/clashRoyale';
@@ -146,7 +146,6 @@ function App() {
       setMetaDecksCache(null);
       
       // AUTO-TRIGGER META ANALYSIS IN BACKGROUND
-      // We don't await this so the user can see their profile immediately
       setTimeout(() => performMetaAnalysis(data), 100);
 
     } catch (err: any) {
@@ -210,9 +209,7 @@ function App() {
         const allCards = recentMatch.team[0].cards || [];
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
         
-        // Map cards and preserve their EXPLICIT variant state from the API (RoyaleAPI 2026)
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
-          // Detect variant type directly from the API object or ICON URL
           const key = (c.key || '').toLowerCase();
           const form = (c.form || '').toLowerCase();
           const activeForm = (c.activeForm || '').toLowerCase();
@@ -220,7 +217,6 @@ function App() {
           
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
-          // ABSOLUTE PRIORITY: Metadata markers (ONLY for first 3 slots)
           if (index < 3) {
             if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) {
               forcedForm = 'hero';
@@ -246,11 +242,8 @@ function App() {
         const batch = playersToFetch.slice(i, i + batchSize);
         const results = await Promise.all(batch.map(async (p: any) => {
           try { 
-            console.log(`[API] Fetching Battle Log for: ${p.tag}`);
-            // Explicitly extract rating as a number
             const pElo = Number(p.eloRating || 0);
             const pTrophy = Number(p.trophies || 0);
-            // Prioritize medals (PoL) for pro decks, fallback to trophies
             const proRating = pElo > 0 ? pElo : pTrophy;
             const proName = p.name || "Unknown Pro";
 
@@ -258,7 +251,6 @@ function App() {
             const logData = log ? extractDeckFromLog(log) : null;
             if (logData && logData.deck.length === 8) return { ...logData, rating: proRating, playerName: proName };
             
-            // Fallback to current deck if battle log is empty
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
               const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
@@ -286,7 +278,6 @@ function App() {
       
       const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number, bestPlayerName: string }> = {};
       decksWithRatings.forEach(item => {
-        // Group by ID + ForceForm to ensure Knight-Hero and Knight-Evo are distinct archetypes
         const key = item.deck.map((c: any) => `${c.id}-${c._forceForm}`).sort().join(',');
         const itemRating = Number(item.rating);
 
@@ -321,7 +312,6 @@ function App() {
             totalLevel += displayLevel;
             if (displayLevel >= 16) eliteCount++;
             
-            // CHECK IF USER HAS THE SPECIFIC VERSION REQUIRED BY THE META DECK
             if (metaIsEvo && !isEvoUnlocked(userCard)) {
               missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
             }
@@ -335,22 +325,14 @@ function App() {
           }
         });
 
-        // NEW AFFINITY SCORING (0 to 100% strict scale)
-        // 1. Level Contribution: Each of the 8 cards maxes out at level 16. Total possible levels = 128.
         const levelScore = (totalLevel / 128) * 100;
-        
-        // 2. Penalties:
-        // Missing a base card completely: -10% (plus it already contributes 0 to the level score, resulting in ~ -22.5% total penalty)
         const missingCardPenalty = (8 - ownedCount) * 10;
-        // Missing a REQUIRED Evo or Hero variant: -5% penalty each.
         const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
-        // Non-maxed card penalty: -2% for each card not at level 16. Heavily penalizes decks with few maxed cards.
         const missingElitePenalty = (8 - eliteCount) * 2;
         
         let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingElitePenalty;
         affinityRaw = Math.max(0, Math.min(100, affinityRaw));
         
-        // 3. Sorting Tie-Breakers (micro-decimals so 100% decks are sorted by pro uses, then by medals)
         const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
         const score = affinityRaw + tieBreaker;
 
@@ -370,7 +352,6 @@ function App() {
         };
       });
 
-      (window as any).decksData = scoredDecks;
       setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
     } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
@@ -399,20 +380,93 @@ function App() {
       .replace(/ /g, '-')
       .replace('mini-p-e-k-k-a', 'mini-pekka')
       .replace('p-e-k-k-a', 'pekka')
-      .replace('hero-', ''); // Avoid double hero in slug
+      .replace('hero-', ''); 
   };
 
   const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
     const slug = getCardSlug(card.name);
     const BASE_CDN = "https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d";
-    
-    if (isHero) {
-      return (card.iconUrls as any).heroMedium || `${BASE_CDN}/${slug}-hero.png`;
-    }
-    if (isEvo) {
-      return card.iconUrls.evolutionMedium || `${BASE_CDN}/${slug}-evo.png`;
-    }
+    if (isHero) return (card.iconUrls as any).heroMedium || `${BASE_CDN}/${slug}-hero.png`;
+    if (isEvo) return card.iconUrls.evolutionMedium || `${BASE_CDN}/${slug}-evo.png`;
     return card.iconUrls.medium;
+  };
+
+  const ExpandableRec = ({ featured, others, type }: { featured: any, others: any[], type: string }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    if (!featured) return null;
+    return (
+      <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
+        <div className={`recommendation-card ${type}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
+          <div className="rec-header">BEST NEXT {type.toUpperCase()}</div>
+          <div className="rec-body">
+            <img src={featured.icon} alt={featured.name} />
+            <div className="rec-info">
+              <div className="rec-name">{featured.name}</div>
+              <div className="rec-reason">{type === 'hero' ? 'Unlocks' : 'Completes'} {featured.count} archetypes</div>
+            </div>
+            {others.length > 0 && (
+              <div className="expand-trigger">
+                {isExpanded ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </div>
+            )}
+          </div>
+        </div>
+        {isExpanded && (
+          <div className="expanded-alternatives">
+            <div className="alternatives-header">OTHER TOP CHOICES (by usage)</div>
+            {others.map((item: any) => (
+              <div key={item.name} className="alt-row">
+                <img src={item.icon} alt={item.name} />
+                <div className="alt-info">
+                  <span className="alt-name">{item.name}</span>
+                  <span className="alt-stat">{item.count} Archetypes</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const UpgradeExpandable = ({ rarity, list }: { rarity: string, list: any[] }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    if (list.length === 0) return null;
+    const featured = list[0];
+    const others = list.slice(1, 6).sort((a, b) => b.count - a.count);
+    
+    return (
+      <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
+        <div className={`upgrade-rec-card ${rarity}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
+          <div className="rec-header">BEST NEXT {rarity.toUpperCase()}</div>
+          <div className="rec-body-mini">
+            <img src={featured.icon} alt={featured.name} />
+            <div className="rec-mini-info">
+              <div className="name">{featured.name}</div>
+              <div className="meta-stats">Boosts {featured.count} archetypes</div>
+            </div>
+            {others.length > 0 && (
+              <div className="expand-trigger mini">
+                {isExpanded ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+              </div>
+            )}
+          </div>
+        </div>
+        {isExpanded && (
+          <div className="expanded-alternatives mini">
+            {others.map((item: any) => (
+              <div key={item.name} className="alt-row mini">
+                <img src={item.icon} alt={item.name} />
+                <div className="alt-info">
+                  <span className="alt-name">{item.name}</span>
+                  <span className="alt-stat">{item.count} Archetypes</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -470,7 +524,6 @@ function App() {
                     <div className="stat-values">
                       <div className="stat-main">
                         {profile.collectionLevel !== undefined ? profile.collectionLevel : (() => {
-                          // Fallback calculation for Collection Level (Post-May 2026 update)
                           let totalLevels = 0;
                           let bonus = 0;
                           const allOwnedCards = [...(profile!.cards || []), ...(profile!.supportCards || [])];
@@ -518,13 +571,8 @@ function App() {
                   return (
                     <div key={card.id} className={`mini-card collection-item rarity-bg-${getRarityClass(card)}`}>
                       <img src={icon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
-                      
                       <div className="mini-level">{displayLevel}</div>
-                      
-                      {elixir !== undefined && (
-                        <div className="collection-elixir">{elixir}</div>
-                      )}
-
+                      {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
                       <div className="card-badges-compact">
                         {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
                         {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
@@ -536,15 +584,10 @@ function App() {
 
               {isMetaLoading && (
                 <div className="variant-insights-section loading">
-                  <div className="insights-divider">
-                    <RefreshCw size={20} className="spin" />
-                    <span>ANALYZING META STRATEGIES...</span>
-                  </div>
+                  <div className="insights-divider"><RefreshCw size={20} className="spin" /><span>ANALYZING META STRATEGIES...</span></div>
                   <div className="insights-loading-body">
                     <div className="loading-text">Calculating your next best moves based on Top 200 Pro Decks</div>
-                    <div className="progress-track-mini">
-                      <div className="progress-bar-fill-mini" style={{ width: `${metaProgress}%` }}></div>
-                    </div>
+                    <div className="progress-track-mini"><div className="progress-bar-fill-mini" style={{ width: `${metaProgress}%` }}></div></div>
                     <div className="loading-subtext">Scanning battle logs and calculating affinity scores ({metaProgress}%)</div>
                   </div>
                 </div>
@@ -552,36 +595,22 @@ function App() {
 
               {metaDecksCache && !isMetaLoading && (
                 <div className="variant-insights-section">
-                  <div className="insights-divider">
-                    <TrendingUp size={20} />
-                    <span>META PROGRESSION INSIGHTS</span>
-                  </div>
-
+                  <div className="insights-divider"><TrendingUp size={20} /><span>META PROGRESSION INSIGHTS</span></div>
                   {(() => {
                     const allMetaDecks = metaDecksCache;
                     const totalDecksCount = allMetaDecks.length;
-
-                    // 1. ABSOLUTE META USAGE (Entire 200 decks, regardless of ownership)
                     const absoluteEvoUsage: Record<number, { name: string, icon: string, count: number }> = {};
                     const absoluteHeroUsage: Record<number, { name: string, icon: string, count: number }> = {};
-                    const absoluteRarityUsage: Record<string, Record<number, { name: string, icon: string, count: number, rarity: string }>> = {
-                      common: {}, rare: {}, epic: {}, legendary: {}, champion: {}
-                    };
+                    const absoluteRarityUsage: Record<string, Record<number, { name: string, icon: string, count: number, rarity: string }>> = { common: {}, rare: {}, epic: {}, legendary: {}, champion: {} };
 
                     allMetaDecks.forEach(deck => {
                       deck.cards.forEach((metaCard, idx) => {
                         const forcedForm = (metaCard as any)._forceForm;
                         const cardRarity = getRarityClass(metaCard);
-                        
-                        // Count Absolute Card Usage
                         if (absoluteRarityUsage[cardRarity]) {
-                          if (!absoluteRarityUsage[cardRarity][metaCard.id]) {
-                            absoluteRarityUsage[cardRarity][metaCard.id] = { name: metaCard.name, icon: metaCard.iconUrls.medium, count: 0, rarity: cardRarity };
-                          }
+                          if (!absoluteRarityUsage[cardRarity][metaCard.id]) absoluteRarityUsage[cardRarity][metaCard.id] = { name: metaCard.name, icon: metaCard.iconUrls.medium, count: 0, rarity: cardRarity };
                           absoluteRarityUsage[cardRarity][metaCard.id].count++;
                         }
-
-                        // Count Absolute Evo/Hero Usage (only in first 3 slots as per rules)
                         if (idx < 3) {
                           if (forcedForm === 'evo') {
                             if (!absoluteEvoUsage[metaCard.id]) absoluteEvoUsage[metaCard.id] = { name: metaCard.name, icon: getCardIcon(metaCard, false, true), count: 0 };
@@ -594,15 +623,12 @@ function App() {
                       });
                     });
 
-                    // 2. PERSONAL RECOMMENDATIONS (Focus on what YOU need to improve)
                     const missingEvoImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
                     const missingHeroImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
-                    const upgradeRarityImpact: Record<string, { name: string, icon: string, impact: number, count: number, rarity: string }> = {};
+                    const upgradeRarityImpact: Record<number, { name: string, icon: string, impact: number, count: number, rarity: string, id: number }> = {};
 
                     allMetaDecks.forEach(deck => {
-                      // Weigh the contribution by the current deck affinity (Cubic to focus heavily on mazzi migliori)
                       const weight = Math.pow(deck.score / 10, 3);
-
                       deck.missingEvos.forEach(evo => {
                         const card = deck.cards.find(c => c.name === evo.name);
                         if (!card) return;
@@ -617,152 +643,58 @@ function App() {
                         missingHeroImpact[card.id].impact += weight;
                         missingHeroImpact[card.id].count++;
                       });
-
                       deck.cards.forEach(metaCard => {
                         const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
                         const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
                         if (displayLevel > 0 && displayLevel < 16) {
                           const r = getRarityClass(metaCard);
-                          const gain = (16 - displayLevel) / 1.28 + 2; // Simulated Affinity point gain
-                          if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r };
+                          const gain = (16 - displayLevel) / 1.28 + 2;
+                          if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r };
                           upgradeRarityImpact[metaCard.id].impact += (gain * weight);
                           upgradeRarityImpact[metaCard.id].count++;
                         }
                       });
                     });
 
-                    const bestEvo = Object.values(missingEvoImpact).sort((a, b) => b.impact - a.impact)[0];
-                    const bestHero = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact)[0];
-
+                    const sortedEvos = Object.values(missingEvoImpact).sort((a, b) => b.impact - a.impact);
+                    const sortedHeroes = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact);
                     const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
-                    const nextUpgrades = rarities.map(r => {
-                      const available = Object.values(upgradeRarityImpact).filter(c => c.rarity === r);
-                      return available.sort((a, b) => b.impact - a.impact)[0];
-                    }).filter(Boolean);
+                    const rarityRecs = rarities.map(r => ({ rarity: r, list: Object.values(upgradeRarityImpact).filter(c => c.rarity === r).sort((a, b) => b.impact - a.impact) }));
 
                     return (
                       <>
                         <div className="recommendations-row">
-                          {bestEvo && (
-                            <div className="recommendation-card evo">
-                              <div className="rec-header">BEST NEXT EVO</div>
-                              <div className="rec-body">
-                                <img src={bestEvo.icon} alt={bestEvo.name} />
-                                <div className="rec-info">
-                                  <div className="rec-name">{bestEvo.name}</div>
-                                  <div className="rec-reason">Completes {bestEvo.count} meta archetypes</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          {bestHero && (
-                            <div className="recommendation-card hero">
-                              <div className="rec-header">BEST NEXT HERO</div>
-                              <div className="rec-body">
-                                <img src={bestHero.icon} alt={bestHero.name} />
-                                <div className="rec-info">
-                                  <div className="rec-name">{bestHero.name}</div>
-                                  <div className="rec-reason">Boosts {bestHero.count} pro decks</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                          <ExpandableRec featured={sortedEvos[0]} others={sortedEvos.slice(1, 6).sort((a, b) => b.count - a.count)} type="evo" />
+                          <ExpandableRec featured={sortedHeroes[0]} others={sortedHeroes.slice(1, 6).sort((a, b) => b.count - a.count)} type="hero" />
                         </div>
-
                         <div className="stats-tables-row">
                           <div className="stats-column">
                             <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
                             <div className="stats-list">
-                              {Object.values(absoluteEvoUsage)
-                                .filter(evo => {
-                                  const card = profile!.cards.find(c => c.name === evo.name);
-                                  return !card || !isEvoUnlocked(card);
-                                })
-                                .sort((a, b) => b.count - a.count)
-                                .map(evo => (
-                                <div key={evo.name} className="stat-row-item">
-                                  <img src={evo.icon} alt={evo.name} />
-                                  <div className="stat-row-details">
-                                    <span className="name">{evo.name}</span>
-                                    <span className="percent">{Math.round((evo.count / totalDecksCount) * 100)}% Usage</span>
-                                  </div>
-                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecksCount) * 100}%` }}></div></div>
-                                </div>
+                              {Object.values(absoluteEvoUsage).filter(evo => { const card = profile!.cards.find(c => c.name === evo.name); return !card || !isEvoUnlocked(card); }).sort((a, b) => b.count - a.count).map(evo => (
+                                <div key={evo.name} className="stat-row-item"><img src={evo.icon} alt={evo.name} /><div className="stat-row-details"><span className="name">{evo.name}</span><span className="percent">{Math.round((evo.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecksCount) * 100}%` }}></div></div></div>
                               ))}
                             </div>
                           </div>
                           <div className="stats-column">
                             <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
                             <div className="stats-list">
-                              {Object.values(absoluteHeroUsage)
-                                .filter(hero => {
-                                  const card = profile!.cards.find(c => c.name === hero.name);
-                                  return !card || !isHeroVariantUnlocked(card);
-                                })
-                                .sort((a, b) => b.count - a.count)
-                                .map(hero => (
-                                <div key={hero.name} className="stat-row-item">
-                                  <img src={hero.icon} alt={hero.name} />
-                                  <div className="stat-row-details">
-                                    <span className="name">{hero.name}</span>
-                                    <span className="percent">{Math.round((hero.count / totalDecksCount) * 100)}% Usage</span>
-                                  </div>
-                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecksCount) * 100}%` }}></div></div>
-                                </div>
+                              {Object.values(absoluteHeroUsage).filter(hero => { const card = profile!.cards.find(c => c.name === hero.name); return !card || !isHeroVariantUnlocked(card); }).sort((a, b) => b.count - a.count).map(hero => (
+                                <div key={hero.name} className="stat-row-item"><img src={hero.icon} alt={hero.name} /><div className="stat-row-details"><span className="name">{hero.name}</span><span className="percent">{Math.round((hero.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecksCount) * 100}%` }}></div></div></div>
                               ))}
                             </div>
                           </div>
                         </div>
-
-                        <div className="insights-divider" style={{ marginTop: '3rem' }}>
-                          <ArrowUp size={20} />
-                          <span>UPGRADE PRIORITY BY RARITY</span>
-                        </div>
-
+                        <div className="insights-divider" style={{ marginTop: '3rem' }}><ArrowUp size={20} /><span>UPGRADE PRIORITY BY RARITY</span></div>
                         <div className="upgrade-rec-grid">
-                          {nextUpgrades.map(rec => (
-                            <div key={rec.name} className={`upgrade-rec-card ${rec.rarity}`}>
-                              <div className="rec-header">BEST NEXT {rec.rarity.toUpperCase()}</div>
-                              <div className="rec-body-mini">
-                                <img src={rec.icon} alt={rec.name} />
-                                <div className="rec-mini-info">
-                                  <div className="name">{rec.name}</div>
-                                  <div className="meta-stats">Boosts {rec.count} archetypes</div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                          {rarityRecs.map(rec => <UpgradeExpandable key={rec.rarity} rarity={rec.rarity} list={rec.list} />)}
                         </div>
-
                         <div className="stats-tables-grid-3">
                           {rarities.map(r => {
-                            const list = Object.values(absoluteRarityUsage[r])
-                              .filter(item => {
-                                const cardId = Object.keys(absoluteRarityUsage[r]).find(id => absoluteRarityUsage[r][Number(id)].name === item.name);
-                                const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId));
-                                return !userCard || getDisplayLevel(userCard) < 16;
-                              })
-                              .sort((a, b) => b.count - a.count);
+                            const list = Object.values(absoluteRarityUsage[r]).filter(item => { const cardId = Object.keys(absoluteRarityUsage[r]).find(id => absoluteRarityUsage[r][Number(id)].name === item.name); const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId)); return !userCard || getDisplayLevel(userCard) < 16; }).sort((a, b) => b.count - a.count);
                             if (list.length === 0) return null;
-
                             return (
-                              <div key={r} className="stats-column">
-                                <div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>
-                                  {r.toUpperCase()} USAGE
-                                </div>
-                                <div className="stats-list mini">
-                                  {list.slice(0, 10).map(item => (
-                                    <div key={item.name} className="stat-row-item compact">
-                                      <img src={item.icon} alt={item.name} />
-                                      <div className="stat-row-details">
-                                        <span className="name">{item.name}</span>
-                                        <span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span>
-                                      </div>
-                                      <div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
+                              <div key={r} className="stats-column"><div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>{r.toUpperCase()} USAGE</div><div className="stats-list mini">{list.slice(0, 10).map(item => (<div key={item.name} className="stat-row-item compact"><img src={item.icon} alt={item.name} /><div className="stat-row-details"><span className="name">{item.name}</span><span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div></div>))}</div></div>
                             );
                           })}
                         </div>
