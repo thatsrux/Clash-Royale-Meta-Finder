@@ -85,31 +85,42 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
     
-    // 1. Identify all 8 cards
-    const deckCards = cards.filter(c => c && c.id && c.id < 68000000).slice(0, 8);
-    const finalIds = deckCards.map(c => c.id).join(';');
+    // EXPLICIT REPLICATION OF ROYALEAPI WORKING FORMAT
+    // Example: https://link.clashroyale.com/en/?clashroyale://copyDeck?deck=...&l=Royals&tt=159000000
     
-    // 2. Identify Evolutions specifically used in the deck
-    // We must use the binary bitmask format for 'slots' as it's the only official way the client parses evos.
-    const slots = deckCards.map(c => isEvoUnlocked(c) ? 1 : 0).join(';');
+    // 1. Get the 8 card IDs
+    const deckCards = cards.filter(c => c && c.id && c.id < 68000000).slice(0, 8);
+    const deckIds = deckCards.map(c => c.id).join(';');
+    
+    // 2. Format Tower Troop ID (Game uses 159xxxxxx range for Tower Troops in links)
+    // If we have a tower ID like 26000057 (Princess), it needs to be mapped or prefixed correctly.
+    // The user's example uses 159000000 (Princess Tower)
+    let towerId = '159000000';
+    if (towerTroopId) {
+      const tidStr = towerTroopId.toString();
+      if (tidStr.startsWith('68')) {
+        // Map 68xxxxxx (API) to 159xxxxxx (Link)
+        towerId = tidStr.replace('68', '159');
+      } else if (!tidStr.startsWith('159')) {
+        // Fallback for unexpected IDs - default to Princess Tower
+        towerId = '159000000';
+      } else {
+        towerId = tidStr;
+      }
+    }
 
-    // 3. Construct the OFFICIAL RoyaleAPI / Supercell Deep Link
-    // IMPORTANT: towerTroop must be exactly 8 digits. 
-    // If the towerTroopId is undefined, RoyaleAPI often defaults to Tower Princess (26000057)
-    const tower = towerTroopId || 26000057;
+    // 3. Build the exact query string
+    // 'l' is the label (deck name)
+    // 'tt' is the tower troop
+    const deepLinkParams = `deck=${deckIds}&l=MetaArchetype&tt=${towerId}`;
+    const finalLink = `https://link.clashroyale.com/en/?clashroyale://copyDeck?${deepLinkParams}`;
 
-    // The official redirect URL format that ALWAYS works
-    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slots}&towerTroop=${tower}`;
-
-    navigator.clipboard.writeText(link).then(() => {
+    navigator.clipboard.writeText(finalLink).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    // We use a small delay to ensure clipboard copy completes before redirect on some mobile browsers
-    setTimeout(() => {
-      window.location.href = link;
-    }, 50);
+    window.location.href = finalLink;
   };
 
   const { filteredRecommendations } = useMemo(() => {
