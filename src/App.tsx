@@ -243,10 +243,13 @@ function App() {
             // Fallback to current deck if battle log is empty (less precise for variants)
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
-              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => ({
-                ...c,
-                _variant: (c.heroLevel > 0) ? 'hero' : (c.evolutionLevel > 0 ? 'evo' : 'normal')
-              }));
+              const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
+                const forcedForm = (c.heroLevel > 0) ? 'hero' : (c.evolutionLevel > 0 ? 'evo' : 'normal');
+                return {
+                  ...c,
+                  _forceForm: forcedForm
+                };
+              });
               const tower = deck.find((c: any) => c.id >= 68000000);
               return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
             }
