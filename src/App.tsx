@@ -336,8 +336,8 @@ function App() {
         // 2. Penalties:
         // Missing a base card completely: -10% (plus it already contributes 0 to the level score, resulting in ~ -22.5% total penalty)
         const missingCardPenalty = (8 - ownedCount) * 10;
-        // Missing a REQUIRED Evo or Hero variant: -25% penalty each. This heavily prioritizes variants over average levels.
-        const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 25;
+        // Missing a REQUIRED Evo or Hero variant: -5% penalty each.
+        const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
         
         let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty;
         affinityRaw = Math.max(0, Math.min(100, affinityRaw));
