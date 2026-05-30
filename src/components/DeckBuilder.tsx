@@ -86,14 +86,24 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     const { cards, towerTroopId } = deck;
     const allCards = cards.filter(c => c && c.id && c.id < 68000000);
     const orderedDeck: Card[] = [...allCards].slice(0, 8);
+    const slots = new Array(8).fill(0);
+    
+    let evoCount = 0;
+    
+    for (let i = 0; i < orderedDeck.length; i++) {
+      const card = orderedDeck[i];
+      // Only Evolutions use slot index 1 in the deep link.
+      // Using 2 for Heroes/Champions can cause the in-game paste to silently fail on some client versions.
+      if (isEvoUnlocked(card) && evoCount < 2) {
+        slots[i] = 1;
+        evoCount++;
+      }
+    }
 
     const finalIds = orderedDeck.map(c => c.id).join(';');
+    const slotsString = slots.join(';');
     
-    // Removing the complex 'slots' parameter because the native app handles standard deck links 
-    // more reliably and automatically assigns Evo/Hero slots to the correct cards if the player has them unlocked.
-    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}`;
-    
-    // Tower Troop uses the 'tt' parameter
+    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slotsString}`;
     if (towerTroopId) link += `&tt=${towerTroopId}`;
     
     navigator.clipboard.writeText(link).then(() => {

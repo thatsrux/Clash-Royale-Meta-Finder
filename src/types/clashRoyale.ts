@@ -41,6 +41,9 @@ export const hasHeroAvailable = (card: Card) => {
 
 // Check if the specific card instance has Hero Variant active/unlocked
 export const isHeroVariantUnlocked = (card: Card) => {
+  // Check the explicit 'tag' property first
+  if ((card as any).tag?.toLowerCase() === 'hero') return true;
+  
   const name = card.name || '';
   if (name.toLowerCase().includes('hero')) return true;
   if (card.rarity?.toLowerCase() === 'hero') return true;
@@ -57,6 +60,10 @@ export const isHeroVariantUnlocked = (card: Card) => {
 
 // Check if the specific card instance has Evolution unlocked
 export const isEvoUnlocked = (card: Card) => {
+  // Check the explicit 'tag' property first
+  if ((card as any).tag?.toLowerCase() === 'evo') return true;
+  if ((card as any).tag?.toLowerCase() === 'hero') return false;
+
   // A card CANNOT be an Evolution if it is definitively a Hero
   if (isHeroVariantUnlocked(card)) return false;
   
