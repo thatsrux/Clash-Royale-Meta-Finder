@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvo, isHeroVariant, isAnyHero } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -252,16 +252,16 @@ function App() {
             const displayLevel = Number(getDisplayLevel(userCard));
             totalLevel += displayLevel;
             if (displayLevel >= 16) eliteCount++;
-            if (isEvo(metaCard) && !isEvo(userCard)) {
+            if (isEvoUnlocked(metaCard) && !isEvoUnlocked(userCard)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
             }
-            if (isAnyHero(metaCard) && !isAnyHero(userCard)) {
+            if (isAnyHeroUnlocked(metaCard) && !isAnyHeroUnlocked(userCard)) {
               missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
             }
           } else { 
             totalLevel += 1; 
-            if (isEvo(metaCard)) missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
-            if (isAnyHero(metaCard)) missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
+            if (isEvoUnlocked(metaCard)) missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+            if (isAnyHeroUnlocked(metaCard)) missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
           }
         });
 
@@ -291,7 +291,7 @@ function App() {
     let comp = 0;
     if (sortBy === 'elixir') comp = (cardMap[b.id]?.elixirCost || 0) - (cardMap[a.id]?.elixirCost || 0);
     else if (sortBy === 'rarity') comp = getRarityWeight(getRarityClass(b)) - getRarityWeight(getRarityClass(a));
-    else if (sortBy === 'evo') comp = (isEvo(b) ? 1 : 0) - (isEvo(a) ? 1 : 0);
+    else if (sortBy === 'evo') comp = (isEvoUnlocked(b) ? 1 : 0) - (isEvoUnlocked(a) ? 1 : 0);
     else comp = getDisplayLevel(b) - getDisplayLevel(a);
     if (comp === 0) comp = a.name.localeCompare(b.name);
     return sortOrder === 'desc' ? comp : -comp;
@@ -370,9 +370,9 @@ function App() {
                 {sortedCards.map((card) => {
                   const displayLevel = getDisplayLevel(card);
                   const rarity = getRarityClass(card);
-                  const heroVariant = isHeroVariant(card);
-                  const hero = isAnyHero(card);
-                  const evo = isEvo(card);
+                  const heroVariant = isHeroVariantUnlocked(card);
+                  const hero = isAnyHeroUnlocked(card);
+                  const evo = isEvoUnlocked(card);
                   const slug = getCardSlug(card.name);
                   const icon = heroVariant ? `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png` : (evo ? card.iconUrls.evolutionMedium : card.iconUrls.medium);
 

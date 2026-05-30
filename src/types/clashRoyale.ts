@@ -18,19 +18,39 @@ export const isChampion = (card: Card) => {
   return card.rarity?.toLowerCase() === 'champion';
 };
 
-export const isEvo = (card: Card) => {
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0) || !!card.iconUrls?.evolutionMedium;
+// Check if the specific card instance has Evolution unlocked
+export const isEvoUnlocked = (card: Card) => {
+  return card.evolutionLevel !== undefined && card.evolutionLevel > 0;
 };
 
-// Hero variants are special versions of standard cards (Knight, Musketeer, Mini PEKKA, Giant, Dark Prince, etc.)
-export const isHeroVariant = (card: Card) => {
-  // We check if the card has a heroLevel > 0 which is the most reliable indicator in the API
+// Check if the card definition has an Evolution version available
+export const hasEvoAvailable = (card: Card) => {
+  return !!card.iconUrls?.evolutionMedium;
+};
+
+// Legacy helper - defaults to unlocked check for profile/collection
+export const isEvo = (card: Card) => isEvoUnlocked(card);
+
+// Check if the specific card instance has Hero Variant active/unlocked
+export const isHeroVariantUnlocked = (card: Card) => {
   return card.heroLevel !== undefined && card.heroLevel > 0;
 };
 
-export const isAnyHero = (card: Card) => {
-  return isChampion(card) || isHeroVariant(card) || card.rarity?.toLowerCase() === 'hero';
+// Check if the card is one of the base cards that CAN be a Hero
+export const hasHeroAvailable = (card: Card) => {
+  const HERO_BASE_CARDS = ['Knight', 'Musketeer', 'Mini P.E.K.K.A', 'Giant', 'Dark Prince'];
+  return HERO_BASE_CARDS.includes(card.name);
 };
+
+// Legacy helper
+export const isHeroVariant = (card: Card) => isHeroVariantUnlocked(card);
+
+export const isAnyHeroUnlocked = (card: Card) => {
+  return isChampion(card) || isHeroVariantUnlocked(card) || card.rarity?.toLowerCase() === 'hero';
+};
+
+// Legacy helper
+export const isAnyHero = (card: Card) => isAnyHeroUnlocked(card);
 
 export interface PlayerProfile {
   tag: string;
