@@ -43,8 +43,10 @@ export const isEvoUnlocked = (card: Card) => {
   
   if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return true;
 
-  // If it supports Evo and has progression > 0, it's unlocked
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
+  // API Quirk: evolutionLevel acts as a bitmask (1 = Evo, 2 = Hero, 3 = Both)
+  if (card.evolutionLevel !== undefined) {
+    if ((card.evolutionLevel & 1) === 1) return true;
+  }
   
   return false;
 };
@@ -65,10 +67,9 @@ export const isHeroVariantUnlocked = (card: Card) => {
 
   if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
   
-  // CRITICAL API QUIRK: The API uses `evolutionLevel` to indicate progression for BOTH Evos and Heroes.
-  // If the card supports Hero but DOES NOT support Evo, `evolutionLevel > 0` means the HERO is unlocked.
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
-    return true;
+  // API Quirk: evolutionLevel acts as a bitmask (1 = Evo, 2 = Hero, 3 = Both)
+  if (card.evolutionLevel !== undefined) {
+    if ((card.evolutionLevel & 2) === 2) return true;
   }
   
   return false;
