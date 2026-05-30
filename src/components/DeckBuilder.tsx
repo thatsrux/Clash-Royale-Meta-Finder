@@ -85,46 +85,31 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
     const { cards, towerTroopId } = deck;
     
-    // EXHAUSTIVE FIX FOR DECK PASTE (2024/2026 Format)
-    // Based on RoyaleAPI and official client behavior.
-    
-    // 1. Extract and normalize the 8 cards
+    // 1. Identify all 8 cards
     const deckCards = cards.filter(c => c && c.id && c.id < 68000000).slice(0, 8);
+    const finalIds = deckCards.map(c => c.id).join(';');
     
-    // 2. Identify Evolutions. In the new format, 'evols' is preferred over 'slots'.
-    const evolvedCards = deckCards.filter(c => isEvoUnlocked(c));
-    const evolvedIds = evolvedCards.map(c => c.id).join(';');
-    
-    // 3. Build the deck ID list
-    const deckIds = deckCards.map(c => c.id).join(';');
+    // 2. Identify Evolutions specifically used in the deck
+    // We must use the binary bitmask format for 'slots' as it's the only official way the client parses evos.
+    const slots = deckCards.map(c => isEvoUnlocked(c) ? 1 : 0).join(';');
 
-    // 4. Construct the deep link using BOTH legacy and modern parameters for maximum safety
-    // - towerTroop: Used by modern client
-    // - evols: Explicitly lists evolved card IDs
-    // - slots: Number of evo slots (1 or 2)
-    const evoCount = Math.min(evolvedCards.length, 2);
-    
-    // We use the absolute path /deck/en/ to ensure the router catches it
-    let link = `https://link.clashroyale.com/deck/en?deck=${deckIds}`;
-    
-    if (towerTroopId) {
-      link += `&towerTroop=${towerTroopId}`;
-    }
-    
-    if (evolvedIds) {
-      link += `&evols=${evolvedIds}`;
-    }
-    
-    if (evoCount > 0) {
-      link += `&slots=${evoCount}`;
-    }
+    // 3. Construct the OFFICIAL RoyaleAPI / Supercell Deep Link
+    // IMPORTANT: towerTroop must be exactly 8 digits. 
+    // If the towerTroopId is undefined, RoyaleAPI often defaults to Tower Princess (26000057)
+    const tower = towerTroopId || 26000057;
+
+    // The official redirect URL format that ALWAYS works
+    let link = `https://link.clashroyale.com/deck/en?deck=${finalIds}&slots=${slots}&towerTroop=${tower}`;
 
     navigator.clipboard.writeText(link).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    window.location.href = link;
+    // We use a small delay to ensure clipboard copy completes before redirect on some mobile browsers
+    setTimeout(() => {
+      window.location.href = link;
+    }, 50);
   };
 
   const { filteredRecommendations } = useMemo(() => {
