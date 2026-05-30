@@ -241,9 +241,16 @@ function App() {
         const results = await Promise.all(batch.map(async (p: any) => {
           try { 
             console.log(`[API] Fetching Battle Log for: ${p.tag}`);
+            // Explicitly extract rating as a number
+            const pElo = Number(p.eloRating || 0);
+            const pTrophy = Number(p.trophies || 0);
+            // Prioritize medals (PoL) for pro decks, fallback to trophies
+            const proRating = pElo > 0 ? pElo : pTrophy;
+            const proName = p.name || "Unknown Pro";
+
             const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
             const logData = log ? extractDeckFromLog(log) : null;
-            if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0, playerName: p.name };
+            if (logData && logData.deck.length === 8) return { ...logData, rating: proRating, playerName: proName };
             
             // Fallback to current deck if battle log is empty
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
@@ -262,7 +269,7 @@ function App() {
                 return { ...c, _forceForm: forcedForm };
               });
               const tower = deck.find((c: any) => c.id >= 68000000);
-              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0, playerName: p.name } : null;
+              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: proRating, playerName: proName } : null;
             }
           } catch { return null; }
           return null;
@@ -275,16 +282,17 @@ function App() {
       decksWithRatings.forEach(item => {
         // Group by ID + ForceForm to ensure Knight-Hero and Knight-Evo are distinct archetypes
         const key = item.deck.map((c: any) => `${c.id}-${c._forceForm}`).sort().join(',');
+        const itemRating = Number(item.rating);
 
         if (deckCounts[key]) {
           deckCounts[key].count++;
-          if (item.rating > deckCounts[key].maxRating) {
-            deckCounts[key].maxRating = item.rating;
+          if (itemRating > deckCounts[key].maxRating) {
+            deckCounts[key].maxRating = itemRating;
             deckCounts[key].bestPlayerName = item.playerName;
           }
           if (!deckCounts[key].towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
         } else {
-          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: item.rating, bestPlayerName: item.playerName };
+          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: itemRating, bestPlayerName: item.playerName };
         }
       });
 
