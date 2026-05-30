@@ -333,13 +333,31 @@ button {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* RARITY BACKGROUNDS */
-.rarity-bg-common { background: rgba(255, 255, 255, 0.05) !important; }
-.rarity-bg-rare { background: linear-gradient(180deg, rgba(251, 191, 36, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
-.rarity-bg-epic { background: linear-gradient(180deg, rgba(217, 70, 239, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(217, 70, 239, 0.3) !important; }
-.rarity-bg-legendary { background: linear-gradient(180deg, rgba(56, 189, 248, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(56, 189, 248, 0.3) !important; }
-.rarity-bg-champion { background: linear-gradient(180deg, rgba(255, 206, 49, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(255, 206, 49, 0.3) !important; }
-.rarity-bg-hero { background: linear-gradient(180deg, rgba(255, 255, 0, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%) !important; border-color: rgba(255, 255, 0, 0.3) !important; }
+/* RARITY BACKGROUNDS - STRENGTHENED */
+.rarity-bg-common { 
+  background: rgba(255, 255, 255, 0.15) !important; 
+  border-color: rgba(255, 255, 255, 0.3) !important; 
+}
+.rarity-bg-rare { 
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%) !important; 
+  border-color: rgba(251, 191, 36, 0.5) !important; 
+}
+.rarity-bg-epic { 
+  background: linear-gradient(180deg, rgba(217, 70, 239, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%) !important; 
+  border-color: rgba(217, 70, 239, 0.5) !important; 
+}
+.rarity-bg-legendary { 
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.35) 0%, rgba(15, 23, 42, 0.9) 100%) !important; 
+  border-color: rgba(56, 189, 248, 0.6) !important; 
+}
+.rarity-bg-champion { 
+  background: linear-gradient(180deg, rgba(255, 206, 49, 0.4) 0%, rgba(15, 23, 42, 0.9) 100%) !important; 
+  border-color: rgba(255, 206, 49, 0.7) !important; 
+}
+.rarity-bg-hero { 
+  background: linear-gradient(180deg, rgba(255, 255, 0, 0.4) 0%, rgba(15, 23, 42, 0.9) 100%) !important; 
+  border-color: rgba(255, 255, 0, 0.7) !important; 
+}
 
 .collection-item:hover {
   transform: translateY(-5px);
