@@ -340,12 +340,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const isMaxed = userLevel >= 16;
                       const missingLvls = Math.max(0, 16 - userLevel);
                       
-                      // USE EXPLICIT VARIANT FROM META ANALYSIS LOGIC
-                      // This ensures that if the pro deck used a Knight-Hero, we show it as a Hero
-                      // even if the user logic usually defaults to Evo.
+                      // STRICT VARIANT DETECTION
+                      // Priority: 1. Explicit analysis metadata (_variant)
+                      //           2. Detection logic based on key/form (isHeroVariantUnlocked)
                       const explicitVariant = (card as any)._variant;
                       const cardIsHero = explicitVariant === 'hero' || isHeroVariantUnlocked(card);
-                      const cardIsEvo = !cardIsHero && (explicitVariant === 'evo' || isEvoUnlocked(card));
+                      const cardIsEvo = explicitVariant === 'evo' || (!cardIsHero && isEvoUnlocked(card));
                       const cardIsChamp = isChampion(card);
                       
                       const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);
