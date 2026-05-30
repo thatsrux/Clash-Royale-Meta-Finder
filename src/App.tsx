@@ -203,25 +203,30 @@ function App() {
         const allCards = recentMatch.team[0].cards || [];
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
         
-        // Map cards and preserve their EXPLICIT variant state from the API
+        // Map cards and preserve their EXPLICIT variant state from the API (RoyaleAPI 2026)
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
-          // Detect variant type directly from the API object
-          // PRIORITIZE HERO: In the 2026 update, if a card has heroLevel > 0, 
-          // it MUST be treated as a Hero even if it also has evolution capabilities.
+          // Detect variant type directly from the API object (RoyaleAPI Key/Form)
+          const key = (c.key || '').toLowerCase();
+          const form = (c.form || '').toLowerCase();
+          
           let variant: 'normal' | 'evo' | 'hero' = 'normal';
           
-          if (c.heroLevel !== undefined && c.heroLevel > 0) {
+          if (key.endsWith('-hero') || form === 'hero') {
             variant = 'hero';
-          } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
+          } else if (key.endsWith('-evo') || form === 'evolution' || form === 'evo') {
             variant = 'evo';
+          } else {
+            // Fallback for cases where key/form are missing but levels are present
+            // This is secondary to the explicit metadata.
+            if (c.heroLevel !== undefined && c.heroLevel > 0 && (!c.evolutionLevel || c.evolutionLevel === 0)) {
+              variant = 'hero';
+            } else if (c.evolutionLevel !== undefined && c.evolutionLevel > 0) {
+              variant = 'evo';
+            }
           }
 
-          // Use the explicit 'tag' or 'type' fields if the API proxy provides them
-          if (c.tag?.toLowerCase() === 'hero' || c.type?.toLowerCase() === 'hero') variant = 'hero';
-          if (c.tag?.toLowerCase() === 'evo' || c.type?.toLowerCase() === 'evo') variant = 'evo';
-
-          // Inject the explicit variant into the card object so DeckBuilder can see it
-          return { ...c, _variant: variant };
+          // Inject the explicit variant and key into the card object
+          return { ...c, _variant: variant, key: c.key, form: c.form };
         });
 
         return { deck, towerTroopId: towerTroop?.id };

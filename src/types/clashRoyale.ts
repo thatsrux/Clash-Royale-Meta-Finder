@@ -5,10 +5,12 @@ export interface Card {
   starLevel?: number;
   maxLevel: number;
   count: number;
+  key?: string; 
+  form?: string; 
   iconUrls: {
     medium: string;
     evolutionMedium?: string;
-    heroMedium?: string; // Provided dynamically by API proxy for Heroes
+    heroMedium?: string; 
   };
   rarity: string;
   evolutionLevel?: number;
@@ -21,7 +23,8 @@ export const isChampion = (card: Card) => {
 
 /**
  * DYNAMIC DETECTION LOGIC
- * Perfect disambiguation between Evolutions and Heroes.
+ * Disambiguation between Evolutions and Heroes.
+ * These functions are independent as requested: levels don't dictate the form in a deck.
  */
 
 // Check if the card definition has an Evolution version available
@@ -39,49 +42,50 @@ export const hasHeroAvailable = (card: Card) => {
   return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
 };
 
-// Check if the specific card instance has Hero Variant active/unlocked
+// Check if the specific card instance is a Hero Variant
 export const isHeroVariantUnlocked = (card: Card) => {
-  const rarity = (card.rarity || '').toLowerCase();
-  const type = (card as any).type?.toLowerCase() || '';
-  const tag = (card as any).tag?.toLowerCase() || '';
-  const name = (card.name || '').toLowerCase();
+  // 1. HIGHEST PRIORITY: Explicit variant/form from Deck Metadata
+  const variant = (card as any)._variant || card.form || '';
+  const key = card.key || '';
+  if (variant === 'hero' || key.endsWith('-hero')) return true;
+  if (variant === 'evo' || key.endsWith('-evo')) return false;
 
-  // HIGHEST PRIORITY: Explicit Hero marking
-  if (rarity === 'hero' || type === 'hero' || tag === 'hero' || name.includes('hero')) {
-    return true;
-  }
+  // 2. SECOND PRIORITY: Rarity or Name (Definitive markers)
+  const rarity = (card.rarity || '').toLowerCase();
+  const name = (card.name || '').toLowerCase();
+  if (rarity === 'hero' || name.includes('hero')) return true;
   
-  // SECOND PRIORITY: Explicit hero level
-  if (card.heroLevel !== undefined && card.heroLevel > 0) {
-    return true;
-  }
+  // 3. THIRD PRIORITY: Levels (Used for collection view or fallback)
+  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
   
-  // THIRD PRIORITY: Fallback for cards that use the evolution slot for Hero versions
+  // Special case: cards that use evolutionLevel slot for Hero (only if no evo available)
   if (card.evolutionLevel !== undefined && card.evolutionLevel > 0 && !hasEvoAvailable(card)) {
     return true;
   }
+  
   return false;
 };
 
-// Check if the specific card instance has Evolution unlocked
+// Check if the specific card instance is an Evolution
 export const isEvoUnlocked = (card: Card) => {
-  const rarity = (card.rarity || '').toLowerCase();
-  const type = (card as any).type?.toLowerCase() || '';
-  const tag = (card as any).tag?.toLowerCase() || '';
-  const name = (card.name || '').toLowerCase();
+  // 1. HIGHEST PRIORITY: Explicit variant/form from Deck Metadata
+  const variant = (card as any)._variant || card.form || '';
+  const key = card.key || '';
+  if (variant === 'evo' || key.endsWith('-evo')) return true;
+  if (variant === 'hero' || key.endsWith('-hero')) return false;
 
-  // A card CANNOT be an Evolution if it is definitively a Hero
-  if (isHeroVariantUnlocked(card)) return false;
-  
-  // Explicit Evo marking
-  if (rarity === 'evo' || type === 'evo' || tag === 'evo' || name.includes('evo')) {
-    return true;
+  // 2. SECOND PRIORITY: Rarity or Name
+  const rarity = (card.rarity || '').toLowerCase();
+  const name = (card.name || '').toLowerCase();
+  if (rarity === 'evo' || name.includes('evo')) return true;
+
+  // 3. THIRD PRIORITY: Levels
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) {
+    // If it has evoLevel > 0 AND an evo is available, it's an evo
+    if (hasEvoAvailable(card)) return true;
   }
 
-  // A card CANNOT be an Evolution if it doesn't have an Evolution version available
-  if (!hasEvoAvailable(card)) return false;
-  
-  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
+  return false;
 };
 
 export const isAnyHeroUnlocked = (card: Card) => {
