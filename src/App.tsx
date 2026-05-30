@@ -338,7 +338,7 @@ function App() {
           towerTroopId: meta.towerTroopId,
           count: meta.count,
           maxedCount: eliteCount,
-          isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0 && (totalLevel / 8) >= 15,
+          isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0,
           maxMedals: meta.maxRating,
           bestPlayerName: meta.bestPlayerName,
           score,
