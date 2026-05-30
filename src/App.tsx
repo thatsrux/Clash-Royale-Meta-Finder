@@ -514,6 +514,110 @@ function App() {
                   );
                 })}
               </div>
+
+              {metaDecksCache && (
+                <div className="variant-insights-section">
+                  <div className="insights-divider">
+                    <TrendingUp size={20} />
+                    <span>META PROGRESSION INSIGHTS</span>
+                  </div>
+
+                  {(() => {
+                    // CALCULATE RECOMMENDATIONS & STATS
+                    const missingEvoCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
+                    const missingHeroCounts: Record<number, { name: string, icon: string, count: number, deckPotential: number }> = {};
+                    let totalDecks = metaDecksCache.length;
+
+                    metaDecksCache.forEach(deck => {
+                      deck.missingEvos.forEach(evo => {
+                        const card = deck.cards.find(c => c.name === evo.name);
+                        if (!card) return;
+                        if (!missingEvoCounts[card.id]) missingEvoCounts[card.id] = { name: evo.name, icon: evo.icon, count: 0, deckPotential: 0 };
+                        missingEvoCounts[card.id].count++;
+                        // If deck is high score (>70%) but missing this variant, increase priority
+                        if (deck.score > 70) missingEvoCounts[card.id].deckPotential += deck.score;
+                      });
+                      deck.missingHeroes.forEach(hero => {
+                        const card = deck.cards.find(c => c.name === hero.name);
+                        if (!card) return;
+                        if (!missingHeroCounts[card.id]) missingHeroCounts[card.id] = { name: hero.name, icon: hero.icon, count: 0, deckPotential: 0 };
+                        missingHeroCounts[card.id].count++;
+                        if (deck.score > 70) missingHeroCounts[card.id].deckPotential += deck.score;
+                      });
+                    });
+
+                    const sortedEvos = Object.values(missingEvoCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (a.deckPotential * 1.5 + a.count));
+                    const sortedHeroes = Object.values(missingHeroCounts).sort((a, b) => (b.deckPotential * 1.5 + b.count) - (b.deckPotential * 1.5 + a.count));
+
+                    const bestEvo = sortedEvos[0];
+                    const bestHero = sortedHeroes[0];
+
+                    return (
+                      <>
+                        <div className="recommendations-row">
+                          {bestEvo && (
+                            <div className="recommendation-card evo">
+                              <div className="rec-header">BEST NEXT EVO</div>
+                              <div className="rec-body">
+                                <img src={bestEvo.icon} alt={bestEvo.name} />
+                                <div className="rec-info">
+                                  <div className="rec-name">{bestEvo.name}</div>
+                                  <div className="rec-reason">Boosts {Math.round(bestEvo.count)} meta decks</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {bestHero && (
+                            <div className="recommendation-card hero">
+                              <div className="rec-header">BEST NEXT HERO</div>
+                              <div className="rec-body">
+                                <img src={bestHero.icon} alt={bestHero.name} />
+                                <div className="rec-info">
+                                  <div className="rec-name">{bestHero.name}</div>
+                                  <div className="rec-reason">Unlocks {Math.round(bestHero.count)} pro archetypes</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="stats-tables-row">
+                          <div className="stats-column">
+                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
+                            <div className="stats-list">
+                              {sortedEvos.map(evo => (
+                                <div key={evo.name} className="stat-row-item">
+                                  <img src={evo.icon} alt={evo.name} />
+                                  <div className="stat-row-details">
+                                    <span className="name">{evo.name}</span>
+                                    <span className="percent">{Math.round((evo.count / totalDecks) * 100)}% Usage</span>
+                                  </div>
+                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecks) * 100}%` }}></div></div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="stats-column">
+                            <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
+                            <div className="stats-list">
+                              {sortedHeroes.map(hero => (
+                                <div key={hero.name} className="stat-row-item">
+                                  <img src={hero.icon} alt={hero.name} />
+                                  <div className="stat-row-details">
+                                    <span className="name">{hero.name}</span>
+                                    <span className="percent">{Math.round((hero.count / totalDecks) * 100)}% Usage</span>
+                                  </div>
+                                  <div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecks) * 100}%` }}></div></div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           ) : (
             <DeckBuilder 
