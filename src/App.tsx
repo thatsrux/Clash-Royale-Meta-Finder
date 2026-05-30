@@ -447,7 +447,7 @@ function App() {
                           allOwnedCards.forEach(c => {
                             totalLevels += getDisplayLevel(c);
                             if (isEvoUnlocked(c)) bonus += 5;
-                            if (isAnyHeroUnlocked(c)) bonus += 5;
+                            if (isHeroVariantUnlocked(c)) bonus += 5;
                           });
                           return totalLevels + bonus;
                         })()}
