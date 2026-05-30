@@ -340,14 +340,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const isMaxed = userLevel >= 16;
                       const missingLvls = Math.max(0, 16 - userLevel);
                       
-                      const cardIsEvo = isEvoUnlocked(card);
+                      // USE EXPLICIT VARIANT FROM META ANALYSIS LOGIC
+                      // This ensures that if the pro deck used a Knight-Hero, we show it as a Hero
+                      // even if the user logic usually defaults to Evo.
+                      const explicitVariant = (card as any)._variant;
+                      const cardIsHero = explicitVariant === 'hero' || isHeroVariantUnlocked(card);
+                      const cardIsEvo = !cardIsHero && (explicitVariant === 'evo' || isEvoUnlocked(card));
                       const cardIsChamp = isChampion(card);
-                      const heroVar = isHeroVariantUnlocked(card);
                       
-                      const displayIcon = getCardIcon(card, heroVar, cardIsEvo);
+                      const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);
 
                       return (
-                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${heroVar ? 'hero-slot' : ''}`}>
+                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
                           <div className="card-image-container">
                             {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
                           </div>
@@ -361,7 +365,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           )}
                           {cardIsEvo && <div className="evo-indicator-tiny"></div>}
                           {cardIsChamp && <div className="champion-indicator-tiny"></div>}
-                          {heroVar && <div className="hero-indicator-tiny"></div>}
+                          {cardIsHero && <div className="hero-indicator-tiny"></div>}
                         </div>
                       );
                     })}
