@@ -205,20 +205,21 @@ function App() {
         
         // Map cards and preserve their EXPLICIT variant state from the API (RoyaleAPI 2026)
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
-          // Detect variant type directly from the API object (RoyaleAPI Key/Form or Official activeForm)
+          // Detect variant type directly from the API object or ICON URL
           const key = (c.key || '').toLowerCase();
           const form = (c.form || '').toLowerCase();
           const activeForm = (c.activeForm || '').toLowerCase();
+          const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
           
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
-          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero') {
+          // ABSOLUTE PRIORITY: Metadata markers
+          if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero')) {
             forcedForm = 'hero';
-          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo') {
+          } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo')) {
             forcedForm = 'evo';
           }
 
-          // Inject all 2026 metadata and FORCE the form for display
           return { 
             ...c, 
             _forceForm: forcedForm, 
@@ -236,19 +237,24 @@ function App() {
         const batch = playersToFetch.slice(i, i + batchSize);
         const results = await Promise.all(batch.map(async (p: any) => {
           try { 
+            console.log(`[API] Fetching Battle Log for: ${p.tag}`);
             const log = await getBattleLog(p.tag, INTEGRATED_API_KEY);
             const logData = log ? extractDeckFromLog(log) : null;
             if (logData && logData.deck.length === 8) return { ...logData, rating: p.eloRating || p.trophies || 0 };
             
-            // Fallback to current deck if battle log is empty (less precise for variants)
+            // Fallback to current deck if battle log is empty
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
               const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any) => {
-                const forcedForm = (c.heroLevel > 0) ? 'hero' : (c.evolutionLevel > 0 ? 'evo' : 'normal');
-                return {
-                  ...c,
-                  _forceForm: forcedForm
-                };
+                const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
+                let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
+                
+                if (iconUrl.includes('hero')) forcedForm = 'hero';
+                else if (iconUrl.includes('evo')) forcedForm = 'evo';
+                else if (c.heroLevel > 0) forcedForm = 'hero';
+                else if (c.evolutionLevel > 0) forcedForm = 'evo';
+
+                return { ...c, _forceForm: forcedForm };
               });
               const tower = deck.find((c: any) => c.id >= 68000000);
               return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: p.eloRating || p.trophies || 0 } : null;
@@ -283,8 +289,9 @@ function App() {
         
         meta.cards.forEach((metaCard) => {
           const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
-          const metaIsEvo = isEvoUnlocked(metaCard);
-          const metaIsHero = isHeroVariantUnlocked(metaCard);
+          const forcedForm = (metaCard as any)._forceForm;
+          const metaIsEvo = forcedForm === 'evo';
+          const metaIsHero = forcedForm === 'hero';
           
           if (userCard) {
             ownedCount++;
@@ -324,6 +331,7 @@ function App() {
         };
       });
 
+      (window as any).decksData = scoredDecks;
       setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
     } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
