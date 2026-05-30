@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardVisualForm } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -280,7 +280,8 @@ function App() {
         
         meta.cards.forEach((metaCard) => {
           const userCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
-          const visualForm = getCardVisualForm(metaCard);
+          const metaIsEvo = isEvoUnlocked(metaCard);
+          const metaIsHero = isHeroVariantUnlocked(metaCard);
           
           if (userCard) {
             ownedCount++;
@@ -288,18 +289,17 @@ function App() {
             totalLevel += displayLevel;
             if (displayLevel >= 16) eliteCount++;
             
-            // LOGICAL CHECK: Does the user have the required FORM for this meta deck?
-            // This is independent of level.
-            if (visualForm === 'evo' && !isEvoUnlocked(userCard)) {
+            // CHECK IF USER HAS THE SPECIFIC VERSION REQUIRED BY THE META DECK
+            if (metaIsEvo && !isEvoUnlocked(userCard)) {
               missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
             }
-            if (visualForm === 'hero' && !isHeroVariantUnlocked(userCard)) {
+            if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
               missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
             }
           } else { 
             totalLevel += 1; 
-            if (visualForm === 'evo') missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
-            if (visualForm === 'hero') missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
+            if (metaIsEvo) missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls.evolutionMedium || metaCard.iconUrls.medium });
+            if (metaIsHero) missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls.medium });
           }
         });
 

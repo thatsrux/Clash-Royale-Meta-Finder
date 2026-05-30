@@ -21,34 +21,50 @@ export interface Card {
 }
 
 /**
- * SOURCE OF TRUTH RENDERING LOGIC
- * The form displayed in a deck depends ONLY on API metadata, NOT levels.
+ * DYNAMIC DETECTION LOGIC
+ * Disambiguation between Evolutions and Heroes.
+ * For DECK cards, we use metadata. For USER cards, we use levels.
  */
 
-export const getCardVisualForm = (card: Card): 'hero' | 'evo' | 'normal' | 'champion' => {
-  // 1. ABSOLUTE PRIORITY: Forced form from Deck Analysis/API Response
-  if (card._forceForm === 'hero') return 'hero';
-  if (card._forceForm === 'evo') return 'evo';
-  if (card._forceForm === 'normal') return 'normal';
+export const isChampion = (card: Card) => {
+  return card.rarity?.toLowerCase() === 'champion' || card.activeForm === 'champion';
+};
 
-  // 2. 2026 API Metadata
-  const activeForm = (card.activeForm || '').toLowerCase();
-  if (activeForm === 'hero') return 'hero';
-  if (activeForm === 'evolution' || activeForm === 'evo') return 'evo';
-  if (activeForm === 'champion') return 'champion';
+export const isEvoUnlocked = (card: Card) => {
+  // If we have explicit deck metadata, USE IT
+  if (card._forceForm === 'evo') return true;
+  if (card._forceForm === 'hero' || card._forceForm === 'normal') return false;
 
-  // 3. RoyaleAPI Key-based detection
   const key = (card.key || '').toLowerCase();
-  if (key.endsWith('-hero')) return 'hero';
-  if (key.endsWith('-evo')) return 'evo';
+  const form = (card.form || '').toLowerCase();
+  const activeForm = (card.activeForm || '').toLowerCase();
+  if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return true;
+  if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return false;
 
-  // 4. FALLBACK: Static properties (Only for collection view where no deck metadata exists)
-  if (card.rarity?.toLowerCase() === 'champion') return 'champion';
-  if (card.rarity?.toLowerCase() === 'hero') return 'hero';
-  if ((card.name || '').toLowerCase().includes('hero')) return 'hero';
-  if ((card.name || '').toLowerCase().includes('evo')) return 'evo';
+  // Fallback to levels for User Collection
+  return (card.evolutionLevel !== undefined && card.evolutionLevel > 0);
+};
 
-  return 'normal';
+export const isHeroVariantUnlocked = (card: Card) => {
+  // If we have explicit deck metadata, USE IT
+  if (card._forceForm === 'hero') return true;
+  if (card._forceForm === 'evo' || card._forceForm === 'normal') return false;
+
+  const key = (card.key || '').toLowerCase();
+  const form = (card.form || '').toLowerCase();
+  const activeForm = (card.activeForm || '').toLowerCase();
+  if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return true;
+  if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return false;
+
+  // Fallback for User Collection
+  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+  if (card.rarity?.toLowerCase() === 'hero' || (card.name || '').toLowerCase().includes('hero')) return true;
+  
+  return false;
+};
+
+export const isAnyHeroUnlocked = (card: Card) => {
+  return isChampion(card) || isHeroVariantUnlocked(card);
 };
 
 // Check if the card definition has an Evolution version available
@@ -65,12 +81,6 @@ export const hasHeroAvailable = (card: Card) => {
   
   return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
 };
-
-// Wrappers for backward compatibility, now using the unified visual logic
-export const isHeroVariantUnlocked = (card: Card) => getCardVisualForm(card) === 'hero';
-export const isEvoUnlocked = (card: Card) => getCardVisualForm(card) === 'evo';
-export const isChampion = (card: Card) => getCardVisualForm(card) === 'champion';
-export const isAnyHeroUnlocked = (card: Card) => isChampion(card) || isHeroVariantUnlocked(card);
 
 // Aliases for backward compatibility
 export const isEvo = (card: Card) => isEvoUnlocked(card);
