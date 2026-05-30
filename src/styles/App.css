@@ -420,6 +420,27 @@ button {
 .evo-badge-tiny { background: var(--evo-purple); color: #fff; }
 
 /* DECK SUGGESTIONS */
+.results-summary-bar {
+  display: flex;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.total-decks-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(43, 115, 255, 0.1);
+  border: 1px solid rgba(43, 115, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  color: var(--primary);
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 .deck-suggestion {
   background: var(--surface);
   border-radius: 1.25rem;

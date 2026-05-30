@@ -342,6 +342,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
       {cachedDecks && !isLoading ? (
         <div className="recommendations-list">
+          <div className="results-summary-bar">
+            <div className="total-decks-badge">
+              <LayoutDashboard size={14} />
+              <span>TOTAL DECKS: {filteredRecommendations.length}</span>
+            </div>
+          </div>
           {filteredRecommendations.map((deck, idx) => {
             const affinityPercent = Math.floor(deck.score);
             const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
