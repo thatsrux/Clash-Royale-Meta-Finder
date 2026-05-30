@@ -329,8 +329,22 @@ function App() {
           }
         });
 
-        // SCORING: Base(Level*10) + Elite(Elite*25) - OwnershipPenalty(Missing*150) - FeaturePenalty(Missing*100) + MetaBonus(Count*2)
-        const score = (totalLevel * 10) + (eliteCount * 25) - ((8 - ownedCount) * 150) - ((missingEvos.length + missingHeroes.length) * 100) + Math.min(meta.count * 2, 50);
+        // NEW AFFINITY SCORING (0 to 100% strict scale)
+        // 1. Level Contribution: Each of the 8 cards maxes out at level 16. Total possible levels = 128.
+        const levelScore = (totalLevel / 128) * 100;
+        
+        // 2. Penalties:
+        // Missing a base card completely: -10% (plus it already contributes 0 to the level score, resulting in ~ -22.5% total penalty)
+        const missingCardPenalty = (8 - ownedCount) * 10;
+        // Missing a REQUIRED Evo or Hero variant: -25% penalty each. This heavily prioritizes variants over average levels.
+        const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 25;
+        
+        let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty;
+        affinityRaw = Math.max(0, Math.min(100, affinityRaw));
+        
+        // 3. Sorting Tie-Breakers (micro-decimals so 100% decks are sorted by pro uses, then by medals)
+        const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
+        const score = affinityRaw + tieBreaker;
 
         return {
           name: `Meta Archetype`,

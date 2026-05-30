@@ -306,8 +306,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       {cachedDecks && !isLoading ? (
         <div className="recommendations-list">
           {filteredRecommendations.map((deck, idx) => {
-            const affinityPercent = Math.min(100, Math.max(0, Math.floor((deck.score / THEORETICAL_MAX_SCORE) * 100)));
-            const affinityColor = affinityPercent > 80 ? '#4ade80' : (affinityPercent > 50 ? '#fbbf24' : '#ef4444');
+            const affinityPercent = Math.floor(deck.score);
+            const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
 
             return (
               <div key={idx} className="deck-suggestion">
