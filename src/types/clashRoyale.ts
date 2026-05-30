@@ -31,38 +31,38 @@ export const isChampion = (card: Card) => {
 };
 
 export const isEvoUnlocked = (card: Card) => {
-  // If we have explicit deck metadata, USE IT
+  // If we have explicit deck metadata (from meta analysis), USE IT
   if (card._forceForm === 'evo') return true;
   if (card._forceForm === 'hero' || card._forceForm === 'normal') return false;
 
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
+  
+  // Detection for cards in Meta Decks / Battle Logs
   if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return true;
-  if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return false;
 
-  // Fallback to levels for User Collection
+  // Fallback to levels for User Collection (Crucial for profile accuracy)
   if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
-  if (!!card.iconUrls?.evolutionMedium) return true;
   
   return false;
 };
 
 export const isHeroVariantUnlocked = (card: Card) => {
-  // If we have explicit deck metadata, USE IT
+  // If we have explicit deck metadata (from meta analysis), USE IT
   if (card._forceForm === 'hero') return true;
   if (card._forceForm === 'evo' || card._forceForm === 'normal') return false;
 
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
-  if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return true;
-  if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return false;
 
-  // Fallback for User Collection
+  // Detection for cards in Meta Decks / Battle Logs
+  if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return true;
+
+  // Fallback for User Collection (Crucial for profile accuracy)
   if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
   if (card.rarity?.toLowerCase() === 'hero' || (card.name || '').toLowerCase().includes('hero')) return true;
-  if (!!(card.iconUrls as any)?.heroMedium) return true;
   
   return false;
 };

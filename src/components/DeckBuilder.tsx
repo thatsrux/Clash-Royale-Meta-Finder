@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, ArrowUp, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2 } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2 } from 'lucide-react';
 
 interface MetaDeck {
   name: string;
@@ -360,11 +360,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
                             {userLevel || '!'}
                           </div>
-                          {!isMaxed && userLevel > 0 && (
-                            <div className="missing-lvl-indicator">
-                              <ArrowUp size={6} /> {missingLvls}
-                            </div>
-                          )}
                           {cardIsEvo && <div className="evo-indicator-tiny"></div>}
                           {cardIsChamp && <div className="champion-indicator-tiny"></div>}
                           {cardIsHero && <div className="hero-indicator-tiny"></div>}

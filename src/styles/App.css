@@ -497,12 +497,6 @@ button {
 }
 @media (min-width: 768px) { .mini-level { font-size: 0.7rem; padding: 2px 6px; bottom: 5px; right: 5px; } }
 
-.missing-lvl-indicator { 
-  color: #ff4d4d; 
-  font-size: 0.55rem; 
-  font-weight: 900; 
-}
-
 .evo-slot, .hero-slot, .champion-slot { 
   border: none !important; 
   background: transparent !important; 
