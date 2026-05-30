@@ -828,10 +828,10 @@ button {
 .visual-projection {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(20, 1fr); /* More columns for a full row */
+  grid-template-columns: repeat(14, 1fr); /* More columns for a full row */
   gap: 4px;
   width: 100%; /* Much wider projection */
-  height: 60px;
+  height: 72px;
   overflow: hidden;
   opacity: 0.25;
   mask-image: linear-gradient(to right, #000 95%, transparent 100%); /* Fade only at the very end */
