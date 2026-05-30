@@ -51,16 +51,26 @@ export const getCardVisualForm = (card: Card): 'hero' | 'evo' | 'normal' | 'cham
   return 'normal';
 };
 
+// Check if the card definition has an Evolution version available
+export const hasEvoAvailable = (card: Card) => {
+  return !!card.iconUrls?.evolutionMedium || (card.name || '').toLowerCase().includes('evo');
+};
+
+// Check if the card definition has a Hero version available
+export const hasHeroAvailable = (card: Card) => {
+  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
+  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
+  const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
+  const hasHeroLevelProp = card.heroLevel !== undefined;
+  
+  return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
+};
+
 // Wrappers for backward compatibility, now using the unified visual logic
 export const isHeroVariantUnlocked = (card: Card) => getCardVisualForm(card) === 'hero';
 export const isEvoUnlocked = (card: Card) => getCardVisualForm(card) === 'evo';
 export const isChampion = (card: Card) => getCardVisualForm(card) === 'champion';
 export const isAnyHeroUnlocked = (card: Card) => isChampion(card) || isHeroVariantUnlocked(card);
-
-
-export const isAnyHeroUnlocked = (card: Card) => {
-  return isChampion(card) || isHeroVariantUnlocked(card) || card.rarity?.toLowerCase() === 'hero';
-};
 
 // Aliases for backward compatibility
 export const isEvo = (card: Card) => isEvoUnlocked(card);

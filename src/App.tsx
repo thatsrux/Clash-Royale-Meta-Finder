@@ -232,9 +232,6 @@ function App() {
         return { deck, towerTroopId: towerTroop?.id };
       };
 
-        return { deck, towerTroopId: towerTroop?.id };
-      };
-
       for (let i = 0; i < playersToFetch.length; i += batchSize) {
         const batch = playersToFetch.slice(i, i + batchSize);
         const results = await Promise.all(batch.map(async (p: any) => {
