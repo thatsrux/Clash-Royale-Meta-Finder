@@ -35,15 +35,16 @@ export const isEvoUnlocked = (card: Card) => {
   if (card._forceForm === 'evo') return true;
   if (card._forceForm === 'hero' || card._forceForm === 'normal') return false;
 
+  // Fallback to levels for User Collection (Crucial for profile accuracy)
+  // We prioritize Evolution check if both are present in some weird API response
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
+
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
   
-  // Detection for cards in Meta Decks / Battle Logs
+  // Detection for cards in Meta Decks / Battle Logs (where levels might be missing)
   if (key.endsWith('-evo') || form === 'evolution' || form === 'evo' || activeForm === 'evolution' || activeForm === 'evo') return true;
-
-  // Fallback to levels for User Collection (Crucial for profile accuracy)
-  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return true;
   
   return false;
 };
@@ -53,6 +54,11 @@ export const isHeroVariantUnlocked = (card: Card) => {
   if (card._forceForm === 'hero') return true;
   if (card._forceForm === 'evo' || card._forceForm === 'normal') return false;
 
+  // Fallback for User Collection (Crucial for profile accuracy)
+  // For user profile cards, if it's an EVO, it cannot be a HERO variant at the same time in the UI
+  if (card.evolutionLevel !== undefined && card.evolutionLevel > 0) return false;
+  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+
   const key = (card.key || '').toLowerCase();
   const form = (card.form || '').toLowerCase();
   const activeForm = (card.activeForm || '').toLowerCase();
@@ -60,8 +66,7 @@ export const isHeroVariantUnlocked = (card: Card) => {
   // Detection for cards in Meta Decks / Battle Logs
   if (key.endsWith('-hero') || form === 'hero' || activeForm === 'hero') return true;
 
-  // Fallback for User Collection (Crucial for profile accuracy)
-  if (card.heroLevel !== undefined && card.heroLevel > 0) return true;
+  // Final rarity check for base Champions/Heroes
   if (card.rarity?.toLowerCase() === 'hero' || (card.name || '').toLowerCase().includes('hero')) return true;
   
   return false;
