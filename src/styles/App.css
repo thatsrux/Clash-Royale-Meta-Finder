@@ -346,30 +346,31 @@ button {
 
 .collection-elixir {
   position: absolute;
-  top: -4px;
-  left: -4px;
-  background: #c026d3;
+  top: -6px;
+  left: -6px;
+  background: linear-gradient(135deg, #d946ef 0%, #701a75 100%);
   color: white;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 900;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 50% 50% 50% 15%; /* Elixir drop shape */
+  transform: rotate(-15deg);
   border: 1.5px solid #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  z-index: 5;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4), 0 0 10px rgba(217, 70, 239, 0.3);
+  z-index: 15;
 }
 
 @media (min-width: 768px) {
   .collection-elixir {
-    width: 20px;
-    height: 20px;
-    font-size: 0.7rem;
-    top: -6px;
-    left: -6px;
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+    top: -8px;
+    left: -8px;
   }
 }
 
@@ -379,8 +380,8 @@ button {
   right: -4px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  z-index: 5;
+  gap: 4px;
+  z-index: 15;
 }
 
 @media (min-width: 768px) {
@@ -391,25 +392,39 @@ button {
 }
 
 .hero-badge-tiny, .evo-badge-tiny {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 1.5px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+  position: relative;
 }
 
 @media (min-width: 768px) {
   .hero-badge-tiny, .evo-badge-tiny {
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
   }
 }
 
-.hero-badge-tiny { background: var(--hero-yellow); color: #000; }
-.evo-badge-tiny { background: var(--evo-purple); color: #fff; }
+.hero-badge-tiny { 
+  background: linear-gradient(135deg, #fbbf24 0%, #78350f 100%); 
+  color: #fff;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.evo-badge-tiny { 
+  background: linear-gradient(135deg, #a855f7 0%, #4c1d95 100%); 
+  color: #fff;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+.hero-badge-tiny svg, .evo-badge-tiny svg {
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
 
 /* DECK SUGGESTIONS */
 .deck-suggestion { background: var(--surface); border-radius: 1.25rem; border: 1px solid var(--border); margin-bottom: 2rem; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
