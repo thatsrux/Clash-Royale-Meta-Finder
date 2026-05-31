@@ -275,8 +275,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         {Array.isArray(allGameCards) && allGameCards.length > 0 && (
           <div className="card-filter-grid-section">
             <div className="filter-header-minimal">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+              <div className="active-filters-container">
+                <div className="active-filters-label">
                   <Sparkles size={14} /> ACTIVE FILTERS
                 </div>
                 
