@@ -632,12 +632,30 @@ button {
 @media (min-width: 1024px) {
   .deck-stats-group {
     flex-direction: column;
-    gap: 1.25rem;
-    max-width: 200px;
+    gap: 1.5rem;
+    max-width: 250px;
     align-items: flex-start;
     margin-top: 0;
-    padding: 1.25rem;
+    padding: 1.75rem;
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+  }
+
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
   }
 }
 
