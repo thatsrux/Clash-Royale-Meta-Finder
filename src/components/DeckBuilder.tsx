@@ -141,10 +141,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             return deck.cards.some(c => Number(c.id) === filter.id);
           }
         })
-      )
-      .slice(0, 50);
+      );
 
-    return { filteredRecommendations: filtered };
+    return { filteredRecommendations: selectedFilters.length === 0 ? filtered : filtered.slice(0, 100) };
   }, [cachedDecks, selectedFilters]);
 
   const sections = useMemo(() => {
