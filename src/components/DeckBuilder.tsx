@@ -132,7 +132,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     if (Array.isArray(allGameCards)) {
       allGameCards.forEach(c => {
         if (!c) return;
-        const slug = getCardSlug(c.name);
         const iconUrl = c.iconUrls?.medium || '';
         const rarity = (c.rarity || 'common').toLowerCase();
         
