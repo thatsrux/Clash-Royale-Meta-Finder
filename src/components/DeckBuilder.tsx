@@ -73,7 +73,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       return (card.iconUrls as any)?.heroMedium || `${BASE_CDN}/${slug}-hero.png`;
     }
     if (isEvo) {
-      return card.iconUrls?.evolutionMedium || `${BASE_CDN}/${slug}-evo.png`;
+      return card.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
     }
     return card.iconUrls?.medium || '';
   };
@@ -169,7 +169,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const isHeroBase = hasHeroAvailable(c);
 
         if (isEvoBase) {
-          const evoIcon = c.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-evo.png`;
+          const evoIcon = c.iconUrls?.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
           evos.push({ id: c.id, icon: evoIcon, name: c.name, isEvoFilter: true, rarity });
         }
         
