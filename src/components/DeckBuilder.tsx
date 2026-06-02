@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardSlug, getCardIcon } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard } from 'lucide-react';
 
 interface MetaDeck {
