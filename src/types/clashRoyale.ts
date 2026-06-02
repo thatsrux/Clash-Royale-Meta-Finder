@@ -115,3 +115,40 @@ export interface PlayerProfile {
   currentDeck: Card[];
   currentFavouriteCard?: Card;
 }
+
+/**
+ * ICON & SLUG UTILITIES
+ * Centralized logic for generating card image URLs.
+ */
+
+export const getCardSlug = (name: string) => {
+  if (!name) return 'unknown';
+  return name.toLowerCase()
+    .replace(/\./g, '')
+    .replace(/ /g, '-')
+    .replace('mini-p-e-k-k-a', 'mini-pekka')
+    .replace('p-e-k-k-a', 'pekka')
+    .replace('hero-', ''); 
+};
+
+export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
+  if (!card) return 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+  
+  // 1. Check for explicit variant URLs in payload
+  if (isHero && card.iconUrls?.heroMedium) return card.iconUrls.heroMedium;
+  if (isEvo && card.iconUrls?.evolutionMedium) return card.iconUrls.evolutionMedium;
+  
+  // 2. Check if the standard medium icon already matches the requested form
+  const mediumIcon = card.iconUrls?.medium || '';
+  if (isHero && mediumIcon.toLowerCase().includes('hero')) return mediumIcon;
+  if (isEvo && (mediumIcon.toLowerCase().includes('evo') || mediumIcon.toLowerCase().includes('evolution'))) return mediumIcon;
+  
+  // 3. Fallback to stable RoyaleAPI CDN
+  const slug = getCardSlug(card.name);
+  const BASE_CDN = "https://cdn.royaleapi.com/static/img/cards-150";
+  
+  if (isHero) return `${BASE_CDN}/${slug}-hero.png`;
+  if (isEvo) return `${BASE_CDN}/${slug}-ev1.png`;
+  
+  return mediumIcon || `${BASE_CDN}/${slug}.png`;
+};

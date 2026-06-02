@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardSlug, getCardIcon } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard } from 'lucide-react';
 
 interface MetaDeck {
@@ -51,33 +51,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
-  const getCardSlug = (name: string) => {
-    return name.toLowerCase()
-      .replace(/\./g, '')
-      .replace(/ /g, '-')
-      .replace('mini-p-e-k-k-a', 'mini-pekka')
-      .replace('p-e-k-k-a', 'pekka')
-      .replace('hero-', ''); // Avoid double hero in slug
-  };
-
-  const getCardIconUrl = (name: string) => {
-    const slug = getCardSlug(name);
-    return `https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d/${slug}.png`;
-  };
-
-  const getCardIcon = (card: any, isHero: boolean, isEvo: boolean) => {
-    const slug = getCardSlug(card.name || '');
-    const BASE_CDN = "https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d";
-    
-    if (isHero) {
-      return (card.iconUrls as any)?.heroMedium || `${BASE_CDN}/${slug}-hero.png`;
-    }
-    if (isEvo) {
-      return card.iconUrls?.evolutionMedium || `${BASE_CDN}/${slug}-ev1.png`;
-    }
-    return card.iconUrls?.medium || '';
-  };
-
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
       const exists = prev.find(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
@@ -169,7 +142,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const isHeroBase = hasHeroAvailable(c);
 
         if (isEvoBase) {
-          const evoIcon = c.iconUrls?.evolutionMedium || `https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d/${slug}-ev1.png`;
+          const evoIcon = getCardIcon(c, false, true);
           evos.push({ id: c.id, icon: evoIcon, name: c.name, isEvoFilter: true, rarity });
         }
         
@@ -184,7 +157,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         }
 
         if (isHeroBase && !isChampionBase) {
-          const heroIcon = (c.iconUrls as any)?.heroMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-hero.png`;
+          const heroIcon = getCardIcon(c, true, false);
           heroes.push({ 
             id: c.id, 
             icon: heroIcon, 
@@ -260,7 +233,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             
             <div className="visual-projection">
               {allGameCards.slice(0, 28).map((c, i) => (
-                <img key={i} src={getCardIconUrl(c.name)} alt="" className="tiny-card-asset" />
+                <img key={i} src={getCardIcon(c, false, false)} alt="" className="tiny-card-asset" />
               ))}
               <div className="projection-overlay"></div>
             </div>
