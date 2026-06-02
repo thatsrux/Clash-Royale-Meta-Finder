@@ -388,7 +388,7 @@ function App() {
     const slug = getCardSlug(card.name);
     const BASE_CDN = "https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d";
     if (isHero) return (card.iconUrls as any).heroMedium || `${BASE_CDN}/${slug}-hero.png`;
-    if (isEvo) return card.iconUrls.evolutionMedium || `https://cdn.royaleapi.com/static/img/cards-150/${slug}-ev1.png`;
+    if (isEvo) return card.iconUrls.evolutionMedium || `${BASE_CDN}/${slug}-ev1.png`;
     return card.iconUrls.medium;
   };
 
