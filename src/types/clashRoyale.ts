@@ -88,7 +88,7 @@ export const hasEvoAvailable = (card: Card) => {
 export const hasHeroAvailable = (card: Card) => {
   const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
   const hasHeroName = (card.name || '').toLowerCase().includes('hero');
-  const hasHeroIconProp = !!(card.iconUrls as any)?.heroMedium;
+  const hasHeroIconProp = !!card.iconUrls?.heroMedium;
   const hasHeroLevelProp = card.heroLevel !== undefined;
   
   return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp;
@@ -128,7 +128,14 @@ export const getCardSlug = (name: string) => {
     .replace(/ /g, '-')
     .replace('mini-p-e-k-k-a', 'mini-pekka')
     .replace('p-e-k-k-a', 'pekka')
-    .replace('hero-', ''); 
+    .replace('evolved-', '')
+    .replace('-evolved', '')
+    .replace('evolution-', '')
+    .replace('-evolution', '')
+    .replace('hero-', '')
+    .replace('-hero', '')
+    .replace('evo-', '')
+    .replace('-evo', '');
 };
 
 export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {

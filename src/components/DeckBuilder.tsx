@@ -34,7 +34,7 @@ interface DeckBuilderProps {
   onAnalysisStart: () => void;
   isLoading: boolean;
   progress: number;
-  allGameCards: any[];
+  allGameCards: Card[];
 }
 
 // Meta Deck Builder Component
@@ -201,7 +201,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
-                <img src={c.icon} alt={c.name} onError={(e) => { (e.target as HTMLImageElement).src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png'; }} />
+                <img 
+                  src={c.icon} 
+                  alt={c.isEvoFilter ? `Evolved ${c.name}` : c.name} 
+                  onError={(e) => { 
+                    const target = e.target as HTMLImageElement;
+                    if (target.src.includes('-ev1.png') || target.src.includes('-hero.png')) {
+                      // Fallback to base card icon if evolution/hero icon fails
+                      target.src = target.src.replace('-ev1.png', '.png').replace('-hero.png', '.png');
+                    } else {
+                      target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                    }
+                  }} 
+                />
               </div>
             );
           })}
