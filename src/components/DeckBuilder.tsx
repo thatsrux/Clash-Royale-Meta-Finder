@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard } from 'lucide-react';
 
 interface MetaDeck {
@@ -100,6 +100,28 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
 
     window.location.href = finalLink;
+  };
+
+  const getCardSubstitutesData = (cardName: string) => {
+    const slug = cardName.toLowerCase().replace(/ /g, '-').replace(/\./g, '');
+    const subs = getSubstitutions(slug);
+    if (subs.length === 0) return null;
+    
+    // Find the first sub that the user actually owns
+    for (const subSlug of subs) {
+      const ownedCard = profile.cards.find(c => c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') === subSlug);
+      if (ownedCard) {
+        return { name: ownedCard.name, icon: getCardIcon(ownedCard, false, false) };
+      }
+    }
+    
+    // If none owned, just return the first one as a generic suggestion
+    const firstSubCard = allGameCards.find(c => c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') === subs[0]);
+    if (firstSubCard) {
+      return { name: firstSubCard.name, icon: getCardIcon(firstSubCard, false, false) };
+    }
+    
+    return null;
   };
 
   const { filteredRecommendations } = useMemo(() => {
@@ -337,13 +359,23 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             </div>
           </div>
           {filteredRecommendations.map((deck, idx) => {
+            const missingCards: any[] = [];
+            const ownedLevelSum = deck.cards.reduce((sum: number, metaCard: any) => {
+              const uCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
+              if (!uCard) missingCards.push(metaCard);
+              return sum + (uCard ? getDisplayLevel(uCard) : 0);
+            }, 0);
+            const ownedCount = 8 - missingCards.length;
+            const realAvgLevel = ownedCount > 0 ? (ownedLevelSum / ownedCount).toFixed(1) : 0;
             const affinityPercent = Math.floor(deck.score);
             const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
+            const archetype = detectArchetype(deck.cards);
 
             return (
               <div key={idx} className="deck-suggestion">
                 <div className="deck-header">
                   <div className="deck-info-primary">
+                    <span style={{ fontWeight: 900, fontSize: '1.2rem', marginRight: '0.5rem', textTransform: 'uppercase' }}>{archetype}</span>
                     <div className="uses-badge"><Trophy size={12} /><span>{deck.count} PRO USES</span></div>
                     {deck.maxMedals > 0 && <div className="medals-badge"><Medal size={12} /><span>{deck.maxMedals}</span></div>}
                     {deck.bestPlayerName && <div className="player-badge"><UserCircle2 size={12} /><span>{deck.bestPlayerName}</span></div>}
@@ -383,7 +415,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);
 
                       return (
-                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`}>
+                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`} style={{ opacity: userCard ? 1 : 0.4 }}>
                           <div className="card-image-container">
                             {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
                           </div>
@@ -401,7 +433,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   <div className="deck-stats-group">
                     <div className="deck-stat-item">
                       <div className="stat-icon"><Activity size={14} /></div>
-                      <div className="stat-info"><span className="stat-label">AVG LEVEL</span><span className="stat-value">{deck.avgLevel.toFixed(1)}</span></div>
+                      <div className="stat-info"><span className="stat-label">AVG LEVEL</span><span className="stat-value">{realAvgLevel}</span></div>
                     </div>
                     <div className={`deck-stat-item ${deck.maxedCount === 8 ? 'maxed' : ''}`}>
                       <div className="stat-icon"><CheckCircle2 size={14} /></div>
@@ -410,7 +442,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   </div>
                 </div>
 
-                {(deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) && (
+                {(missingCards.length > 0 || deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) ? (
                   <div className="deck-missing-section">
                     <div className="missing-label"><AlertCircle size={12} /><span>MISSING REQUIREMENTS</span></div>
                     <div className="missing-icons-list">
@@ -426,11 +458,24 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           <span>{hero.name}</span>
                         </div>
                       ))}
+                      {missingCards.map((c: any, i: number) => {
+                        const sub = getCardSubstitutesData(c.name);
+                        return (
+                          <div key={`card-${i}`} className="missing-item-badge">
+                            <img src={c.iconUrls.medium} alt={c.name} />
+                            <span>{c.name}</span>
+                            {sub && (
+                              <div style={{ marginLeft: '8px', paddingLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>Try:</span>
+                                <img src={sub.icon} alt={sub.name} style={{ width: '16px', height: '16px', borderRadius: '50%' }} title={`Substitute with ${sub.name}`} />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
-                
-                {(!deck.missingEvos || deck.missingEvos.length === 0) && (!deck.missingHeroes || deck.missingHeroes.length === 0) && (
+                ) : (
                   <div className="deck-ready-footer"><CheckCircle2 size={12} /><span>DECK FULLY READY</span></div>
                 )}
               </div>

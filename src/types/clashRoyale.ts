@@ -148,9 +148,51 @@ export interface PlayerProfile {
 }
 
 /**
- * ICON & SLUG UTILITIES
- * Centralized logic for generating card image URLs.
+ * SMART FEATURES: Archetypes & Substitutions
  */
+
+// Basic substitution map by role
+const CARD_SUBSTITUTIONS: Record<string, string[]> = {
+  'little-prince': ['musketeer', 'dart-goblin', 'archer-queen', 'magic-archer'],
+  'archer-queen': ['musketeer', 'little-prince', 'magic-archer'],
+  'monk': ['knight', 'valkyrie', 'mini-pekka'],
+  'skeleton-king': ['valkyrie', 'knight', 'mighty-miner'],
+  'mighty-miner': ['valkyrie', 'mini-pekka', 'knight'],
+  'golden-knight': ['knight', 'valkyrie', 'bandit'],
+  'log': ['barbarian-barrel', 'zap', 'snowball', 'arrows'],
+  'zap': ['snowball', 'log', 'arrows'],
+  'fireball': ['poison', 'arrows'],
+  'poison': ['fireball'],
+  'knight': ['valkyrie', 'ice-golem'],
+  'valkyrie': ['knight', 'dark-prince'],
+  'hog-rider': ['ram-rider', 'royal-hogs'],
+  'goblin-barrel': ['log', 'barbarian-barrel'],
+  'tornado': ['poison', 'arrows'],
+};
+
+export const getSubstitutions = (slug: string): string[] => {
+  return CARD_SUBSTITUTIONS[slug] || [];
+};
+
+export const detectArchetype = (cards: Card[]): string => {
+  const slugs = cards.map(c => getCardSlug(c.name));
+  
+  if (slugs.includes('hog-rider') && cards.reduce((acc, c) => acc + c.level, 0) / 8 <= 3.1) return 'Hog Cycle';
+  if (slugs.includes('x-bow')) return 'X-Bow Control';
+  if (slugs.includes('golem')) return 'Golem Beatdown';
+  if (slugs.includes('lavahound') && slugs.includes('clone')) return 'Lava Clone';
+  if (slugs.includes('lavahound')) return 'LavaLoon';
+  if (slugs.includes('miner') && slugs.includes('poison')) return 'Miner Poison';
+  if (slugs.includes('graveyard') && slugs.includes('poison')) return 'Splashyard';
+  if (slugs.includes('graveyard')) return 'Graveyard Control';
+  if (slugs.includes('goblin-barrel') && slugs.includes('princess')) return 'Log Bait';
+  if (slugs.includes('royal-giant')) return 'Royal Giant';
+  if (slugs.includes('battle-ram') && slugs.includes('pekka')) return 'Pekka Bridge Spam';
+  if (slugs.includes('goblin-giant')) return 'Goblin Giant Sparky';
+  if (slugs.includes('balloon') && slugs.includes('lumberjack')) return 'LumberLoon';
+  
+  return 'Control / Midrange'; // Default fallback
+};
 
 export const getCardSlug = (name: string) => {
   if (!name) return 'unknown';
