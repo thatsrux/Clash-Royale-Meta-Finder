@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface MetaDeck {
   name: string;
@@ -51,6 +52,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
   
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
@@ -66,38 +68,29 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     setSelectedArchetypes(prev => prev.includes(arch) ? prev.filter(a => a !== arch) : [...prev, arch]);
   };
 
-  const handleCopyDeck = (deck: MetaDeck, index: number) => {
+  const generateDeckLink = (deck: MetaDeck): string => {
     const { cards, towerTroopId } = deck;
-    
-    // EXPLICIT REPLICATION OF ROYALEAPI WORKING FORMAT
-    // Example: https://link.clashroyale.com/en/?clashroyale://copyDeck?deck=...&l=Royals&tt=159000000
-    
-    // 1. Get the 8 card IDs
     const deckCards = cards.filter(c => c && c.id && c.id < 68000000).slice(0, 8);
     const deckIds = deckCards.map(c => c.id).join(';');
     
-    // 2. Format Tower Troop ID (Game uses 159xxxxxx range for Tower Troops in links)
-    // If we have a tower ID like 26000057 (Princess), it needs to be mapped or prefixed correctly.
-    // The user's example uses 159000000 (Princess Tower)
     let towerId = '159000000';
     if (towerTroopId) {
       const tidStr = towerTroopId.toString();
       if (tidStr.startsWith('68')) {
-        // Map 68xxxxxx (API) to 159xxxxxx (Link)
         towerId = tidStr.replace('68', '159');
       } else if (!tidStr.startsWith('159')) {
-        // Fallback for unexpected IDs - default to Princess Tower
         towerId = '159000000';
       } else {
         towerId = tidStr;
       }
     }
 
-    // 3. Build the exact query string
-    // 'l' is the label (deck name)
-    // 'tt' is the tower troop
     const deepLinkParams = `deck=${deckIds}&l=MetaArchetype&tt=${towerId}`;
-    const finalLink = `https://link.clashroyale.com/en/?clashroyale://copyDeck?${deepLinkParams}`;
+    return `https://link.clashroyale.com/en/?clashroyale://copyDeck?${deepLinkParams}`;
+  };
+
+  const handleCopyDeck = (deck: MetaDeck, index: number) => {
+    const finalLink = generateDeckLink(deck);
 
     navigator.clipboard.writeText(finalLink).then(() => {
       setCopiedIndex(index);
@@ -105,6 +98,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
 
     window.location.href = finalLink;
+  };
+
+  const handleShowQr = (deck: MetaDeck) => {
+    setQrModalUrl(generateDeckLink(deck));
   };
 
   const getCardSubstitutesData = (cardName: string) => {
@@ -444,6 +441,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
                       <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
                     </button>
+                    <button 
+                      className="qr-deck-btn"
+                      onClick={() => handleShowQr(deck)}
+                      title="Show QR Code"
+                    >
+                      <QrCode size={14} />
+                    </button>
                   </div>
                   
                   <div className="affinity-pill" style={{ borderColor: affinityColor }}>
@@ -540,6 +544,25 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           })}
         </div>
       ) : null}
+
+      {qrModalUrl && (
+        <div className="qr-modal-overlay" onClick={() => setQrModalUrl(null)}>
+          <div className="qr-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="qr-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, color: 'var(--text)' }}>Scan to Copy Deck</h3>
+              <button onClick={() => setQrModalUrl(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
+              <QRCodeSVG value={qrModalUrl} size={256} level="H" includeMargin={false} fgColor="#000000" bgColor="#ffffff" />
+            </div>
+            <p style={{ marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+              Open your camera or a QR scanner app on your phone to copy this deck directly into Clash Royale.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
