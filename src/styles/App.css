@@ -2116,15 +2116,15 @@ img[src*="tombstone-hero.png"] {
   .skeleton-stats { max-width: 250px; height: auto; margin-top: 0; }
 }
 
-/* MICRO-INTERACTIONS: ALL CARDS HOVER */
-.mini-card { 
+/* MICRO-INTERACTIONS: DECK CARDS HOVER ONLY */
+.deck-main-content .mini-card { 
   position: relative; 
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
   cursor: pointer; 
 }
 
 /* The sweeping reflection overlay clipped perfectly to the card PNG */
-.mini-card::after {
+.deck-main-content .mini-card::after {
   content: '';
   position: absolute; 
   top: 0; left: 0; width: 100%; height: 100%;
@@ -2145,37 +2145,37 @@ img[src*="tombstone-hero.png"] {
 }
 
 /* Gold shine for Champions and Heroes */
-.mini-card.champion-slot::after, 
-.mini-card.hero-slot::after {
+.deck-main-content .mini-card.champion-slot::after, 
+.deck-main-content .mini-card.hero-slot::after {
   background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 206, 49, 0.9) 50%, rgba(255, 255, 255, 0.5) 60%, transparent 80%);
 }
 
 /* Purple/Silver shine for Evos */
-.mini-card.evo-slot::after {
+.deck-main-content .mini-card.evo-slot::after {
   background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.3) 40%, rgba(168, 85, 247, 0.8) 50%, rgba(255, 255, 255, 0.3) 60%, transparent 80%);
 }
 
-.mini-card:hover::after { 
+.deck-main-content .mini-card:hover::after { 
   transform: translateX(100%); 
 }
 
 /* Glow effects tracing the exact card outline using drop-shadow on the img */
-.mini-card img {
+.deck-main-content .mini-card img {
   transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.mini-card:hover { transform: translateY(-5px) scale(1.05); z-index: 20; }
+.deck-main-content .mini-card:hover { transform: translateY(-5px) scale(1.05); z-index: 20; }
 
 /* ONLY variants get the colored drop-shadow glow */
-.mini-card.champion-slot:hover img {
+.deck-main-content .mini-card.champion-slot:hover img {
   filter: drop-shadow(0 6px 12px rgba(255, 206, 49, 0.8)) brightness(1.1) !important;
 }
 
-.mini-card.hero-slot:hover img {
+.deck-main-content .mini-card.hero-slot:hover img {
   filter: drop-shadow(0 6px 12px rgba(255, 255, 0, 0.8)) brightness(1.1) !important;
 }
 
-.mini-card.evo-slot:hover img {
+.deck-main-content .mini-card.evo-slot:hover img {
   filter: drop-shadow(0 6px 12px rgba(168, 85, 247, 0.8)) brightness(1.1) !important;
 }
 
