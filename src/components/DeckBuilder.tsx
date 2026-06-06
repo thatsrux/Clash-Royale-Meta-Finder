@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode } from 'lucide-react';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype, getArchetypeMatchups } from '../types/clashRoyale';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface MetaDeck {
@@ -9,6 +9,7 @@ interface MetaDeck {
   cards: Card[];
   score: number;
   avgLevel: number;
+  elixirCost: number;
   count: number;
   maxedCount: number;
   isBestSynergy: boolean;
@@ -38,6 +39,8 @@ interface DeckBuilderProps {
   allGameCards: Card[];
 }
 
+type DeckSortOption = 'affinity' | 'elixir-asc' | 'elixir-desc';
+
 // Meta Deck Builder Component
 export const DeckBuilder: React.FC<DeckBuilderProps> = ({ 
   profile, 
@@ -53,7 +56,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
-  
+  const [deckSort, setDeckSort] = useState<DeckSortOption>('affinity');
+  const [expandedMatchups, setExpandedMatchups] = useState<Record<number, boolean>>({});
+
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
       const exists = prev.find(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
@@ -66,6 +71,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const toggleArchetype = (arch: string) => {
     setSelectedArchetypes(prev => prev.includes(arch) ? prev.filter(a => a !== arch) : [...prev, arch]);
+  };
+
+  const toggleMatchup = (idx: number) => {
+    setExpandedMatchups(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const generateDeckLink = (deck: MetaDeck): string => {
@@ -153,13 +162,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       finalFiltered = finalFiltered.filter(deck => selectedArchetypes.includes(detectArchetype(deck.cards)));
     }
 
+    if (deckSort === 'elixir-asc') {
+      finalFiltered.sort((a, b) => a.elixirCost - b.elixirCost);
+    } else if (deckSort === 'elixir-desc') {
+      finalFiltered.sort((a, b) => b.elixirCost - a.elixirCost);
+    } else {
+      finalFiltered.sort((a, b) => b.score - a.score);
+    }
+
     return { 
-      cardFilteredDecks: cFiltered,
       availableArchetypes: availableArchs,
       filteredRecommendations: selectedFilters.length === 0 && selectedArchetypes.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
     };
-  }, [cachedDecks, selectedFilters, selectedArchetypes]);
-
+  }, [cachedDecks, selectedFilters, selectedArchetypes, deckSort]);
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
     const champions: FilterItem[] = [];
@@ -417,6 +432,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <LayoutDashboard size={14} />
               <span>TOTAL DECKS: {filteredRecommendations.length}</span>
             </div>
+            
+            <div className="sort-controls" style={{ marginLeft: 'auto' }}>
+              <span className="sort-label">Sort by:</span>
+              <select value={deckSort} onChange={(e) => setDeckSort(e.target.value as DeckSortOption)} className="sort-select">
+                <option value="affinity">Affinity (Best Match)</option>
+                <option value="elixir-asc">Elixir Cost (Low to High)</option>
+                <option value="elixir-desc">Elixir Cost (High to Low)</option>
+              </select>
+            </div>
           </div>
           {filteredRecommendations.map((deck, idx) => {
             const missingCards: any[] = [];
@@ -464,6 +488,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         title="Show QR Code"
                       >
                         <QrCode size={14} />
+                      </button>
+                      <button 
+                        className={`action-btn matchup-btn ${expandedMatchups[idx] ? 'active' : ''}`}
+                        onClick={() => toggleMatchup(idx)}
+                        title="View Matchups"
+                      >
+                        <LineChart size={14} />
                       </button>
                     </div>
                   </div>
@@ -520,6 +551,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
                   <div className="deck-stats-group">
                     <div className="deck-stat-item">
+                      <div className="stat-icon"><Droplets size={14} color="#d946ef" /></div>
+                      <div className="stat-info"><span className="stat-label">AVG ELIXIR</span><span className="stat-value">{deck.elixirCost.toFixed(1)}</span></div>
+                    </div>
+                    <div className="deck-stat-item">
                       <div className="stat-icon"><Activity size={14} /></div>
                       <div className="stat-info"><span className="stat-label">AVG LEVEL</span><span className="stat-value">{realAvgLevel}</span></div>
                     </div>
@@ -529,6 +564,24 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {expandedMatchups[idx] && (
+                  <div className="matchup-expansion-panel">
+                    <div className="matchup-col strong-vs">
+                      <div className="matchup-header"><ArrowUp size={14} /> STRONG AGAINST</div>
+                      <div className="matchup-tags">
+                        {getArchetypeMatchups(archetype).strong.map(m => <span key={m} className="m-tag strong">{m}</span>)}
+                      </div>
+                    </div>
+                    <div className="matchup-divider"></div>
+                    <div className="matchup-col weak-vs">
+                      <div className="matchup-header"><ArrowDown size={14} /> WEAK AGAINST</div>
+                      <div className="matchup-tags">
+                        {getArchetypeMatchups(archetype).weak.map(m => <span key={m} className="m-tag weak">{m}</span>)}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {(missingCards.length > 0 || deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) ? (
                   <div className="deck-missing-section">

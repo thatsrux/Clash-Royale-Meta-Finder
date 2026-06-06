@@ -194,6 +194,49 @@ export const detectArchetype = (cards: Card[]): string => {
   return 'Control / Midrange'; // Default fallback
 };
 
+const CARD_ELIXIR_COSTS: Record<string, number> = {
+  'skeletons': 1, 'ice-spirit': 1, 'fire-spirit': 1, 'electro-spirit': 1, 'heal-spirit': 1,
+  'goblins': 2, 'spear-goblins': 2, 'zap': 2, 'giant-snowball': 2, 'bats': 2, 'log': 2, 'barbarian-barrel': 2, 'wall-breakers': 2, 'miner': 3, 'princess': 3,
+  'knight': 3, 'archers': 3, 'minions': 3, 'bomber': 2, 'arrows': 3, 'cannon': 3, 'tombstone': 3, 'skeleton-barrel': 3, 'goblin-gang': 3, 'dart-goblin': 3, 'skeleton-army': 3, 'guards': 3, 'ice-golem': 2, 'mega-minion': 3, 'bandit': 3, 'royal-ghost': 3, 'fisherman': 3, 'earthquake': 2, 'firecracker': 3, 'elixir-golem': 8,
+  'valkyrie': 4, 'musketeer': 4, 'mini-pekka': 4, 'hog-rider': 4, 'fireball': 4, 'poison': 4, 'furnace': 3, 'flying-machine': 3, 'battle-ram': 4, 'zappies': 4, 'bomb-tower': 3, 'tesla': 4, 'magic-archer': 4, 'hunter': 4, 'night-witch': 4, 'lumberjack': 4, 'dark-prince': 4, 'baby-dragon': 4, 'skeleton-dragons': 3,
+  'giant': 5, 'goblin-hut': 5, 'inferno-tower': 5, 'wizard': 5, 'witch': 5, 'balloon': 5, 'prince': 5, 'executioner': 5, 'cannon-cart': 5, 'ram-rider': 5, 'royal-hogs': 5, 'bowler': 5, 'graveyard': 5,
+  'royal-giant': 6, 'elite-barbarians': 6, 'rocket': 6, 'lightning': 6, 'x-bow': 6, 'sparky': 6, 'goblin-giant': 6, 'barbarians': 5, 'minion-horde': 5,
+  'pekka': 7, 'mega-knight': 7, 'lava-hound': 7, 'royal-recruits': 7,
+  'golem': 8, 'three-musketeers': 9, 'mirror': 0, 'clone': 3, 'tornado': 3,
+  'little-prince': 3, 'archer-queen': 5, 'skeleton-king': 4, 'mighty-miner': 4, 'golden-knight': 4, 'monk': 5
+};
+
+export const getCardElixirCost = (card: Card): number => {
+  if ((card as any).elixirCost !== undefined) return (card as any).elixirCost;
+  const slug = getCardSlug(card.name);
+  return CARD_ELIXIR_COSTS[slug] || 3; // Fallback to 3 if unknown
+};
+
+export const getDeckAverageElixir = (cards: Card[]): number => {
+  const deckCards = cards.filter(c => c && c.id < 68000000).slice(0, 8);
+  if (deckCards.length === 0) return 0;
+  const total = deckCards.reduce((acc, card) => acc + getCardElixirCost(card), 0);
+  return total / deckCards.length;
+};
+
+// Matchup Mock logic based on archetypes
+const ARCHETYPE_MATCHUPS: Record<string, { strong: string[], weak: string[] }> = {
+  'Hog Cycle': { strong: ['Golem Beatdown', 'Pekka Bridge Spam'], weak: ['Splashyard', 'LavaLoon'] },
+  'Golem Beatdown': { strong: ['X-Bow Control', 'Log Bait'], weak: ['Pekka Bridge Spam', 'Miner Poison'] },
+  'Log Bait': { strong: ['Pekka Bridge Spam', 'Graveyard Control'], weak: ['X-Bow Control', 'Splashyard'] },
+  'X-Bow Control': { strong: ['Log Bait', 'Splashyard'], weak: ['Golem Beatdown', 'Royal Giant'] },
+  'LavaLoon': { strong: ['Graveyard Control', 'Log Bait'], weak: ['X-Bow Control', 'Miner Poison'] },
+  'Pekka Bridge Spam': { strong: ['Golem Beatdown', 'Royal Giant'], weak: ['Log Bait', 'LavaLoon'] },
+  'Splashyard': { strong: ['Hog Cycle', 'Log Bait'], weak: ['LavaLoon', 'Pekka Bridge Spam'] },
+  'Miner Poison': { strong: ['Golem Beatdown', 'LavaLoon'], weak: ['Graveyard Control', 'X-Bow Control'] },
+  'Royal Giant': { strong: ['X-Bow Control', 'Miner Poison'], weak: ['Pekka Bridge Spam', 'Log Bait'] },
+  'Control / Midrange': { strong: ['Hog Cycle'], weak: ['Golem Beatdown'] }
+};
+
+export const getArchetypeMatchups = (archetype: string) => {
+  return ARCHETYPE_MATCHUPS[archetype] || ARCHETYPE_MATCHUPS['Control / Midrange'];
+};
+
 export const getCardSlug = (name: string) => {
   if (!name) return 'unknown';
   return name.toLowerCase()

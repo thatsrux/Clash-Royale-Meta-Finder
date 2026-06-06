@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -20,6 +20,7 @@ interface MetaDeck {
   cards: Card[];
   score: number;
   avgLevel: number;
+  elixirCost: number;
   count: number;
   maxedCount: number;
   isBestSynergy: boolean;
@@ -335,6 +336,7 @@ function App() {
         
         const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
         const score = affinityRaw + tieBreaker;
+        const avgElixir = getDeckAverageElixir(meta.cards);
 
         return {
           name: `Meta Archetype`,
@@ -347,6 +349,7 @@ function App() {
           bestPlayerName: meta.bestPlayerName,
           score,
           avgLevel: totalLevel / 8,
+          elixirCost: avgElixir,
           missingEvos,
           missingHeroes
         };
