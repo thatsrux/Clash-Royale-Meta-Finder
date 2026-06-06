@@ -376,6 +376,22 @@ button {
 .rarity-bg-legendary:hover { border-color: #0ea5e9 !important; }
 .rarity-bg-champion:hover { border-color: #ffff00 !important; }
 
+/* UNIFIED CARD IMAGE STYLING */
+.collection-item img,
+.mini-card img,
+.filter-grid-item img,
+.active-filter-icon-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 150 / 180 !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.mini-card img {
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
 .collection-item img {
   width: 100%;
   height: 100%;
