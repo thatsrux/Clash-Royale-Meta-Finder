@@ -162,19 +162,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       finalFiltered = finalFiltered.filter(deck => selectedArchetypes.includes(detectArchetype(deck.cards)));
     }
 
-    if (deckSort === 'elixir-asc') {
-      finalFiltered.sort((a, b) => a.elixirCost - b.elixirCost);
-    } else if (deckSort === 'elixir-desc') {
-      finalFiltered.sort((a, b) => b.elixirCost - a.elixirCost);
-    } else {
-      finalFiltered.sort((a, b) => b.score - a.score);
-    }
+    finalFiltered.sort((a, b) => b.score - a.score);
 
     return { 
       availableArchetypes: availableArchs,
       filteredRecommendations: selectedFilters.length === 0 && selectedArchetypes.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
     };
-  }, [cachedDecks, selectedFilters, selectedArchetypes, deckSort]);
+  }, [cachedDecks, selectedFilters, selectedArchetypes]);
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
     const champions: FilterItem[] = [];
