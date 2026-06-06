@@ -211,17 +211,12 @@ function App() {
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
         
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
-          const key = (c.key || '').toLowerCase();
-          const form = (c.form || '').toLowerCase();
-          const activeForm = (c.activeForm || '').toLowerCase();
-          const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
-          
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
           
           if (index < 3) {
-            if (activeForm === 'hero' || key.endsWith('-hero') || form === 'hero' || iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) {
+            if (isHeroVariantUnlocked(c)) {
               forcedForm = 'hero';
-            } else if (activeForm === 'evolution' || activeForm === 'evo' || key.endsWith('-evo') || form === 'evolution' || form === 'evo' || iconUrl.includes('evo') || !!c.iconUrls?.evolutionMedium) {
+            } else if (isEvoUnlocked(c)) {
               forcedForm = 'evo';
             }
           }
@@ -255,14 +250,11 @@ function App() {
             const deck = await getPlayerDeck(p.tag, INTEGRATED_API_KEY);
             if (deck && Array.isArray(deck)) {
               const filtered = deck.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
-                const iconUrl = (c.iconUrls?.medium || '').toLowerCase();
                 let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
                 
                 if (index < 3) {
-                  if (iconUrl.includes('hero') || !!c.iconUrls?.heroMedium) forcedForm = 'hero';
-                  else if (iconUrl.includes('evo')) forcedForm = 'evo';
-                  else if (c.heroLevel > 0) forcedForm = 'hero';
-                  else if (c.evolutionLevel > 0) forcedForm = 'evo';
+                  if (isHeroVariantUnlocked(c)) forcedForm = 'hero';
+                  else if (isEvoUnlocked(c)) forcedForm = 'evo';
                 }
 
                 return { ...c, _forceForm: forcedForm };
