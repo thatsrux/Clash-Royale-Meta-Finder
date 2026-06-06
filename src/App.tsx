@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -217,6 +217,12 @@ function App() {
             if (isHeroVariantUnlocked(c)) {
               forcedForm = 'hero';
             } else if (isEvoUnlocked(c)) {
+              forcedForm = 'evo';
+            } else if (hasHeroAvailable(c)) {
+              // Aggressive fallback for Top 200 meta slots
+              forcedForm = 'hero';
+            } else if (hasEvoAvailable(c)) {
+              // Aggressive fallback for Top 200 meta slots
               forcedForm = 'evo';
             }
           }
