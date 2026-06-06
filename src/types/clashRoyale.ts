@@ -175,11 +175,11 @@ export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
   const slug = getCardSlug(card.name);
 
   // SPECIAL OVERRIDES for new cards missing from main CDN static path
-  // Handle Princess Evolution
+  // Handle Princess Evolution (Clean CDN version)
   if (slug === 'princess' && isEvo) {
-    return 'https://cdn.royaleapi.com/static/img/cards-evolved/princess.png';
+    return 'https://cdn.royaleapi.com/static/img/cards-150/princess-ev1.png';
   }
-  // Handle Tombstone Evolution (Standard Hero variant without border highlight)
+  // Handle Tombstone Evolution/Hero (Standard variant)
   if (slug === 'tombstone' && (isHero || isEvo)) {
     return 'https://cdn.royaleapi.com/static/img/cards-150/tombstone-hero.png';
   }
