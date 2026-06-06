@@ -428,33 +428,39 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             return (
               <div key={idx} className="deck-suggestion">
                 <div className="deck-header">
-                  <div className="deck-info-primary">
-                    <span style={{ fontWeight: 900, fontSize: '1.2rem', marginRight: '0.5rem', textTransform: 'uppercase' }}>{archetype}</span>
-                    <div className="uses-badge"><Trophy size={12} /><span>{deck.count} PRO USES</span></div>
-                    {deck.maxMedals > 0 && <div className="medals-badge"><Medal size={12} /><span>{deck.maxMedals}</span></div>}
-                    {deck.bestPlayerName && <div className="player-badge"><UserCircle2 size={12} /><span>{deck.bestPlayerName}</span></div>}
-                    {deck.isBestSynergy && <span className="best-synergy-badge">MAX POTENTIAL</span>}
-                    <button 
-                      className={`copy-deck-btn ${copiedIndex === idx ? 'copied' : ''}`}
-                      onClick={() => handleCopyDeck(deck, idx)}
-                    >
-                      {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
-                      <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
-                    </button>
-                    <button 
-                      className="qr-deck-btn"
-                      onClick={() => handleShowQr(deck)}
-                      title="Show QR Code"
-                    >
-                      <QrCode size={14} />
-                    </button>
+                  <div className="deck-header-left">
+                    <div className="archetype-title">{archetype}</div>
+                    <div className="deck-meta-tags">
+                      <div className="meta-tag uses" title="Number of Pro Players using this exact 8-card combination"><Trophy size={12} /> <span>{deck.count} PRO USES</span></div>
+                      {deck.maxMedals > 0 && <div className="meta-tag medals" title="Highest medals achieved with this deck"><Medal size={12} /> <span>{deck.maxMedals}</span></div>}
+                      {deck.bestPlayerName && <div className="meta-tag player" title="Top player using this deck"><UserCircle2 size={12} /> <span>{deck.bestPlayerName}</span></div>}
+                    </div>
                   </div>
                   
-                  <div className="affinity-pill" style={{ borderColor: affinityColor }}>
-                    <Target size={14} style={{ color: affinityColor }} />
-                    <div className="affinity-content">
-                      <span className="label">AFFINITY</span>
-                      <span className="value" style={{ color: affinityColor }}>{affinityPercent}%</span>
+                  <div className="deck-header-right">
+                    <div className="affinity-pill" style={{ borderColor: affinityColor, boxShadow: `0 0 10px ${affinityColor}33` }}>
+                      <Target size={14} style={{ color: affinityColor }} />
+                      <div className="affinity-content">
+                        <span className="label">AFFINITY</span>
+                        <span className="value" style={{ color: affinityColor }}>{affinityPercent}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="deck-actions">
+                      <button 
+                        className={`action-btn copy-btn ${copiedIndex === idx ? 'copied' : ''}`}
+                        onClick={() => handleCopyDeck(deck, idx)}
+                      >
+                        {copiedIndex === idx ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedIndex === idx ? 'COPIED!' : 'COPY'}</span>
+                      </button>
+                      <button 
+                        className="action-btn qr-btn"
+                        onClick={() => handleShowQr(deck)}
+                        title="Show QR Code"
+                      >
+                        <QrCode size={14} />
+                      </button>
                     </div>
                   </div>
                 </div>
