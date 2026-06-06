@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -212,8 +212,9 @@ function App() {
         
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
+          const isChamp = isChampion(c);
           
-          if (index < 3) {
+          if (index < 3 && !isChamp) {
             if (isHeroVariantUnlocked(c)) {
               forcedForm = 'hero';
             } else if (isEvoUnlocked(c)) {
