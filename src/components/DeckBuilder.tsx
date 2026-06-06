@@ -429,12 +429,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <div key={idx} className="deck-suggestion">
                 <div className="deck-header">
                   <div className="deck-header-left">
-                    <div className="archetype-title">{archetype}</div>
-                    <div className="deck-meta-tags">
-                      <div className="meta-tag uses" title="Number of Pro Players using this exact 8-card combination"><Trophy size={12} /> <span>{deck.count} PRO USES</span></div>
-                      {deck.maxMedals > 0 && <div className="meta-tag medals" title="Highest medals achieved with this deck"><Medal size={12} /> <span>{deck.maxMedals}</span></div>}
-                      {deck.bestPlayerName && <div className="meta-tag player" title="Top player using this deck"><UserCircle2 size={12} /> <span>{deck.bestPlayerName}</span></div>}
-                      <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }}></div>
+                    <div className="deck-header-info">
+                      <div className="archetype-title">{archetype}</div>
+                      <div className="deck-meta-tags">
+                        <div className="meta-tag uses" title="Number of Pro Players using this exact 8-card combination"><Trophy size={12} /> <span>{deck.count} PRO USES</span></div>
+                        {deck.maxMedals > 0 && <div className="meta-tag medals" title="Highest medals achieved with this deck"><Medal size={12} /> <span>{deck.maxMedals}</span></div>}
+                        {deck.bestPlayerName && <div className="meta-tag player" title="Top player using this deck"><UserCircle2 size={12} /> <span>{deck.bestPlayerName}</span></div>}
+                      </div>
+                    </div>
+                    <div className="deck-actions">
                       <button 
                         className={`action-btn copy-btn ${copiedIndex === idx ? 'copied' : ''}`}
                         onClick={() => handleCopyDeck(deck, idx)}

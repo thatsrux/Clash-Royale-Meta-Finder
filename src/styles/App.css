@@ -494,6 +494,13 @@ img[src*="tombstone-hero.png"] {
 
 .deck-header-left {
   display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.deck-header-info {
+  display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
