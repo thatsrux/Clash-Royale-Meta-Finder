@@ -109,7 +109,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
-            return deck.cards.some(c => Number(c.id) === filter.id && isEvoUnlocked(c));
+            return deck.cards.some(c => Number(c.id) === filter.id && (c as any)._forceForm === 'evo');
+          } else if (filter.rarity === 'hero') {
+            return deck.cards.some(c => Number(c.id) === filter.id && (c as any)._forceForm === 'hero');
           } else {
             return deck.cards.some(c => Number(c.id) === filter.id);
           }
@@ -135,17 +137,17 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         const iconUrl = c.iconUrls?.medium || '';
         const rarity = (c.rarity || 'common').toLowerCase();
         
-        // DYNAMIC DETECTION (No hardcoded lists)
-        const isEvoBase = hasEvoAvailable(c);
-        const isChampionBase = rarity === 'champion';
-        const isHeroBase = hasHeroAvailable(c);
+        // DYNAMIC DETECTION (Strict categorization)
+        const isChampRarity = rarity === 'champion';
+        const canHaveEvo = hasEvoAvailable(c);
+        const canHaveHero = hasHeroAvailable(c) && !isChampRarity;
 
-        if (isEvoBase) {
+        if (canHaveEvo) {
           const evoIcon = getCardIcon(c, false, true);
           evos.push({ id: c.id, icon: evoIcon, name: c.name, isEvoFilter: true, rarity });
         }
         
-        if (isChampionBase) {
+        if (isChampRarity) {
           champions.push({ 
             id: c.id, 
             icon: iconUrl, 
@@ -155,7 +157,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           });
         }
 
-        if (isHeroBase && !isChampionBase) {
+        if (canHaveHero) {
           const heroIcon = getCardIcon(c, true, false);
           heroes.push({ 
             id: c.id, 
@@ -166,7 +168,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           });
         }
         
-        normal.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
+        if (!isChampRarity) {
+          normal.push({ id: c.id, icon: iconUrl, name: c.name, isEvoFilter: false, rarity });
+        }
       });
     }
 
