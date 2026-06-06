@@ -48,6 +48,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   allGameCards 
 }) => {
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
+  const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
@@ -59,6 +60,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       }
       return [...prev, item];
     });
+  };
+
+  const toggleArchetype = (arch: string) => {
+    setSelectedArchetypes(prev => prev.includes(arch) ? prev.filter(a => a !== arch) : [...prev, arch]);
   };
 
   const handleCopyDeck = (deck: MetaDeck, index: number) => {
@@ -124,10 +129,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     return null;
   };
 
-  const { filteredRecommendations } = useMemo(() => {
-    if (!cachedDecks || cachedDecks.length === 0) return { filteredRecommendations: [] };
+  const { availableArchetypes, filteredRecommendations } = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return { cardFilteredDecks: [], availableArchetypes: [], filteredRecommendations: [] };
     
-    const filtered = cachedDecks
+    const cFiltered = cachedDecks
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
@@ -140,8 +145,23 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         })
       );
 
-    return { filteredRecommendations: selectedFilters.length === 0 ? filtered : filtered.slice(0, 100) };
-  }, [cachedDecks, selectedFilters]);
+    const archs = new Set<string>();
+    cFiltered.forEach(deck => {
+      archs.add(detectArchetype(deck.cards));
+    });
+    const availableArchs = Array.from(archs).sort();
+
+    let finalFiltered = cFiltered;
+    if (selectedArchetypes.length > 0) {
+      finalFiltered = finalFiltered.filter(deck => selectedArchetypes.includes(detectArchetype(deck.cards)));
+    }
+
+    return { 
+      cardFilteredDecks: cFiltered,
+      availableArchetypes: availableArchs,
+      filteredRecommendations: selectedFilters.length === 0 && selectedArchetypes.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
+    };
+  }, [cachedDecks, selectedFilters, selectedArchetypes]);
 
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
@@ -302,17 +322,54 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       <img src={f.icon} alt={f.name} />
                     </div>
                   ))}
+                  {selectedArchetypes.map((arch) => (
+                    <div 
+                      key={arch}
+                      onClick={() => toggleArchetype(arch)}
+                      style={{ cursor: 'pointer', padding: '4px 8px', background: 'var(--primary)', color: 'white', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {arch} <X size={12} />
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {selectedFilters.length > 0 && (
-                <button onClick={() => setSelectedFilters([])} className="clear-btn">
+              {(selectedFilters.length > 0 || selectedArchetypes.length > 0) && (
+                <button onClick={() => { setSelectedFilters([]); setSelectedArchetypes([]); }} className="clear-btn">
                   <X size={12} /> Reset
                 </button>
               )}
             </div>
             
             <div className="filter-sections-container">
+              {availableArchetypes && availableArchetypes.length > 0 && (
+                <div className="filter-section-group">
+                  <div className="section-title" style={{ color: 'var(--text)' }}>
+                    <Target size={14} /> ARCHETYPES
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+                    {availableArchetypes.map(arch => (
+                      <button
+                        key={arch}
+                        onClick={() => toggleArchetype(arch)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          border: selectedArchetypes.includes(arch) ? '1px solid var(--primary)' : '1px solid var(--border)',
+                          background: selectedArchetypes.includes(arch) ? 'rgba(43, 115, 255, 0.2)' : 'transparent',
+                          color: selectedArchetypes.includes(arch) ? 'var(--primary)' : 'var(--text-muted)',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {arch}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
               <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" />
               <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" />
