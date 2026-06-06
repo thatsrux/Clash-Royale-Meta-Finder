@@ -2099,3 +2099,62 @@ img[src*="tombstone-hero.png"] {
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
+
+/* SKELETON LOADERS */
+.skeleton-container { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
+.skeleton-deck { opacity: 0.7; pointer-events: none; animation: none !important; border-color: rgba(255,255,255,0.05); }
+.skeleton-pulse {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%);
+  background-size: 200% 100%;
+  animation: pulseShimmer 1.5s infinite linear;
+}
+@keyframes pulseShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-deck .deck-header { height: 70px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.skeleton-card { aspect-ratio: 150/180; border-radius: 4px; width: 100%; }
+.skeleton-stats { flex: 1; height: 100px; border-radius: 1rem; margin-top: 1rem; }
+@media (min-width: 1024px) {
+  .skeleton-stats { max-width: 250px; height: auto; margin-top: 0; }
+}
+
+/* MICRO-INTERACTIONS: CHAMPION/HERO HOVER */
+.mini-card.champion-slot, .mini-card.hero-slot { position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; }
+.mini-card.champion-slot::after, .mini-card.hero-slot::after {
+  content: '';
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 206, 49, 0.5) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease-out;
+  pointer-events: none;
+  z-index: 5;
+}
+.mini-card.champion-slot:hover::after, .mini-card.hero-slot:hover::after { transform: translateX(100%); }
+.mini-card.champion-slot:hover, .mini-card.hero-slot:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(255, 206, 49, 0.4);
+  z-index: 20;
+}
+
+/* ADAPTIVE THEME */
+.deck-suggestion.theme-evo { 
+  border-color: rgba(168, 85, 247, 0.4); 
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1); 
+}
+.deck-suggestion.theme-evo .deck-header { 
+  background: linear-gradient(to right, rgba(168, 85, 247, 0.15), rgba(30, 41, 59, 0.2)); 
+}
+
+.deck-suggestion.theme-champion { 
+  border-color: rgba(255, 206, 49, 0.4); 
+  box-shadow: 0 4px 20px rgba(255, 206, 49, 0.1); 
+}
+.deck-suggestion.theme-champion .deck-header { 
+  background: linear-gradient(to right, rgba(255, 206, 49, 0.15), rgba(30, 41, 59, 0.2)); 
+}
+
+.deck-suggestion.theme-mixed { 
+  border-color: rgba(168, 85, 247, 0.3); 
+  box-shadow: 0 4px 20px rgba(255, 206, 49, 0.1); 
+}
+.deck-suggestion.theme-mixed .deck-header { 
+  background: linear-gradient(to right, rgba(168, 85, 247, 0.15), rgba(255, 206, 49, 0.1)); 
+}

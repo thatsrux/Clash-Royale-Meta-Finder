@@ -386,21 +386,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       )}
       
       {isLoading && (
-        <div className="analysis-progress-container">
-          <div className="analysis-status">
+        <div className="skeleton-container">
+          <div className="analysis-status" style={{ marginBottom: '1.5rem', background: 'rgba(15,23,42,0.6)', padding: '1rem', borderRadius: '1rem', border: '1px solid var(--border)' }}>
             <div className="status-main">
               <RefreshCw size={14} className="spin" />
               <span>Analyzing Top 200 Pro Meta...</span>
             </div>
             <span className="status-percent">{progress}%</span>
           </div>
-          <div className="progress-track">
-            <div className="progress-bar-fill" style={{ width: `${progress}%` }}>
-              <div className="progress-glow"></div>
-              <div className="progress-shimmer"></div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="deck-suggestion skeleton-deck">
+              <div className="deck-header skeleton-pulse"></div>
+              <div className="deck-main-content">
+                <div className="mini-card-grid">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
+                    <div key={j} className="skeleton-card skeleton-pulse"></div>
+                  ))}
+                </div>
+                <div className="skeleton-stats skeleton-pulse"></div>
+              </div>
             </div>
-          </div>
-          <p className="analysis-hint">Scanning battle logs and calculating card synergies...</p>
+          ))}
         </div>
       )}
 
@@ -425,8 +431,15 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
             const archetype = detectArchetype(deck.cards);
 
+            const evoCount = deck.cards.filter((c: any) => c._forceForm === 'evo').length;
+            const champCount = deck.cards.filter((c: any) => isChampion(c) || c._forceForm === 'hero').length;
+            let themeClass = '';
+            if (evoCount > champCount && evoCount > 0) themeClass = 'theme-evo';
+            else if (champCount > evoCount && champCount > 0) themeClass = 'theme-champion';
+            else if (evoCount > 0 && champCount > 0) themeClass = 'theme-mixed';
+
             return (
-              <div key={idx} className="deck-suggestion">
+              <div key={idx} className={`deck-suggestion ${themeClass}`}>
                 <div className="deck-header">
                   <div className="deck-header-left">
                     <div className="deck-header-info">
