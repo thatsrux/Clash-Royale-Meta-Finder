@@ -50,6 +50,7 @@ function App() {
   const [isMetaLoading, setIsMetaLoading] = useState(false);
   const [metaProgress, setMetaProgress] = useState(0);
   const [allGameCards, setAllGameCards] = useState<any[]>([]);
+  const [insightsExpanded, setInsightsExpanded] = useState({ evo: false, hero: false, rarity: false });
 
   useEffect(() => {
     const saved = localStorage.getItem('cr_tag_history');
@@ -654,34 +655,56 @@ function App() {
                         </div>
                         <div className="stats-tables-row">
                           <div className="stats-column">
-                            <div className="stats-header"><Sparkles size={14} /> EVO META USAGE</div>
-                            <div className="stats-list">
-                              {Object.values(absoluteEvoUsage).filter(evo => { const card = profile!.cards.find(c => c.name === evo.name); return !card || !isEvoUnlocked(card); }).sort((a, b) => b.count - a.count).map(evo => (
-                                <div key={evo.name} className="stat-row-item"><img src={evo.icon} alt={evo.name} /><div className="stat-row-details"><span className="name">{evo.name}</span><span className="percent">{Math.round((evo.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecksCount) * 100}%` }}></div></div></div>
-                              ))}
+                            <div className="stats-header clickable" onClick={() => setInsightsExpanded(prev => ({...prev, evo: !prev.evo}))} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={14} /> MISSING EVO USAGE</div>
+                              {insightsExpanded.evo ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </div>
+                            {insightsExpanded.evo && (
+                              <div className="stats-list">
+                                {Object.values(absoluteEvoUsage).filter(evo => { const card = profile!.cards.find(c => c.name === evo.name); return !card || !isEvoUnlocked(card); }).sort((a, b) => b.count - a.count).map(evo => (
+                                  <div key={evo.name} className="stat-row-item"><img src={evo.icon} alt={evo.name} /><div className="stat-row-details"><span className="name">{evo.name}</span><span className="percent">{Math.round((evo.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / totalDecksCount) * 100}%` }}></div></div></div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="stats-column">
-                            <div className="stats-header"><Crown size={14} /> HERO META USAGE</div>
-                            <div className="stats-list">
-                              {Object.values(absoluteHeroUsage).filter(hero => { const card = profile!.cards.find(c => c.name === hero.name); return !card || !isHeroVariantUnlocked(card); }).sort((a, b) => b.count - a.count).map(hero => (
-                                <div key={hero.name} className="stat-row-item"><img src={hero.icon} alt={hero.name} /><div className="stat-row-details"><span className="name">{hero.name}</span><span className="percent">{Math.round((hero.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecksCount) * 100}%` }}></div></div></div>
-                              ))}
+                            <div className="stats-header clickable" onClick={() => setInsightsExpanded(prev => ({...prev, hero: !prev.hero}))} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Crown size={14} /> MISSING HERO USAGE</div>
+                              {insightsExpanded.hero ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </div>
+                            {insightsExpanded.hero && (
+                              <div className="stats-list">
+                                {Object.values(absoluteHeroUsage).filter(hero => { const card = profile!.cards.find(c => c.name === hero.name); return !card || !isHeroVariantUnlocked(card); }).sort((a, b) => b.count - a.count).map(hero => (
+                                  <div key={hero.name} className="stat-row-item"><img src={hero.icon} alt={hero.name} /><div className="stat-row-details"><span className="name">{hero.name}</span><span className="percent">{Math.round((hero.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / totalDecksCount) * 100}%` }}></div></div></div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="insights-divider" style={{ marginTop: '3rem' }}><ArrowUp size={20} /><span>UPGRADE PRIORITY BY RARITY</span></div>
+                        
+                        <div className="insights-divider" style={{ marginTop: '3rem' }}>
+                          <ArrowUp size={20} /><span>UPGRADE PRIORITY BY RARITY</span>
+                        </div>
                         <div className="upgrade-rec-grid">
                           {rarityRecs.map(rec => <UpgradeExpandable key={rec.rarity} rarity={rec.rarity} list={rec.list} />)}
                         </div>
-                        <div className="stats-tables-grid-3">
-                          {rarities.map(r => {
-                            const list = Object.values(absoluteRarityUsage[r]).filter(item => { const cardId = Object.keys(absoluteRarityUsage[r]).find(id => absoluteRarityUsage[r][Number(id)].name === item.name); const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId)); return !userCard || getDisplayLevel(userCard) < 16; }).sort((a, b) => b.count - a.count);
-                            if (list.length === 0) return null;
-                            return (
-                              <div key={r} className="stats-column"><div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>{r.toUpperCase()} USAGE</div><div className="stats-list mini">{list.slice(0, 10).map(item => (<div key={item.name} className="stat-row-item compact"><img src={item.icon} alt={item.name} /><div className="stat-row-details"><span className="name">{item.name}</span><span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div></div>))}</div></div>
-                            );
-                          })}
+
+                        <div className="stats-column" style={{ marginTop: '2rem' }}>
+                          <div className="stats-header clickable" onClick={() => setInsightsExpanded(prev => ({...prev, rarity: !prev.rarity}))} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><LayoutDashboard size={14} /> MISSING UPGRADES USAGE DETAILS</div>
+                            {insightsExpanded.rarity ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                          </div>
+                          {insightsExpanded.rarity && (
+                            <div className="stats-tables-grid-3" style={{ marginTop: '1rem' }}>
+                              {rarities.map(r => {
+                                const list = Object.values(absoluteRarityUsage[r]).filter(item => { const cardId = Object.keys(absoluteRarityUsage[r]).find(id => absoluteRarityUsage[r][Number(id)].name === item.name); const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId)); return !userCard || getDisplayLevel(userCard) < 16; }).sort((a, b) => b.count - a.count);
+                                if (list.length === 0) return null;
+                                return (
+                                  <div key={r} className="stats-column"><div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>{r.toUpperCase()} USAGE</div><div className="stats-list mini">{list.slice(0, 10).map(item => (<div key={item.name} className="stat-row-item compact"><img src={item.icon} alt={item.name} /><div className="stat-row-details"><span className="name">{item.name}</span><span className="percent">{Math.round((item.count / totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / totalDecksCount) * 100}%` }}></div></div></div>))}</div></div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </>
                     );
