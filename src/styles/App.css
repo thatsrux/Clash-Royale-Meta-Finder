@@ -391,15 +391,15 @@ button {
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
-/* Specific fix for Princess Evo and Tombstone Hero/Evo to match standard card scale */
-img[src*="princess-ev1.png"],
+/* Specific fix for Princess Evo and Tombstone Hero/Evo to match standard card scale without cropping */
+img[src*="princess"],
 img[src*="tombstone-hero.png"] {
-  transform: scale(1.18);
-  transform-origin: center;
+  object-fit: contain !important;
+  padding: 2%; /* Slight padding to avoid edge touching */
 }
 
 .mini-card .card-image-container {
-  overflow: hidden;
+  overflow: visible; /* Prevent cropping on scaled/padded items */
 }
 
 .collection-elixir {

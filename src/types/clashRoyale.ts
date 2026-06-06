@@ -177,11 +177,11 @@ export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
   // SPECIAL OVERRIDES for new cards missing from main CDN static path
   // Handle Princess Evolution
   if (slug === 'princess' && isEvo) {
-    return 'https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d/princess-ev1.png';
+    return 'https://cdn.royaleapi.com/static/img/cards-evolved/princess.png';
   }
-  // Handle Tombstone Evolution (which RoyaleAPI uses 'hero' for in some cases)
+  // Handle Tombstone Evolution (Standard Hero variant without border highlight)
   if (slug === 'tombstone' && (isHero || isEvo)) {
-    return 'https://cdns3.royaleapi.com/cdn-cgi/image/w=150,h=180,format=auto/static/img/cards/v9-f09d5c9d/tombstone-hero.png';
+    return 'https://cdn.royaleapi.com/static/img/cards-150/tombstone-hero.png';
   }
 
   // 1. Check for explicit variant URLs in payload
