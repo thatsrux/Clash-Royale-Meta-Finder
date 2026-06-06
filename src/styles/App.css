@@ -2116,22 +2116,73 @@ img[src*="tombstone-hero.png"] {
   .skeleton-stats { max-width: 250px; height: auto; margin-top: 0; }
 }
 
-/* MICRO-INTERACTIONS: CHAMPION/HERO HOVER */
-.mini-card.champion-slot, .mini-card.hero-slot { position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; }
-.mini-card.champion-slot::after, .mini-card.hero-slot::after {
+/* MICRO-INTERACTIONS: CHAMPION/HERO/EVO HOVER */
+.mini-card.champion-slot, 
+.mini-card.hero-slot,
+.mini-card.evo-slot { 
+  position: relative; 
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  cursor: pointer; 
+}
+
+/* The sweeping reflection overlay clipped perfectly to the card PNG */
+.mini-card.champion-slot::after, 
+.mini-card.hero-slot::after,
+.mini-card.evo-slot::after {
   content: '';
-  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-  background: linear-gradient(45deg, transparent 40%, rgba(255, 206, 49, 0.5) 50%, transparent 60%);
+  position: absolute; 
+  top: 0; left: 0; width: 100%; height: 100%;
+  -webkit-mask-image: var(--card-img);
+  -webkit-mask-size: cover;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: var(--card-img);
+  mask-size: cover;
+  mask-position: center;
+  mask-repeat: no-repeat;
   transform: translateX(-100%);
   transition: transform 0.6s ease-out;
   pointer-events: none;
   z-index: 5;
 }
-.mini-card.champion-slot:hover::after, .mini-card.hero-slot:hover::after { transform: translateX(100%); }
-.mini-card.champion-slot:hover, .mini-card.hero-slot:hover {
-  transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 10px 20px rgba(255, 206, 49, 0.4);
-  z-index: 20;
+
+/* Gold shine for Champions and Heroes */
+.mini-card.champion-slot::after, 
+.mini-card.hero-slot::after {
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 206, 49, 0.9) 50%, rgba(255, 255, 255, 0.5) 60%, transparent 80%);
+}
+
+/* Purple/Silver shine for Evos */
+.mini-card.evo-slot::after {
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.3) 40%, rgba(168, 85, 247, 0.8) 50%, rgba(255, 255, 255, 0.3) 60%, transparent 80%);
+}
+
+.mini-card.champion-slot:hover::after, 
+.mini-card.hero-slot:hover::after,
+.mini-card.evo-slot:hover::after { 
+  transform: translateX(100%); 
+}
+
+/* Glow effects tracing the exact card outline using drop-shadow on the img */
+.mini-card.champion-slot img,
+.mini-card.hero-slot img,
+.mini-card.evo-slot img {
+  transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mini-card.champion-slot:hover { transform: translateY(-5px) scale(1.05); z-index: 20; }
+.mini-card.champion-slot:hover img {
+  filter: drop-shadow(0 6px 12px rgba(255, 206, 49, 0.8)) brightness(1.1) !important;
+}
+
+.mini-card.hero-slot:hover { transform: translateY(-5px) scale(1.05); z-index: 20; }
+.mini-card.hero-slot:hover img {
+  filter: drop-shadow(0 6px 12px rgba(255, 255, 0, 0.8)) brightness(1.1) !important;
+}
+
+.mini-card.evo-slot:hover { transform: translateY(-5px) scale(1.05); z-index: 20; }
+.mini-card.evo-slot:hover img {
+  filter: drop-shadow(0 6px 12px rgba(168, 85, 247, 0.8)) brightness(1.1) !important;
 }
 
 /* ADAPTIVE THEME */

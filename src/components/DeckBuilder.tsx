@@ -496,7 +496,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);
 
                       return (
-                        <div key={card.id || index} className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`} style={{ opacity: userCard ? 1 : 0.4 }}>
+                        <div 
+                          key={card.id || index} 
+                          className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`} 
+                          style={{ 
+                            opacity: userCard ? 1 : 0.4, 
+                            '--card-img': `url(${displayIcon})` 
+                          } as React.CSSProperties}
+                        >
                           <div className="card-image-container">
                             {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
                           </div>
