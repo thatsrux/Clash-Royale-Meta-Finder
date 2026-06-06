@@ -85,22 +85,44 @@ export const isAnyHeroUnlocked = (card: Card) => {
 // Check if the card definition has an Evolution version available (Static check)
 export const hasEvoAvailable = (card: Card) => {
   if (!card) return false;
+  const name = (card.name || '').toLowerCase();
   const slug = getCardSlug(card.name);
-  return !!card.iconUrls?.evolutionMedium || 
-         (card.name || '').toLowerCase().includes('evo') || 
-         ['princess', 'tombstone', 'drill', 'wizard', 'zap', 'tesla', 'wall-breakers', 'bomber', 'valkyrie', 'ice-spirit', 'royal-recruits', 'barbs', 'knight', 'archer', 'mortar', 'skeleton', 'firecracker', 'rg', 'bats'].some(s => slug.includes(s));
+  const rarity = (card.rarity || '').toLowerCase();
+
+  // 1. Explicit payload check
+  if (card.iconUrls?.evolutionMedium || name.includes('evolved')) return true;
+
+  // 2. Strict allowed list for Evolutions (Exclude Heroes and Champions)
+  const evoWhitelist = [
+    'princess', 'tombstone', 'drill', 'wizard', 'zap', 'tesla', 'wall-breakers', 
+    'bomber', 'valkyrie', 'ice-spirit', 'royal-recruits', 'barbs', 'knight', 
+    'archer', 'mortar', 'skeleton', 'firecracker', 'rg', 'bats', 'valkyrie', 
+    'battle-ram', 'wizard'
+  ];
+
+  // 3. Exclude high rarities that aren't evos
+  if (rarity === 'champion' || rarity === 'hero') return false;
+
+  return evoWhitelist.includes(slug);
 };
 
 // Check if the card definition has a Hero version available (Static check)
 export const hasHeroAvailable = (card: Card) => {
   if (!card) return false;
-  const isHeroRarity = card.rarity?.toLowerCase() === 'hero';
-  const hasHeroName = (card.name || '').toLowerCase().includes('hero');
-  const hasHeroIconProp = !!card.iconUrls?.heroMedium;
-  const hasHeroLevelProp = card.heroLevel !== undefined;
+  const name = (card.name || '').toLowerCase();
   const slug = getCardSlug(card.name);
-  
-  return isHeroRarity || hasHeroName || hasHeroIconProp || hasHeroLevelProp || slug === 'tombstone';
+  const rarity = (card.rarity || '').toLowerCase();
+
+  // 1. Explicit payload check
+  if (card.iconUrls?.heroMedium || name.includes('hero') || rarity === 'hero') return true;
+
+  // 2. Strict allowed list for Heroes (Currently Tombstone and Wizard variants)
+  const heroWhitelist = ['tombstone', 'wizard'];
+
+  // 3. Champions are NOT Heroes in this context (they have their own section)
+  if (rarity === 'champion') return false;
+
+  return heroWhitelist.includes(slug);
 };
 
 // Aliases for backward compatibility
