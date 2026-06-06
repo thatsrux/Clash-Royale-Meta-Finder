@@ -49,3 +49,4 @@ Quando intervieni su questo progetto:
 2.  **Usa TypeScript Rigorosamente**: Dichiara sempre le interfacce per le risposte API e i props dei componenti. Nessun `any` se non strettamente necessario (come per i payload API non documentati).
 3.  **Mantieni l'astrazione API**: Qualsiasi nuova chiamata verso RoyaleAPI deve essere aggiunta in `services/royaleApi.ts` e non direttamente nei componenti.
 4.  **Generazione Deck Link**: La funzione `handleCopyDeck` genera URL `link.clashroyale.com`. Non rompere la logica di allocazione degli slot (Evos/Heroes hanno slot specifici nell'URL).
+5. **Aggiornamento repo GitHub**: dopo ogni modifica fai sempre il push su GitHub nella repo Production per mandare le modifiche online
