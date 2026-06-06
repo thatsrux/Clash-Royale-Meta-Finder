@@ -39,8 +39,6 @@ interface DeckBuilderProps {
   allGameCards: Card[];
 }
 
-type DeckSortOption = 'affinity' | 'elixir-asc' | 'elixir-desc';
-
 // Meta Deck Builder Component
 export const DeckBuilder: React.FC<DeckBuilderProps> = ({ 
   profile, 
@@ -56,7 +54,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
-  const [deckSort, setDeckSort] = useState<DeckSortOption>('affinity');
   const [expandedMatchups, setExpandedMatchups] = useState<Record<number, boolean>>({});
 
   const toggleFilter = (item: FilterItem) => {
@@ -425,15 +422,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             <div className="total-decks-badge">
               <LayoutDashboard size={14} />
               <span>TOTAL DECKS: {filteredRecommendations.length}</span>
-            </div>
-            
-            <div className="sort-controls" style={{ marginLeft: 'auto' }}>
-              <span className="sort-label">Sort by:</span>
-              <select value={deckSort} onChange={(e) => setDeckSort(e.target.value as DeckSortOption)} className="sort-select">
-                <option value="affinity">Affinity (Best Match)</option>
-                <option value="elixir-asc">Elixir Cost (Low to High)</option>
-                <option value="elixir-desc">Elixir Cost (High to Low)</option>
-              </select>
             </div>
           </div>
           {filteredRecommendations.map((deck, idx) => {
