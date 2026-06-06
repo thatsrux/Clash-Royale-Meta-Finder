@@ -505,7 +505,7 @@ img[src*="tombstone-hero.png"] {
   color: #fff;
   letter-spacing: 0.05em;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  background: linear-gradient(90deg, #fff, #94a3b8);
+  background: linear-gradient(90deg, #fcd34d, #f59e0b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
