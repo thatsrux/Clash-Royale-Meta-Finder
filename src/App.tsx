@@ -52,6 +52,31 @@ function App() {
   const [allGameCards, setAllGameCards] = useState<any[]>([]);
   const [insightsExpanded, setInsightsExpanded] = useState({ evo: false, hero: false, rarity: false });
 
+  const getBaseLevel = (rarity: string) => {
+    switch (rarity.toLowerCase()) {
+      case 'common': return 1;
+      case 'rare': return 3;
+      case 'epic': return 6;
+      case 'legendary': return 9;
+      case 'champion': return 11;
+      case 'hero': return 11;
+      default: return 1;
+    }
+  };
+
+  const getDisplayLevel = useCallback((card: Card) => {
+    const info = cardMap[card.id];
+    const rarity = (info?.rarity || card.rarity || 'common').toLowerCase();
+    const baseLevel = getBaseLevel(rarity);
+    const level = Number(card.level) || 0;
+    return level + baseLevel - 1;
+  }, [cardMap]);
+
+  const getRarityClass = useCallback((card: Card) => {
+    const info = cardMap[card.id];
+    return (info?.rarity || card.rarity || 'common').toLowerCase();
+  }, [cardMap]);
+
   // MEMOIZED INSIGHTS CALCULATION - PERFORMANCE FIX
   const metaInsightsData = useMemo(() => {
     if (!metaDecksCache || !profile) return null;
@@ -190,31 +215,6 @@ function App() {
       default: return 0;
     }
   };
-
-  const getBaseLevel = (rarity: string) => {
-    switch (rarity.toLowerCase()) {
-      case 'common': return 1;
-      case 'rare': return 3;
-      case 'epic': return 6;
-      case 'legendary': return 9;
-      case 'champion': return 11;
-      case 'hero': return 11;
-      default: return 1;
-    }
-  };
-
-  const getDisplayLevel = useCallback((card: Card) => {
-    const info = cardMap[card.id];
-    const rarity = (info?.rarity || card.rarity || 'common').toLowerCase();
-    const baseLevel = getBaseLevel(rarity);
-    const level = Number(card.level) || 0;
-    return level + baseLevel - 1;
-  }, [cardMap]);
-
-  const getRarityClass = useCallback((card: Card) => {
-    const info = cardMap[card.id];
-    return (info?.rarity || card.rarity || 'common').toLowerCase();
-  }, [cardMap]);
 
   const handleSearch = async (e: React.FormEvent | string) => {
     if (typeof e !== 'string') e.preventDefault();
