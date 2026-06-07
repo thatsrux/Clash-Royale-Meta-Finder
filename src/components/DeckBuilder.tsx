@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype, getArchetypeMatchups } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart } from 'lucide-react';
@@ -55,6 +55,16 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
   const [expandedMatchups, setExpandedMatchups] = useState<Record<number, boolean>>({});
+  const [visibleCount, setVisibleCount] = useState(20);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [selectedFilters, selectedArchetypes]);
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 20);
+  };
 
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
@@ -103,7 +113,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       setTimeout(() => setCopiedIndex(null), 2000);
     });
 
-    window.location.href = finalLink;
+    window.open(finalLink, '_self');
   };
 
   const handleShowQr = (deck: MetaDeck) => {
@@ -421,10 +431,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           <div className="results-summary-bar">
             <div className="total-decks-badge">
               <LayoutDashboard size={14} />
-              <span>TOTAL DECKS: {filteredRecommendations.length}</span>
+              <span>TOTAL DECKS: {filteredRecommendations.length} {filteredRecommendations.length > visibleCount && `(SHOWING ${visibleCount})`}</span>
             </div>
           </div>
-          {filteredRecommendations.map((deck, idx) => {
+          {filteredRecommendations.slice(0, visibleCount).map((deck, idx) => {
             const missingCards: any[] = [];
             const ownedLevelSum = deck.cards.reduce((sum: number, metaCard: any) => {
               const uCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
@@ -444,8 +454,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             else if (champCount > evoCount && champCount > 0) themeClass = 'theme-champion';
             else if (evoCount > 0 && champCount > 0) themeClass = 'theme-mixed';
 
+            // STABLE KEY FOR PERFORMANCE
+            const deckKey = deck.cards.map(c => `${c.id}-${(c as any)._forceForm}`).sort().join('|') + `-${deck.towerTroopId}`;
+
             return (
-              <div key={idx} className={`deck-suggestion ${themeClass}`}>
+              <div key={deckKey} className={`deck-suggestion ${themeClass}`}>
                 <div className="deck-header">
                   <div className="deck-header-left">
                     <div className="deck-header-info">
@@ -604,6 +617,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               </div>
             );
           })}
+
+          {filteredRecommendations.length > visibleCount && (
+            <div className="load-more-container" style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', marginBottom: '3rem' }}>
+              <button 
+                onClick={handleLoadMore}
+                className="action-btn" 
+                style={{ padding: '1rem 2.5rem', borderRadius: '3rem', fontSize: '1rem' }}
+              >
+                <RefreshCw size={18} />
+                <span>LOAD MORE DECKS</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
 
