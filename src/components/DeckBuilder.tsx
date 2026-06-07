@@ -303,7 +303,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             
             <div className="visual-projection">
               {allGameCards.slice(0, 28).map((c, i) => (
-                <img key={i} src={getCardIcon(c, false, false)} alt="" className="tiny-card-asset" />
+                <img key={i} src={getCardIcon(c, false, false)} alt="" className="tiny-card-asset" loading="lazy" />
               ))}
               <div className="projection-overlay"></div>
             </div>
@@ -401,7 +401,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         </div>
       )}
       
-      {isLoading && (
+      {isLoading && !cachedDecks && (
         <div className="skeleton-container">
           <div className="analysis-status" style={{ marginBottom: '1.5rem', background: 'rgba(15,23,42,0.6)', padding: '1rem', borderRadius: '1rem', border: '1px solid var(--border)' }}>
             <div className="status-main">
@@ -412,7 +412,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           </div>
           {[1, 2, 3].map(i => (
             <div key={i} className="deck-suggestion skeleton-deck">
-              <div className="deck-header skeleton-pulse"></div>
+              <div className="deck-header skeleton-pulse" style={{ height: '60px' }}></div>
               <div className="deck-main-content">
                 <div className="mini-card-grid">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
@@ -426,8 +426,22 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         </div>
       )}
 
-      {cachedDecks && !isLoading ? (
-        <div className="recommendations-list">
+      {cachedDecks ? (
+        <div className="recommendations-list" style={{ opacity: isLoading ? 0.7 : 1, transition: 'opacity 0.3s' }}>
+          {isLoading && (
+            <div className="analysis-progress-container" style={{ margin: '1rem 0' }}>
+              <div className="analysis-status">
+                <div className="status-main">
+                  <RefreshCw size={14} className="spin" />
+                  <span>REFRESHING META DATA...</span>
+                </div>
+                <span className="status-percent">{progress}%</span>
+              </div>
+              <div className="progress-track">
+                <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          )}
           <div className="results-summary-bar">
             <div className="total-decks-badge">
               <LayoutDashboard size={14} />

@@ -472,7 +472,7 @@ img[src*="tombstone-hero.png"] {
   margin-bottom: 1.5rem;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 .deck-header { 
@@ -1608,7 +1608,7 @@ img[src*="tombstone-hero.png"] {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
-  animation: fadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   position: relative;
 }
 
@@ -2121,9 +2121,9 @@ img[src*="tombstone-hero.png"] {
 .skeleton-container { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
 .skeleton-deck { opacity: 0.7; pointer-events: none; animation: none !important; border-color: rgba(255,255,255,0.05); }
 .skeleton-pulse {
-  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
   background-size: 200% 100%;
-  animation: pulseShimmer 1.5s infinite linear;
+  animation: pulseShimmer 1.2s infinite linear;
 }
 @keyframes pulseShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .skeleton-deck .deck-header { height: 70px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); }
