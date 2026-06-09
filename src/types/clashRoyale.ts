@@ -94,10 +94,10 @@ export const hasEvoAvailable = (card: Card) => {
 
   // 2. Strict allowed list for Evolutions (Exclude Heroes and Champions)
   const evoWhitelist = [
-    'princess', 'tombstone', 'drill', 'wizard', 'zap', 'tesla', 'wall-breakers', 
+    'princess', 'drill', 'wizard', 'zap', 'tesla', 'wall-breakers', 
     'bomber', 'valkyrie', 'ice-spirit', 'royal-recruits', 'barbs', 'knight', 
-    'archer', 'mortar', 'skeleton', 'firecracker', 'rg', 'bats', 'valkyrie', 
-    'battle-ram', 'wizard'
+    'archer', 'mortar', 'skeleton', 'firecracker', 'rg', 'bats', 
+    'battle-ram'
   ];
 
   // 3. Exclude high rarities that aren't evos
