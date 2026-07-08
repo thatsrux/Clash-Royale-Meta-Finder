@@ -257,7 +257,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''}`}
+                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
@@ -548,7 +548,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       return (
                         <div 
                           key={card.id || index} 
-                          className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`} 
+                          className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''}`} 
                           style={{ 
                             opacity: userCard ? 1 : 0.4, 
                             '--card-img': `url(${displayIcon})` 

@@ -642,7 +642,7 @@ function App() {
 
                   const rarityClass = getRarityClass(card);
                   return (
-                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass}`}>
+                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''}`}>
                       <img 
                         src={icon} 
                         alt={card.name} 

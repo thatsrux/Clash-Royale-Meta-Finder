@@ -2399,3 +2399,9 @@ img[src*="tombstone-hero.png"] {
 
 
 
+
+/* Reduce dimensions of all legendary cards to match other rarities, except Ronin which is natively sized correctly */
+.card-legendary img:not([src*="ronin.png"]) {
+  transform: scale(0.9) !important;
+  transform-origin: center;
+}
