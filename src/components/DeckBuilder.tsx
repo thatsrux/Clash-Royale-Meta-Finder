@@ -71,6 +71,8 @@ export const DeckBuilder = ({ profile, cachedDecks, onAnalysisStart, isLoading, 
             decks={filteredDecks}
             profile={profile}
             setQrModalUrl={setQrModalUrl}
+            isLoading={isLoading}
+            progress={progress}
           />
         </div>
       )}
