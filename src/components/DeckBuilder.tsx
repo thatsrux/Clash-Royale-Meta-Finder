@@ -269,10 +269,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       // Fallback to base card icon if evolution/hero icon fails
                       target.src = target.src.replace('-ev1.png', '.png').replace('-hero.png', '.png');
                     } else {
-                      target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                      const slug = c.name ? c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
+                      const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
+                      if (target.src !== fallback && !target.src.includes('unknown.png')) {
+                        target.src = fallback;
+                      } else if (!target.src.includes('unknown.png')) {
+                        target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                        target.parentElement?.classList.add('missing-image');
+                      }
                     }
                   }} 
                 />
+                <div className="fallback-name-overlay">{c.name}</div>
               </div>
             );
           })}
@@ -545,8 +553,19 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           } as React.CSSProperties}
                         >
                           <div className="card-image-container">
-                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls?.medium || ''; }} />}
+                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { 
+                              const target = e.target as HTMLImageElement;
+                              const slug = card.name ? card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
+                              const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
+                              if (target.src !== fallback && !target.src.includes('unknown.png')) {
+                                target.src = fallback;
+                              } else if (!target.src.includes('unknown.png')) {
+                                target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                                target.parentElement?.parentElement?.classList.add('missing-image');
+                              }
+                            }} />}
                           </div>
+                          <div className="fallback-name-overlay">{card.name}</div>
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
                             {userLevel || '!'}
                           </div>
@@ -612,7 +631,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         const sub = getCardSubstitutesData(c.name);
                         return (
                           <div key={`card-${i}`} className="missing-item-badge">
-                            <img src={c.iconUrls.medium} alt={c.name} />
+                            <img src={c.iconUrls.medium} alt={c.name} onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const slug = c.name ? c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
+                              const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
+                              if (target.src !== fallback && !target.src.includes('unknown.png')) target.src = fallback;
+                              else target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                            }}/>
                             <span>{c.name}</span>
                             {sub && (
                               <div style={{ marginLeft: '8px', paddingLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>

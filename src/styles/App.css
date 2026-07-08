@@ -2367,4 +2367,32 @@ img[src*="tombstone-hero.png"] {
 .action-btn.matchup-btn.active {
   background: var(--primary);
   color: white;
+}/* FALLBACK NAME OVERLAY FOR MISSING IMAGES */
+.fallback-name-overlay {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-align: center;
+  z-index: 15;
+  width: 90%;
+  word-wrap: break-word;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+
+.missing-image .fallback-name-overlay {
+  display: block;
+}
+.missing-image img {
+  opacity: 0.4 !important;
+  filter: grayscale(100%) !important;
 }

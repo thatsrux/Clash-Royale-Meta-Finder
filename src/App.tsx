@@ -641,13 +641,28 @@ function App() {
 
                   return (
                     <div key={card.id} className={`mini-card collection-item rarity-bg-${getRarityClass(card)}`}>
-                      <img src={icon} alt={card.name} onError={(e) => { (e.target as HTMLImageElement).src = card.iconUrls.medium; }} />
+                      <img 
+                        src={icon} 
+                        alt={card.name} 
+                        onError={(e) => { 
+                          const target = e.target as HTMLImageElement;
+                          const slug = card.name ? card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
+                          const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
+                          if (target.src !== fallback && !target.src.includes('unknown.png')) {
+                            target.src = fallback;
+                          } else if (!target.src.includes('unknown.png')) {
+                            target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
+                            target.parentElement?.classList.add('missing-image');
+                          }
+                        }} 
+                      />
                       <div className="mini-level">{displayLevel}</div>
                       {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
                       <div className="card-badges-compact">
                         {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
                         {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
                       </div>
+                      <div className="fallback-name-overlay">{card.name}</div>
                     </div>
                   );
                 })}
