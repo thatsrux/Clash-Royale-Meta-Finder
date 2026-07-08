@@ -2405,17 +2405,18 @@ img[src*="tombstone-hero.png"] {
 
 /* Base scale for all older legendaries (like The Log, Princess) to reduce their size relative to other rarities */
 .card-legendary img {
-  transform: scale(0.8) !important;
+  transform: scale(0.9) !important;
   transform-origin: center;
 }
 
 /* Specific fix for Ronin in the Profile Section where its native padding makes it look too large */
 .collection-item.card-ronin img {
-  transform: scale(0.75) !important;
+  transform: scale(0.85) !important;
 }
 
-/* Specific fix for Ronin in the Deck Section where its native padding makes it look perfect at a larger scale than 
-other legendaries */
+/* Specific fix for Ronin in the Deck Section where its native padding makes it look perfect at a larger scale than other legendaries */
 .deck-main-content .card-ronin img {
-  transform: scale(0.9) !important;
+  transform: scale(1.0) !important;
 }
+
+
