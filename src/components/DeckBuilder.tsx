@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { CardImage } from './CardImage';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype, getArchetypeMatchups } from '../types/clashRoyale';
 import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart } from 'lucide-react';
@@ -262,27 +263,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
-                <img 
-                  src={c.icon} 
-                  alt={c.isEvoFilter ? `Evolved ${c.name}` : c.name} 
-                  onError={(e) => { 
-                    const target = e.target as HTMLImageElement;
-                    if (target.src.includes('-ev1.png') || target.src.includes('-hero.png')) {
-                      // Fallback to base card icon if evolution/hero icon fails
-                      target.src = target.src.replace('-ev1.png', '.png').replace('-hero.png', '.png');
-                    } else {
-                      const slug = c.name ? c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
-                      const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
-                      if (target.src !== fallback && !target.src.includes('unknown.png')) {
-                        target.src = fallback;
-                      } else if (!target.src.includes('unknown.png')) {
-                        target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
-                        target.parentElement?.classList.add('missing-image');
-                      }
-                    }
-                  }} 
-                />
-                <div className="fallback-name-overlay">{c.name}</div>
+                <CardImage src={c.icon} cardName={c.name} alt={c.isEvoFilter ? `Evolved ${c.name}` : c.name} />
               </div>
             );
           })}
@@ -342,7 +323,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       title={`Remove ${f.name}`}
                       style={{ cursor: 'pointer' }}
                     >
-                      <img src={f.icon} alt={f.name} />
+                      <CardImage src={f.icon} cardName={f.name} />
                     </div>
                   ))}
                   {selectedArchetypes.map((arch) => (
@@ -557,19 +538,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           } as React.CSSProperties}
                         >
                           <div className="card-image-container">
-                            {displayIcon && <img src={displayIcon} alt={card.name} onError={(e) => { 
-                              const target = e.target as HTMLImageElement;
-                              const slug = card.name ? card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
-                              const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
-                              if (target.src !== fallback && !target.src.includes('unknown.png')) {
-                                target.src = fallback;
-                              } else if (!target.src.includes('unknown.png')) {
-                                target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
-                                target.parentElement?.parentElement?.classList.add('missing-image');
-                              }
-                            }} />}
+                            {displayIcon && <CardImage src={displayIcon} cardName={card.name} />}
                           </div>
-                          <div className="fallback-name-overlay">{card.name}</div>
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
                             {userLevel || '!'}
                           </div>
@@ -621,13 +591,13 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     <div className="missing-icons-list">
                       {deck.missingEvos?.map((evo, eIdx) => (
                         <div key={`evo-${eIdx}`} className="missing-item-badge evo">
-                          <img src={evo.icon} alt={evo.name} />
+                          <CardImage src={evo.icon} cardName={evo.name} />
                           <span>{evo.name} (EVO)</span>
                         </div>
                       ))}
                       {deck.missingHeroes?.map((hero, hIdx) => (
                         <div key={`hero-${hIdx}`} className="missing-item-badge hero">
-                          <img src={hero.icon} alt={hero.name} />
+                          <CardImage src={hero.icon} cardName={hero.name} />
                           <span>{hero.name}</span>
                         </div>
                       ))}
@@ -635,18 +605,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         const sub = getCardSubstitutesData(c.name);
                         return (
                           <div key={`card-${i}`} className="missing-item-badge">
-                            <img src={c.iconUrls.medium} alt={c.name} onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const slug = c.name ? c.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
-                              const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
-                              if (target.src !== fallback && !target.src.includes('unknown.png')) target.src = fallback;
-                              else target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
-                            }}/>
+                            <CardImage src={c.iconUrls.medium} cardName={c.name} />
                             <span>{c.name}</span>
                             {sub && (
                               <div style={{ marginLeft: '8px', paddingLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>Try:</span>
-                                <img src={sub.icon} alt={sub.name} style={{ width: '16px', height: '16px', borderRadius: '50%' }} title={`Substitute with ${sub.name}`} />
+                                <CardImage src={sub.icon} cardName={sub.name} style={{ width: '16px', height: '16px', borderRadius: '50%' }} title={`Substitute with ${sub.name}`} />
                               </div>
                             )}
                           </div>
@@ -697,3 +661,5 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     </div>
   );
 };
+
+

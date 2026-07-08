@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
+import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card } from './types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
@@ -482,7 +483,7 @@ function App() {
         <div className={`recommendation-card ${type}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
           <div className="rec-header">BEST NEXT {type.toUpperCase()}</div>
           <div className="rec-body">
-            <img src={featured.icon} alt={featured.name} />
+            <CardImage src={featured.icon} cardName={featured.name} />
             <div className="rec-info">
               <div className="rec-name">{featured.name}</div>
               <div className="rec-reason">{type === 'hero' ? 'Unlocks' : 'Completes'} {featured.count} archetypes</div>
@@ -498,7 +499,7 @@ function App() {
           <div className="expanded-alternatives">
             {others.map((item: any, idx: number) => (
               <div key={item.name} className="alt-row" style={{ animationDelay: `${idx * 0.1}s` }}>
-                <img src={item.icon} alt={item.name} />
+                <CardImage src={item.icon} cardName={item.name} />
                 <div className="alt-info">
                   <span className="alt-name">{item.name}</span>
                   <span className="alt-stat">{item.count} Archetypes</span>
@@ -522,7 +523,7 @@ function App() {
         <div className={`upgrade-rec-card ${rarity}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
           <div className="rec-header">BEST NEXT {rarity.toUpperCase()}</div>
           <div className="rec-body-mini">
-            <img src={featured.icon} alt={featured.name} />
+            <CardImage src={featured.icon} cardName={featured.name} />
             <div className="rec-mini-info">
               <div className="name">{featured.name}</div>
               <div className="meta-stats">Boosts {featured.count} archetypes</div>
@@ -538,7 +539,7 @@ function App() {
           <div className="expanded-alternatives mini">
             {others.map((item: any, idx: number) => (
               <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
-                <img src={item.icon} alt={item.name} />
+                <CardImage src={item.icon} cardName={item.name} />
                 <div className="alt-info">
                   <span className="alt-name">{item.name}</span>
                   <span className="alt-stat">{item.count} Archetypes</span>
@@ -644,28 +645,13 @@ function App() {
                   const isRonin = card.name && card.name.toLowerCase().includes('ronin');
                   return (
                     <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}>
-                      <img 
-                        src={icon} 
-                        alt={card.name} 
-                        onError={(e) => { 
-                          const target = e.target as HTMLImageElement;
-                          const slug = card.name ? card.name.toLowerCase().replace(/ /g, '-').replace(/\./g, '') : 'unknown';
-                          const fallback = `https://cdn.royaleapi.com/static/img/cards-150/${slug}.png`;
-                          if (target.src !== fallback && !target.src.includes('unknown.png')) {
-                            target.src = fallback;
-                          } else if (!target.src.includes('unknown.png')) {
-                            target.src = 'https://cdn.royaleapi.com/static/img/cards-150/unknown.png';
-                            target.parentElement?.classList.add('missing-image');
-                          }
-                        }} 
-                      />
+                      <CardImage src={icon} cardName={card.name} />
                       <div className="mini-level">{displayLevel}</div>
                       {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
                       <div className="card-badges-compact">
                         {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
                         {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
                       </div>
-                      <div className="fallback-name-overlay">{card.name}</div>
                     </div>
                   );
                 })}
@@ -699,7 +685,7 @@ function App() {
                         {insightsExpanded.evo && (
                           <div className="stats-list">
                             {Object.values(metaInsightsData.absoluteEvoUsage).filter(evo => { const card = profile!.cards.find(c => c.name === evo.name); return !card || !isEvoUnlocked(card); }).sort((a, b) => b.count - a.count).map(evo => (
-                              <div key={evo.name} className="stat-row-item"><img src={evo.icon} alt={evo.name} /><div className="stat-row-details"><span className="name">{evo.name}</span><span className="percent">{Math.round((evo.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>
+                              <div key={evo.name} className="stat-row-item"><CardImage src={evo.icon} cardName={evo.name} /><div className="stat-row-details"><span className="name">{evo.name}</span><span className="percent">{Math.round((evo.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill evo" style={{ width: `${(evo.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>
                             ))}
                           </div>
                         )}
@@ -712,7 +698,7 @@ function App() {
                         {insightsExpanded.hero && (
                           <div className="stats-list">
                             {Object.values(metaInsightsData.absoluteHeroUsage).filter(hero => { const card = profile!.cards.find(c => c.name === hero.name); return !card || !isHeroVariantUnlocked(card); }).sort((a, b) => b.count - a.count).map(hero => (
-                              <div key={hero.name} className="stat-row-item"><img src={hero.icon} alt={hero.name} /><div className="stat-row-details"><span className="name">{hero.name}</span><span className="percent">{Math.round((hero.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>
+                              <div key={hero.name} className="stat-row-item"><CardImage src={hero.icon} cardName={hero.name} /><div className="stat-row-details"><span className="name">{hero.name}</span><span className="percent">{Math.round((hero.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className="stat-row-bar-fill hero" style={{ width: `${(hero.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>
                             ))}
                           </div>
                         )}
@@ -737,7 +723,7 @@ function App() {
                             const list = Object.values(metaInsightsData.absoluteRarityUsage[r]).filter(item => { const cardId = Object.keys(metaInsightsData.absoluteRarityUsage[r]).find(id => metaInsightsData.absoluteRarityUsage[r][Number(id)].name === item.name); const userCard = profile!.cards.find(c => Number(c.id) === Number(cardId)); return !userCard || getDisplayLevel(userCard) < 16; }).sort((a, b) => b.count - a.count);
                             if (list.length === 0) return null;
                             return (
-                              <div key={r} className="stats-column"><div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>{r.toUpperCase()} USAGE</div><div className="stats-list mini">{list.slice(0, 10).map(item => (<div key={item.name} className="stat-row-item compact"><img src={item.icon} alt={item.name} /><div className="stat-row-details"><span className="name">{item.name}</span><span className="percent">{Math.round((item.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>))}</div></div>
+                              <div key={r} className="stats-column"><div className="stats-header rarity-header" style={{ color: `var(--rarity-${r})` }}>{r.toUpperCase()} USAGE</div><div className="stats-list mini">{list.slice(0, 10).map(item => (<div key={item.name} className="stat-row-item compact"><CardImage src={item.icon} cardName={item.name} /><div className="stat-row-details"><span className="name">{item.name}</span><span className="percent">{Math.round((item.count / metaInsightsData.totalDecksCount) * 100)}% Usage</span></div><div className="stat-row-bar-bg"><div className={`stat-row-bar-fill rarity-${r}`} style={{ width: `${(item.count / metaInsightsData.totalDecksCount) * 100}%` }}></div></div></div>))}</div></div>
                             );
                           })}
                         </div>
@@ -766,3 +752,4 @@ function App() {
 }
 
 export default App;
+
