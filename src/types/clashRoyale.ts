@@ -41,41 +41,6 @@ export const registerCardIcons = (cards: Card[]) => {
   });
 };
 
-export const globalCardMap: Record<number, any> = {};
-
-export const registerAllGameCards = (cards: any[]) => {
-  if (!cards || !Array.isArray(cards)) return;
-  cards.forEach(c => {
-    globalCardMap[c.id] = c;
-  });
-};
-
-export const getBaseLevel = (rarity: string) => {
-  switch (rarity.toLowerCase()) {
-    case 'champion': return 11;
-    case 'hero': return 11;
-    case 'legendary': return 9;
-    case 'epic': return 6;
-    case 'rare': return 3;
-    case 'common': return 1;
-    default: return 1;
-  }
-};
-
-export const getRarityClass = (card: Card) => {
-  if (card.name && card.name.toLowerCase().includes('ronin')) return 'legendary';
-  const info = globalCardMap[card.id];
-  return (info?.rarity || card.rarity || 'common').toLowerCase();
-};
-
-export const getDisplayLevel = (card: Card) => {
-  const info = globalCardMap[card.id];
-  const rarity = (info?.rarity || card.rarity || 'common').toLowerCase();
-  const baseLevel = getBaseLevel(rarity);
-  const level = Number(card.level) || 0;
-  return level + baseLevel - 1;
-};
-
 
 
 export const isChampion = (card: Card) => {
