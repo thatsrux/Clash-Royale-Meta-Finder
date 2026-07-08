@@ -26,6 +26,23 @@ export interface Card {
  * For DECK cards, we use metadata. For USER cards, we use levels.
  */
 
+// Global registry to share dynamically discovered icon URLs across the app
+export const globalIconRegistry: Record<number, { medium?: string, evolutionMedium?: string, heroMedium?: string }> = {};
+
+export const registerCardIcons = (cards: Card[]) => {
+  if (!cards || !Array.isArray(cards)) return;
+  cards.forEach(c => {
+    if (c && c.id && c.iconUrls) {
+      if (!globalIconRegistry[c.id]) globalIconRegistry[c.id] = {};
+      if (c.iconUrls.medium) globalIconRegistry[c.id].medium = c.iconUrls.medium;
+      if (c.iconUrls.evolutionMedium) globalIconRegistry[c.id].evolutionMedium = c.iconUrls.evolutionMedium;
+      if (c.iconUrls.heroMedium) globalIconRegistry[c.id].heroMedium = c.iconUrls.heroMedium;
+    }
+  });
+};
+
+
+
 export const isChampion = (card: Card) => {
   return card.rarity?.toLowerCase() === 'champion' || card.activeForm === 'champion';
 };
@@ -269,12 +286,16 @@ export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
     return 'https://cdn.royaleapi.com/static/img/cards-150/tombstone-hero.png';
   }
 
-  // 1. Check for explicit variant URLs in payload
-  if (isHero && card.iconUrls?.heroMedium) return card.iconUrls.heroMedium;
-  if (isEvo && card.iconUrls?.evolutionMedium) return card.iconUrls.evolutionMedium;
+  // 1. Check for explicit variant URLs in payload or registry
+  const registryIcons = globalIconRegistry[card.id] || {};
+  const heroUrl = card.iconUrls?.heroMedium || registryIcons.heroMedium;
+  const evoUrl = card.iconUrls?.evolutionMedium || registryIcons.evolutionMedium;
+  
+  if (isHero && heroUrl) return heroUrl;
+  if (isEvo && evoUrl) return evoUrl;
   
   // 2. Check if the standard medium icon already matches the requested form
-  const mediumIcon = card.iconUrls?.medium || '';
+  const mediumIcon = card.iconUrls?.medium || registryIcons.medium || '';
   if (isHero && mediumIcon.toLowerCase().includes('hero')) return mediumIcon;
   if (isEvo && (mediumIcon.toLowerCase().includes('evo') || mediumIcon.toLowerCase().includes('ev1') || mediumIcon.toLowerCase().includes('evolution'))) return mediumIcon;
   
@@ -286,3 +307,5 @@ export const getCardIcon = (card: Card, isHero: boolean, isEvo: boolean) => {
   
   return mediumIcon || `${BASE_CDN}/${slug}.png`;
 };
+
+

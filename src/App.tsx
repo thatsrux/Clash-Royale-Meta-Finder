@@ -3,7 +3,7 @@ import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, 
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir } from './types/clashRoyale';
+import { registerCardIcons, isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -307,6 +307,7 @@ function App() {
         const recentMatch = log.find(entry => entry.type === 'pathOfLegend' || entry.type === 'PvP');
         if (!recentMatch || !recentMatch.team || !recentMatch.team[0]) return null;
         const allCards = recentMatch.team[0].cards || [];
+        registerCardIcons(allCards);
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
         
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
@@ -752,4 +753,7 @@ function App() {
 }
 
 export default App;
+
+
+
 

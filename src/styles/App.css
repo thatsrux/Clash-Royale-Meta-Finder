@@ -2420,3 +2420,11 @@ img[src*="tombstone-hero.png"] {
 }
 
 
+
+/* Ensure the sweeping reflection on legendary cards perfectly matches their scaled sizes */
+.deck-main-content .card-legendary::after {
+  mask-size: 90% !important;
+}
+.deck-main-content .card-ronin::after {
+  mask-size: 100% !important;
+}
