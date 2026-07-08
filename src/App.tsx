@@ -641,8 +641,9 @@ function App() {
                   const elixir = cardMap[card.id]?.elixirCost;
 
                   const rarityClass = getRarityClass(card);
+                  const isRonin = card.name && card.name.toLowerCase().includes('ronin');
                   return (
-                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''}`}>
+                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}>
                       <img 
                         src={icon} 
                         alt={card.name} 
