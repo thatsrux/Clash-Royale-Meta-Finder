@@ -253,10 +253,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           {items.map((c, idx) => {
             const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
             
+            const cardRarity = (c.name && c.name.toLowerCase().includes('ronin')) ? 'legendary' : (c.rarity || 'common').toLowerCase();
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''}`}
+                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
@@ -542,11 +543,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const cardIsChamp = isChampion(card);
                       
                       const displayIcon = getCardIcon(card, cardIsHero, cardIsEvo);
+                      const cardRarity = (card.name && card.name.toLowerCase().includes('ronin')) ? 'legendary' : (card.rarity || 'common').toLowerCase();
 
                       return (
                         <div 
                           key={card.id || index} 
-                          className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''}`} 
+                          className={`mini-card ${cardIsEvo ? 'evo-slot' : ''} ${cardIsChamp ? 'champion-slot' : ''} ${cardIsHero ? 'hero-slot' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''}`} 
                           style={{ 
                             opacity: userCard ? 1 : 0.4, 
                             '--card-img': `url(${displayIcon})` 

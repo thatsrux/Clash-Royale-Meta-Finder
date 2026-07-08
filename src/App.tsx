@@ -73,6 +73,7 @@ function App() {
   }, [cardMap]);
 
   const getRarityClass = useCallback((card: Card) => {
+    if (card.name && card.name.toLowerCase().includes('ronin')) return 'legendary';
     const info = cardMap[card.id];
     return (info?.rarity || card.rarity || 'common').toLowerCase();
   }, [cardMap]);
@@ -639,8 +640,9 @@ function App() {
                   const icon = getCardIcon(card, heroVariant, evo);
                   const elixir = cardMap[card.id]?.elixirCost;
 
+                  const rarityClass = getRarityClass(card);
                   return (
-                    <div key={card.id} className={`mini-card collection-item rarity-bg-${getRarityClass(card)}`}>
+                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''}`}>
                       <img 
                         src={icon} 
                         alt={card.name} 

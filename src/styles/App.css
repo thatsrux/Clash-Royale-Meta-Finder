@@ -2396,3 +2396,9 @@ img[src*="tombstone-hero.png"] {
   opacity: 0.4 !important;
   filter: grayscale(100%) !important;
 }
+
+/* Uniform scale for all Legendary cards to fit the canvas properly due to hexagonal frame */
+.card-legendary img {
+  transform: scale(1.15);
+  transform-origin: center;
+}
