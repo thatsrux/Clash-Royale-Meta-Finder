@@ -666,7 +666,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         )}
                         {totalEvoShardsUsed > 0 && (
                           <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }} title="Wild Evo Shards">
-                            <span className="coin-icon">🃏</span> {totalEvoShardsUsed}
+                            <span className="coin-icon">💎</span> {totalEvoShardsUsed}
                           </div>
                         )}
                         {totalHeroCoinsUsed > 0 && (
@@ -724,7 +724,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       )}
                       {totalEvoShardsUsed > 0 && (
                         <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }} title="Wild Evo Shards">
-                          <span className="coin-icon">🃏</span> {totalEvoShardsUsed}
+                          <span className="coin-icon">💎</span> {totalEvoShardsUsed}
                         </div>
                       )}
                       {totalHeroCoinsUsed > 0 && (
