@@ -221,7 +221,7 @@ function App() {
       rarityRecs,
       rarities
     };
-  }, [metaDecksCache, profile, getDisplayLevel, getRarityClass, magicItems.specificEvoShards]);
+  }, [metaDecksCache, profile, getDisplayLevel, getRarityClass, magicItems.specificEvoShards, magicItems.evoShards]);
 
   useEffect(() => {
     if (profile?.tag) {
