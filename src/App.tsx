@@ -420,6 +420,11 @@ function App() {
         let ownedCount = 0;
         let levelScoreBoost = 0;
         
+        let localCommonWild = Number(magicItems.commonWild) || 0;
+        let localRareWild = Number(magicItems.rareWild) || 0;
+        let localEpicWild = Number(magicItems.epicWild) || 0;
+        let localLegendaryWild = Number(magicItems.legendaryWild) || 0;
+        let localChampionWild = Number(magicItems.championWild) || 0;
         let localEvoShards = Number(magicItems.evoShards) || 0;
         let localHeroCoins = Number(magicItems.heroCoins) || 0;
         
@@ -444,8 +449,21 @@ function App() {
               eliteCount++;
               totalLevel += displayLevel;
             } else {
-              const { virtualLevel, totalGold, remainingCount } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count);
+              let currentWildCards = 0;
+              if (rarity === 'common') currentWildCards = localCommonWild;
+              else if (rarity === 'rare') currentWildCards = localRareWild;
+              else if (rarity === 'epic') currentWildCards = localEpicWild;
+              else if (rarity === 'legendary') currentWildCards = localLegendaryWild;
+              else if (rarity === 'champion') currentWildCards = localChampionWild;
+
+              const { virtualLevel, totalGold, remainingCount, remainingWildCards } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards);
               
+              if (rarity === 'common') localCommonWild = remainingWildCards;
+              else if (rarity === 'rare') localRareWild = remainingWildCards;
+              else if (rarity === 'epic') localEpicWild = remainingWildCards;
+              else if (rarity === 'legendary') localLegendaryWild = remainingWildCards;
+              else if (rarity === 'champion') localChampionWild = remainingWildCards;
+
               if (virtualLevel > displayLevel) {
                 virtualUpgrades.push({ id: metaCard.id, gold: totalGold, level: virtualLevel });
               }

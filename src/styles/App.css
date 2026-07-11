@@ -2452,8 +2452,8 @@ img[src*="tombstone-hero.png"] {
 /* VIRTUAL UPGRADES AND MAGIC ITEMS BADGES */
 .virtual-upgrade-badge, .magic-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -2px;
+  right: -2px;
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;

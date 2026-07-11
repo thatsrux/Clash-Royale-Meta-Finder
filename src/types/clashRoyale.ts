@@ -208,15 +208,27 @@ const UPGRADE_GOLD_COST: Record<number, number> = {
   9: 5000, 10: 15000, 11: 25000, 12: 40000, 13: 60000, 14: 90000, 15: 120000, 16: 0
 };
 
-export const getVirtualLevelAndGold = (rarity: string, currentDisplayLevel: number, currentCount: number): { virtualLevel: number, totalGold: number, remainingCount: number } => {
+export const getVirtualLevelAndGold = (
+  rarity: string, 
+  currentDisplayLevel: number, 
+  currentCount: number,
+  wildCards: number = 0
+): { virtualLevel: number, totalGold: number, remainingCount: number, remainingWildCards: number } => {
   let virtualLevel = currentDisplayLevel;
   let totalGold = 0;
   let remainingCount = currentCount;
+  let remainingWildCards = wildCards;
   
   while (virtualLevel < 16) {
     const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
-    if (requiredCards > 0 && remainingCount >= requiredCards) {
-      remainingCount -= requiredCards;
+    if (requiredCards > 0 && (remainingCount + remainingWildCards) >= requiredCards) {
+      if (remainingCount >= requiredCards) {
+        remainingCount -= requiredCards;
+      } else {
+        const deficit = requiredCards - remainingCount;
+        remainingCount = 0;
+        remainingWildCards -= deficit;
+      }
       totalGold += (UPGRADE_GOLD_COST[virtualLevel] || 0);
       virtualLevel++;
     } else {
@@ -224,7 +236,7 @@ export const getVirtualLevelAndGold = (rarity: string, currentDisplayLevel: numb
     }
   }
   
-  return { virtualLevel, totalGold, remainingCount };
+  return { virtualLevel, totalGold, remainingCount, remainingWildCards };
 };
 
 
