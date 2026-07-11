@@ -2449,11 +2449,18 @@ img[src*="tombstone-hero.png"] {
   mask-size: 100% !important;
 }
 
-/* VIRTUAL UPGRADES AND MAGIC ITEMS BADGES */
-.virtual-upgrade-badge, .magic-badge {
+.card-badges-container {
   position: absolute;
   top: -2px;
   right: -2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+  align-items: flex-end;
+}
+
+.virtual-upgrade-badge, .magic-badge {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -2461,7 +2468,6 @@ img[src*="tombstone-hero.png"] {
   border-radius: 0.5rem;
   font-size: 0.65rem;
   font-weight: 800;
-  z-index: 10;
   display: flex;
   align-items: center;
   gap: 2px;

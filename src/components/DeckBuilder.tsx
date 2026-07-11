@@ -550,23 +550,25 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             {displayIcon && <CardImage src={displayIcon} cardName={card.name} />}
                           </div>
                           
-                          {virtualUpgradeInfo && (
-                            <div className="virtual-upgrade-badge" title={`Can upgrade to lvl ${virtualUpgradeInfo.level}`}>
-                              <span className="coin-icon">💰</span>{virtualUpgradeInfo.gold >= 1000 ? `${Math.floor(virtualUpgradeInfo.gold / 1000)}k` : virtualUpgradeInfo.gold}
-                            </div>
-                          )}
-                          
-                          {evoUsed && (
-                            <div className="magic-badge evo-badge" title={`${evoUsed.count} Evo Shards needed`}>
-                              💎 {evoUsed.count}
-                            </div>
-                          )}
-                          
-                          {heroUsed && (
-                            <div className="magic-badge hero-badge" title={`${heroUsed.count} Hero Coins needed`}>
-                              🪙 {heroUsed.count}
-                            </div>
-                          )}
+                          <div className="card-badges-container">
+                            {virtualUpgradeInfo && (
+                              <div className="virtual-upgrade-badge" title={`Can upgrade to lvl ${virtualUpgradeInfo.level}`}>
+                                <span className="coin-icon">💰</span>{virtualUpgradeInfo.gold >= 1000 ? `${Math.floor(virtualUpgradeInfo.gold / 1000)}k` : virtualUpgradeInfo.gold}
+                              </div>
+                            )}
+                            
+                            {evoUsed && (
+                              <div className="magic-badge evo-badge" title={`${evoUsed.count} Evo Shards needed`}>
+                                💎 {evoUsed.count}
+                              </div>
+                            )}
+                            
+                            {heroUsed && (
+                              <div className="magic-badge hero-badge" title={`${heroUsed.count} Hero Coins needed`}>
+                                🪙 {heroUsed.count}
+                              </div>
+                            )}
+                          </div>
 
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''} ${virtualUpgradeInfo ? 'virtual' : ''}`}>
                             {virtualUpgradeInfo ? virtualUpgradeInfo.level : (userLevel || '!')}
