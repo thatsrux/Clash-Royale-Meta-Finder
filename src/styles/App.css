@@ -577,7 +577,17 @@ img[src*="tombstone-hero.png"] {
   letter-spacing: 0.05em;
 }
 
-.action-btn.copy-btn:hover { background: rgba(43, 115, 255, 0.2); transform: translateY(-2px); }
+.action-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95) translateY(0);
+  filter: brightness(0.9);
+}
+
+.action-btn.copy-btn:hover { background: rgba(43, 115, 255, 0.2); }
 .action-btn.copy-btn.copied { background: #4ade80; color: #000; border-color: #4ade80; }
 
 .action-btn.qr-btn {
