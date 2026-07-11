@@ -2428,3 +2428,50 @@ img[src*="tombstone-hero.png"] {
 .deck-main-content .card-ronin::after {
   mask-size: 100% !important;
 }
+
+/* VIRTUAL UPGRADES AND MAGIC ITEMS BADGES */
+.virtual-upgrade-badge, .magic-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+
+.virtual-upgrade-badge {
+  border-color: rgba(251, 191, 36, 0.6);
+  color: #fbbf24;
+}
+
+.magic-badge.evo-badge {
+  border-color: rgba(192, 132, 252, 0.6);
+  color: #e879f9;
+}
+
+.magic-badge.hero-badge {
+  border-color: rgba(252, 211, 77, 0.6);
+  color: #fcd34d;
+}
+
+.mini-level.virtual {
+  border-color: #fbbf24;
+  color: #fbbf24;
+  animation: pulse-virtual 2s infinite;
+}
+
+@keyframes pulse-virtual {
+  0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+}

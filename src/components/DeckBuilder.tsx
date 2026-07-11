@@ -18,6 +18,9 @@ interface MetaDeck {
   bestPlayerName?: string;
   missingEvos: { name: string; icon: string }[];
   missingHeroes: { name: string; icon: string }[];
+  virtualUpgrades?: { id: number; gold: number; level: number }[];
+  evoShardsUsed?: { id: number; count: number }[];
+  heroCoinsUsed?: { id: number; count: number }[];
   towerTroopId?: number;
 }
 
@@ -528,6 +531,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       const cardRarity = (card.name && card.name.toLowerCase().includes('ronin')) ? 'legendary' : (card.rarity || 'common').toLowerCase();
                       const isRonin = card.name && card.name.toLowerCase().includes('ronin');
 
+                      const virtualUpgradeInfo = deck.virtualUpgrades?.find((u: any) => u.id === card.id);
+                      const evoUsed = deck.evoShardsUsed?.find((e: any) => e.id === card.id);
+                      const heroUsed = deck.heroCoinsUsed?.find((h: any) => h.id === card.id);
+
                       return (
                         <div 
                           key={card.id || index} 
@@ -540,8 +547,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           <div className="card-image-container">
                             {displayIcon && <CardImage src={displayIcon} cardName={card.name} />}
                           </div>
-                          <div className={`mini-level ${isMaxed ? 'maxed' : ''}`}>
-                            {userLevel || '!'}
+                          
+                          {virtualUpgradeInfo && (
+                            <div className="virtual-upgrade-badge" title={`Can upgrade to lvl ${virtualUpgradeInfo.level}`}>
+                              <span className="coin-icon">💰</span>{virtualUpgradeInfo.gold >= 1000 ? `${Math.floor(virtualUpgradeInfo.gold / 1000)}k` : virtualUpgradeInfo.gold}
+                            </div>
+                          )}
+                          
+                          {evoUsed && (
+                            <div className="magic-badge evo-badge" title={`${evoUsed.count} Evo Shards needed`}>
+                              💎 {evoUsed.count}
+                            </div>
+                          )}
+                          
+                          {heroUsed && (
+                            <div className="magic-badge hero-badge" title={`${heroUsed.count} Hero Coins needed`}>
+                              🪙 {heroUsed.count}
+                            </div>
+                          )}
+
+                          <div className={`mini-level ${isMaxed ? 'maxed' : ''} ${virtualUpgradeInfo ? 'virtual' : ''}`}>
+                            {virtualUpgradeInfo ? virtualUpgradeInfo.level : (userLevel || '!')}
                           </div>
                           {cardIsEvo && <div className="evo-indicator-tiny"></div>}
                           {cardIsChamp && <div className="champion-indicator-tiny"></div>}

@@ -203,6 +203,30 @@ export const getCardsToNextLevel = (rarity: string, displayLevel: number): numbe
   return requirementsTable[displayLevel] || 0;
 };
 
+const UPGRADE_GOLD_COST: Record<number, number> = {
+  1: 5, 2: 20, 3: 50, 4: 150, 5: 400, 6: 1000, 7: 2000, 8: 4000, 
+  9: 8000, 10: 15000, 11: 35000, 12: 75000, 13: 100000, 14: 0, 15: 0
+};
+
+export const getVirtualLevelAndGold = (rarity: string, currentDisplayLevel: number, currentCount: number): { virtualLevel: number, totalGold: number, remainingCount: number } => {
+  let virtualLevel = currentDisplayLevel;
+  let totalGold = 0;
+  let remainingCount = currentCount;
+  
+  while (virtualLevel < 15) {
+    const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
+    if (requiredCards > 0 && remainingCount >= requiredCards) {
+      remainingCount -= requiredCards;
+      totalGold += (UPGRADE_GOLD_COST[virtualLevel] || 0);
+      virtualLevel++;
+    } else {
+      break;
+    }
+  }
+  
+  return { virtualLevel, totalGold, remainingCount };
+};
+
 
 /**
  * SMART FEATURES: Archetypes & Substitutions

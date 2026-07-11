@@ -3,7 +3,7 @@ import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, 
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card, MagicItems } from './types/clashRoyale';
-import { registerCardIcons, isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir, getCardsToNextLevel } from './types/clashRoyale';
+import { registerCardIcons, isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir, getCardsToNextLevel, getVirtualLevelAndGold } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -29,6 +29,9 @@ interface MetaDeck {
   bestPlayerName?: string;
   missingEvos: { name: string; icon: string }[];
   missingHeroes: { name: string; icon: string }[];
+  virtualUpgrades: { id: number; gold: number; level: number }[];
+  evoShardsUsed: { id: number; count: number }[];
+  heroCoinsUsed: { id: number; count: number }[];
   towerTroopId?: number;
 }
 
@@ -414,6 +417,9 @@ function App() {
         
         const missingEvos: { name: string; icon: string }[] = [];
         const missingHeroes: { name: string; icon: string }[] = [];
+        const virtualUpgrades: { id: number; gold: number; level: number }[] = [];
+        const evoShardsUsed: { id: number; count: number }[] = [];
+        const heroCoinsUsed: { id: number; count: number }[] = [];
         
         meta.cards.forEach((metaCard) => {
           const userCard = activeProfile.cards.find(c => Number(c.id) === Number(metaCard.id));
@@ -425,14 +431,23 @@ function App() {
           if (userCard) {
             ownedCount++;
             const displayLevel = Number(getDisplayLevel(userCard));
-            totalLevel += displayLevel;
+            
             if (displayLevel >= 16) {
               eliteCount++;
+              totalLevel += displayLevel;
             } else {
-              const requiredCards = getCardsToNextLevel(rarity, displayLevel);
+              const { virtualLevel, totalGold, remainingCount } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count);
+              
+              if (virtualLevel > displayLevel) {
+                virtualUpgrades.push({ id: metaCard.id, gold: totalGold, level: virtualLevel });
+              }
+              
+              totalLevel += virtualLevel;
+              if (virtualLevel >= 16) eliteCount++;
+              
+              const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
               if (requiredCards > 0) {
-                 const currentCount = userCard.count;
-                 const progress = Math.min(1, currentCount / requiredCards);
+                 const progress = Math.min(1, remainingCount / requiredCards);
                  levelScoreBoost += (progress / 128) * 100;
               }
             }
@@ -440,6 +455,7 @@ function App() {
             if (metaIsEvo && !isEvoUnlocked(userCard)) {
               if (localEvoShards >= 6) {
                 localEvoShards -= 6;
+                evoShardsUsed.push({ id: metaCard.id, count: 6 });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
               }
@@ -447,6 +463,7 @@ function App() {
             if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
               if (localHeroCoins >= 1) {
                 localHeroCoins -= 1;
+                heroCoinsUsed.push({ id: metaCard.id, count: 1 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
               }
@@ -456,6 +473,7 @@ function App() {
             if (metaIsEvo) {
               if (localEvoShards >= 6) {
                 localEvoShards -= 6;
+                evoShardsUsed.push({ id: metaCard.id, count: 6 });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
               }
@@ -463,6 +481,7 @@ function App() {
             if (metaIsHero) {
               if (localHeroCoins >= 1) {
                 localHeroCoins -= 1;
+                heroCoinsUsed.push({ id: metaCard.id, count: 1 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
               }
@@ -495,7 +514,10 @@ function App() {
           avgLevel: totalLevel / 8,
           elixirCost: avgElixir,
           missingEvos,
-          missingHeroes
+          missingHeroes,
+          virtualUpgrades,
+          evoShardsUsed,
+          heroCoinsUsed
         };
       });
 
