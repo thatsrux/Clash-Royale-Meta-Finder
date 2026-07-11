@@ -794,6 +794,12 @@ function App() {
                         {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
                         {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
                       </div>
+                      
+                      {displayLevel < 16 && (
+                        <div className="card-progress">
+                          {card.count}/{getCardsToNextLevel(rarityClass, displayLevel)}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
