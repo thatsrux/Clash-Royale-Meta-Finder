@@ -540,8 +540,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     </div>
                   </div>
                   
-                  <div className="deck-header-right" style={{ position: 'relative' }} onMouseEnter={() => setExpandedScoreIdx(idx)} onMouseLeave={() => setExpandedScoreIdx(null)}>
-                    <div className="affinity-pill" style={{ borderColor: affinityColor, boxShadow: `0 0 10px ${affinityColor}33`, cursor: 'help' }}>
+                  <div className="deck-header-right" style={{ position: 'relative' }} 
+                    onMouseEnter={() => setExpandedScoreIdx(idx)} 
+                    onMouseLeave={() => setExpandedScoreIdx(null)}
+                    onClick={() => setExpandedScoreIdx(expandedScoreIdx === idx ? null : idx)}
+                  >
+                    <div className="affinity-pill" style={{ borderColor: affinityColor, boxShadow: `0 0 10px ${affinityColor}33`, cursor: 'pointer' }}>
                       <Target size={14} style={{ color: affinityColor }} />
                       <div className="affinity-content">
                         <span className="label">AFFINITY</span>
@@ -556,7 +560,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         right: 0, 
                         zIndex: 100, 
                         width: 'max-content',
-                        minWidth: '320px',
+                        minWidth: '300px',
+                        maxWidth: '90vw',
                         background: 'rgba(15,23,42,0.95)', 
                         backdropFilter: 'blur(16px)', 
                         marginTop: '0.5rem', 
