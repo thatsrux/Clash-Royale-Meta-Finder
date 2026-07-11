@@ -191,6 +191,12 @@ function App() {
     };
   }, [metaDecksCache, profile, getDisplayLevel, getRarityClass, magicItems.specificEvoShards]);
 
+  useEffect(() => {
+    if (profile?.tag) {
+      localStorage.setItem(`cr_magic_${profile.tag.replace('#', '')}`, JSON.stringify(magicItems));
+    }
+  }, [magicItems, profile?.tag]);
+
   const collectionLevel = useMemo(() => {
     if (!profile) return 0;
     if (profile.collectionLevel !== undefined) return profile.collectionLevel;
@@ -271,6 +277,21 @@ function App() {
       setCardMap(newMap);
 
       const data = await getPlayerProfile(tagToSearch, INTEGRATED_API_KEY);
+      
+      const cleanTag = data.tag.replace('#', '');
+      const storedItemsStr = localStorage.getItem(`cr_magic_${cleanTag}`);
+      if (storedItemsStr) {
+        try {
+          setMagicItems(JSON.parse(storedItemsStr));
+        } catch(e) {
+          console.error("Error parsing stored magic items", e);
+        }
+      } else {
+        setMagicItems({
+          commonWild: 0, rareWild: 0, epicWild: 0, legendaryWild: 0, championWild: 0, evoShards: 0, heroCoins: 0, specificEvoShards: {}
+        });
+      }
+
       setProfile(data);
       saveTagToHistory(tagToSearch);
       setPlayerTag(tagToSearch);
