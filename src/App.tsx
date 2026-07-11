@@ -56,6 +56,7 @@ function App() {
   const [allGameCards, setAllGameCards] = useState<any[]>([]);
   const [insightsExpanded, setInsightsExpanded] = useState({ evo: false, hero: false, rarity: false });
   const [showMagicItems, setShowMagicItems] = useState(false);
+  const [rawDeckCounts, setRawDeckCounts] = useState<any>(null);
   const [magicItems, setMagicItems] = useState<MagicItems>({
     commonWild: 0,
     rareWild: 0,
@@ -406,14 +407,21 @@ function App() {
         }
       });
 
-      const scoredDecks = Object.values(deckCounts).map(meta => {
+      setRawDeckCounts(deckCounts);
+      applyScoring(deckCounts, activeProfile);
+    } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
+  };
+
+  const applyScoring = (deckCounts: any, activeProfile: PlayerProfile) => {
+      if (!deckCounts || !activeProfile) return;
+      const scoredDecks = Object.values(deckCounts).map((meta: any) => {
         let totalLevel = 0;
         let eliteCount = 0;
         let ownedCount = 0;
         let levelScoreBoost = 0;
         
-        let localEvoShards = magicItems.evoShards;
-        let localHeroCoins = magicItems.heroCoins;
+        let localEvoShards = Number(magicItems.evoShards) || 0;
+        let localHeroCoins = Number(magicItems.heroCoins) || 0;
         
         const missingEvos: { name: string; icon: string }[] = [];
         const missingHeroes: { name: string; icon: string }[] = [];
@@ -421,7 +429,7 @@ function App() {
         const evoShardsUsed: { id: number; count: number }[] = [];
         const heroCoinsUsed: { id: number; count: number }[] = [];
         
-        meta.cards.forEach((metaCard) => {
+        meta.cards.forEach((metaCard: any) => {
           const userCard = activeProfile.cards.find(c => Number(c.id) === Number(metaCard.id));
           const forcedForm = (metaCard as any)._forceForm;
           const metaIsEvo = forcedForm === 'evo';
@@ -522,7 +530,6 @@ function App() {
       });
 
       setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
-    } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
 
   const sortedCards = profile?.cards ? [...profile.cards]
@@ -678,7 +685,7 @@ function App() {
                   <input 
                     type="number" min="0" max="6" 
                     value={magicItems.evoShards} 
-                    onChange={e => setMagicItems({...magicItems, evoShards: parseInt(e.target.value) || 0})} 
+                    onChange={e => setMagicItems({...magicItems, evoShards: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>6 Shards = 1 Unlock</span>
@@ -688,11 +695,22 @@ function App() {
                   <input 
                     type="number" min="0" 
                     value={magicItems.heroCoins} 
-                    onChange={e => setMagicItems({...magicItems, heroCoins: parseInt(e.target.value) || 0})} 
+                    onChange={e => setMagicItems({...magicItems, heroCoins: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
                 </div>
+                <button 
+                  className="action-btn" 
+                  style={{ width: '100%', marginTop: '0.5rem', background: 'var(--primary)', color: 'white' }}
+                  onClick={() => {
+                    if (rawDeckCounts && profile) {
+                      applyScoring(rawDeckCounts, profile);
+                    }
+                  }}
+                >
+                  Apply
+                </button>
               </div>
             )}
           </div>

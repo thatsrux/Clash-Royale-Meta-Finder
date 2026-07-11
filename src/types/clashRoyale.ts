@@ -170,8 +170,8 @@ export interface MagicItems {
   epicWild: number;
   legendaryWild: number;
   championWild: number;
-  evoShards: number;
-  heroCoins: number;
+  evoShards: number | '';
+  heroCoins: number | '';
 }
 
 const UPGRADE_REQUIREMENTS: Record<string, Record<number, number>> = {
