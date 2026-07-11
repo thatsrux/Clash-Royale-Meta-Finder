@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
-import type { PlayerProfile, Card } from './types/clashRoyale';
-import { registerCardIcons, isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir } from './types/clashRoyale';
+import type { PlayerProfile, Card, MagicItems } from './types/clashRoyale';
+import { registerCardIcons, isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir, getCardsToNextLevel } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import './styles/App.css';
 
@@ -52,6 +52,16 @@ function App() {
   const [metaProgress, setMetaProgress] = useState(0);
   const [allGameCards, setAllGameCards] = useState<any[]>([]);
   const [insightsExpanded, setInsightsExpanded] = useState({ evo: false, hero: false, rarity: false });
+  const [showMagicItems, setShowMagicItems] = useState(false);
+  const [magicItems, setMagicItems] = useState<MagicItems>({
+    commonWild: 0,
+    rareWild: 0,
+    epicWild: 0,
+    legendaryWild: 0,
+    championWild: 0,
+    evoShards: 0,
+    heroCoins: 0
+  });
 
   const getBaseLevel = (rarity: string) => {
     switch (rarity.toLowerCase()) {
@@ -397,6 +407,11 @@ function App() {
         let totalLevel = 0;
         let eliteCount = 0;
         let ownedCount = 0;
+        let levelScoreBoost = 0;
+        
+        let localEvoShards = magicItems.evoShards;
+        let localHeroCoins = magicItems.heroCoins;
+        
         const missingEvos: { name: string; icon: string }[] = [];
         const missingHeroes: { name: string; icon: string }[] = [];
         
@@ -405,27 +420,57 @@ function App() {
           const forcedForm = (metaCard as any)._forceForm;
           const metaIsEvo = forcedForm === 'evo';
           const metaIsHero = forcedForm === 'hero';
+          const rarity = getRarityClass(metaCard);
           
           if (userCard) {
             ownedCount++;
             const displayLevel = Number(getDisplayLevel(userCard));
             totalLevel += displayLevel;
-            if (displayLevel >= 16) eliteCount++;
+            if (displayLevel >= 16) {
+              eliteCount++;
+            } else {
+              const requiredCards = getCardsToNextLevel(rarity, displayLevel);
+              if (requiredCards > 0) {
+                 const currentCount = userCard.count;
+                 const progress = Math.min(1, currentCount / requiredCards);
+                 levelScoreBoost += (progress / 128) * 100;
+              }
+            }
             
             if (metaIsEvo && !isEvoUnlocked(userCard)) {
-              missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+              if (localEvoShards >= 6) {
+                localEvoShards -= 6;
+              } else {
+                missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+              }
             }
             if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
-              missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+              if (localHeroCoins >= 1) {
+                localHeroCoins -= 1;
+              } else {
+                missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+              }
             }
           } else { 
             totalLevel += 1; 
-            if (metaIsEvo) missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
-            if (metaIsHero) missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+            if (metaIsEvo) {
+              if (localEvoShards >= 6) {
+                localEvoShards -= 6;
+              } else {
+                missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+              }
+            }
+            if (metaIsHero) {
+              if (localHeroCoins >= 1) {
+                localHeroCoins -= 1;
+              } else {
+                missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+              }
+            }
           }
         });
 
-        const levelScore = (totalLevel / 128) * 100;
+        const levelScore = (totalLevel / 128) * 100 + levelScoreBoost;
         const missingCardPenalty = (8 - ownedCount) * 10;
         const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
         const missingElitePenalty = (8 - eliteCount) * 2;
@@ -592,6 +637,44 @@ function App() {
 
       {profile && !loading && (
         <div className="profile-view">
+          <div className="magic-items-config" style={{ marginBottom: '1rem', background: 'rgba(30, 41, 59, 0.5)', borderRadius: '1rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <button 
+              className="magic-toggle-btn" 
+              onClick={() => setShowMagicItems(!showMagicItems)}
+              style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+                <Sparkles size={18} color="var(--primary)" /> 
+                <span>Configure Magic Items (Unlocks)</span>
+              </div>
+              {showMagicItems ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
+            </button>
+            {showMagicItems && (
+              <div className="magic-items-panel" style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '150px' }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Wild Evo Shards</label>
+                  <input 
+                    type="number" min="0" max="6" 
+                    value={magicItems.evoShards} 
+                    onChange={e => setMagicItems({...magicItems, evoShards: parseInt(e.target.value) || 0})} 
+                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
+                  />
+                  <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>6 Shards = 1 Unlock</span>
+                </div>
+                <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '150px' }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hero Coins</label>
+                  <input 
+                    type="number" min="0" 
+                    value={magicItems.heroCoins} 
+                    onChange={e => setMagicItems({...magicItems, heroCoins: parseInt(e.target.value) || 0})} 
+                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
+                  />
+                  <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>1 Coin = 1 Unlock</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="tabs-premium-container">
             <button className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}><UserCircle2 size={24} /><span>PROFILE</span></button>
             <button className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`} onClick={() => setActiveTab('decks')}><LayoutDashboard size={24} /><span>META DECKS</span></button>

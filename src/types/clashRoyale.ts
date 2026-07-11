@@ -164,6 +164,46 @@ export interface PlayerProfile {
   currentFavouriteCard?: Card;
 }
 
+export interface MagicItems {
+  commonWild: number;
+  rareWild: number;
+  epicWild: number;
+  legendaryWild: number;
+  championWild: number;
+  evoShards: number;
+  heroCoins: number;
+}
+
+const UPGRADE_REQUIREMENTS: Record<string, Record<number, number>> = {
+  common: {
+    1: 2, 2: 4, 3: 10, 4: 20, 5: 50, 6: 100, 7: 200, 8: 400, 9: 800, 10: 1000, 11: 1500, 12: 3000, 13: 5000, 14: 50000
+  },
+  rare: {
+    3: 2, 4: 4, 5: 10, 6: 20, 7: 50, 8: 100, 9: 200, 10: 400, 11: 800, 12: 1000, 13: 1250, 14: 50000
+  },
+  epic: {
+    6: 2, 7: 4, 8: 10, 9: 20, 10: 40, 11: 50, 12: 100, 13: 200, 14: 50000
+  },
+  legendary: {
+    9: 2, 10: 4, 11: 6, 12: 10, 13: 20, 14: 50000
+  },
+  champion: {
+    11: 2, 12: 8, 13: 20, 14: 50000
+  },
+  hero: {
+    11: 2, 12: 8, 13: 20, 14: 50000
+  }
+};
+
+export const getCardsToNextLevel = (rarity: string, displayLevel: number): number => {
+  const normalizedRarity = (rarity || 'common').toLowerCase();
+  const requirementsTable = UPGRADE_REQUIREMENTS[normalizedRarity];
+  if (!requirementsTable) return 0;
+  
+  return requirementsTable[displayLevel] || 0;
+};
+
+
 /**
  * SMART FEATURES: Archetypes & Substitutions
  */
