@@ -204,7 +204,17 @@ function App() {
     };
 
     const allCombos = getCombinations(evosList, budget);
-    allCombos.sort((a, b) => b.totalImpact - a.totalImpact);
+    const actualShards = Number(magicItems.evoShards) || 0;
+    
+    allCombos.sort((a, b) => {
+      const aFeasible = a.totalCost <= actualShards;
+      const bFeasible = b.totalCost <= actualShards;
+      
+      if (aFeasible && !bFeasible) return -1;
+      if (!aFeasible && bFeasible) return 1;
+      return b.totalImpact - a.totalImpact;
+    });
+    
     const sortedEvoCombos = allCombos.slice(0, 20);
 
     const sortedHeroes = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact);
