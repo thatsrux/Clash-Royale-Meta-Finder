@@ -882,8 +882,8 @@ function App() {
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Wild Evo Shards</label>
                   <input 
                     type="number" min="0" max="6" 
-                    value={magicItems.evoShards} 
-                    onChange={e => setMagicItems({...magicItems, evoShards: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
+                    value={magicItems.evoShards || ''} 
+                    onChange={e => setMagicItems({...magicItems, evoShards: e.target.value === '' ? 0 : parseInt(e.target.value)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>6 Shards = 1 Unlock</span>
@@ -892,8 +892,8 @@ function App() {
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hero Coins</label>
                   <input 
                     type="number" min="0" 
-                    value={magicItems.heroCoins} 
-                    onChange={e => setMagicItems({...magicItems, heroCoins: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
+                    value={magicItems.heroCoins || ''} 
+                    onChange={e => setMagicItems({...magicItems, heroCoins: e.target.value === '' ? 0 : parseInt(e.target.value)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
