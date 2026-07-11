@@ -879,8 +879,8 @@ function App() {
               style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                <Sparkles size={18} color="var(--primary)" /> 
-                <span>Configure Magic Items (Unlocks)</span>
+                <Sparkles size={20} />
+                <span>Magic Items 🃏</span>
               </div>
               {showMagicItems ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
             </button>
