@@ -126,35 +126,38 @@ function App() {
       });
     });
 
-    const missingEvoImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
+    const missingEvoImpact: Record<number, { name: string, icon: string, impact: number, shardsNeeded: number }> = {};
     const missingHeroImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
     const upgradeRarityImpact: Record<number, { name: string, icon: string, impact: number, count: number, rarity: string, id: number }> = {};
 
     allMetaDecks.forEach(deck => {
       const weight = Math.pow(deck.score / 10, 3);
-      deck.missingEvos.forEach(evo => {
-        const card = deck.cards.find(c => c.name === evo.name);
-        if (!card) return;
-        if (!missingEvoImpact[card.id]) missingEvoImpact[card.id] = { name: evo.name, icon: evo.icon, impact: 0, count: 0 };
-        
-        let shardsOwned = 0;
-        if (magicItems.specificEvoShards && magicItems.specificEvoShards[evo.name]) {
-          shardsOwned = magicItems.specificEvoShards[evo.name];
-        }
-        const shardMultiplier = 1 + (shardsOwned * 0.3); // up to +150% if 5 shards
-
-        missingEvoImpact[card.id].impact += (weight * shardMultiplier);
-        missingEvoImpact[card.id].count++;
-      });
-      deck.missingHeroes.forEach(hero => {
-        const card = deck.cards.find(c => c.name === hero.name);
-        if (!card) return;
-        if (!missingHeroImpact[card.id]) missingHeroImpact[card.id] = { name: hero.name, icon: hero.icon, impact: 0, count: 0 };
-        missingHeroImpact[card.id].impact += weight;
-        missingHeroImpact[card.id].count++;
-      });
       deck.cards.forEach(metaCard => {
         const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
+        const forcedForm = (metaCard as any)._forceForm;
+
+        // Evo Logic
+        if (forcedForm === 'evo' && (!userCard || !isEvoUnlocked(userCard))) {
+          const shardsOwned = magicItems.specificEvoShards?.[metaCard.name] || 0;
+          if (!missingEvoImpact[metaCard.id]) {
+            missingEvoImpact[metaCard.id] = {
+              name: metaCard.name,
+              icon: getCardIcon(metaCard, false, true),
+              impact: 0,
+              shardsNeeded: Math.max(1, 6 - shardsOwned)
+            };
+          }
+          const shardMultiplier = 1 + (shardsOwned * 0.3);
+          missingEvoImpact[metaCard.id].impact += (weight * shardMultiplier);
+        }
+
+        // Hero Logic
+        if (forcedForm === 'hero' && (!userCard || !isHeroVariantUnlocked(userCard))) {
+          if (!missingHeroImpact[metaCard.id]) missingHeroImpact[metaCard.id] = { name: metaCard.name, icon: getCardIcon(metaCard, true, false), impact: 0, count: 0 };
+          missingHeroImpact[metaCard.id].impact += weight;
+          missingHeroImpact[metaCard.id].count++;
+        }
+
         const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
         if (displayLevel > 0 && displayLevel < 16) {
           const r = getRarityClass(metaCard);
@@ -174,7 +177,36 @@ function App() {
       });
     });
 
-    const sortedEvos = Object.values(missingEvoImpact).sort((a, b) => b.impact - a.impact);
+    const evosList = Object.values(missingEvoImpact);
+    const budget = Math.max(6, Number(magicItems.evoShards) || 0);
+
+    const getCombinations = (list: any[], currentBudget: number): any[] => {
+      const results: any[] = [];
+      const generate = (index: number, currentCombo: any[], currentCost: number, currentImpact: number) => {
+        if (currentCombo.length > 0) {
+          results.push({
+            items: [...currentCombo],
+            totalImpact: currentImpact,
+            totalCost: currentCost
+          });
+        }
+        for (let i = index; i < list.length; i++) {
+          const item = list[i];
+          if (currentCost + item.shardsNeeded <= currentBudget) {
+            currentCombo.push(item);
+            generate(i + 1, currentCombo, currentCost + item.shardsNeeded, currentImpact + item.impact);
+            currentCombo.pop();
+          }
+        }
+      };
+      generate(0, [], 0, 0);
+      return results;
+    };
+
+    const allCombos = getCombinations(evosList, budget);
+    allCombos.sort((a, b) => b.totalImpact - a.totalImpact);
+    const sortedEvoCombos = allCombos.slice(0, 20);
+
     const sortedHeroes = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact);
     const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
     const rarityRecs = rarities.map(r => ({ rarity: r, list: Object.values(upgradeRarityImpact).filter(c => c.rarity === r).sort((a, b) => b.impact - a.impact) }));
@@ -184,7 +216,7 @@ function App() {
       absoluteEvoUsage,
       absoluteHeroUsage,
       absoluteRarityUsage,
-      sortedEvos,
+      sortedEvoCombos,
       sortedHeroes,
       rarityRecs,
       rarities
@@ -615,6 +647,57 @@ function App() {
       return sortOrder === 'desc' ? comp : -comp;
     }) : [];
 
+  const ExpandableEvoRec = ({ featured, others }: { featured: any, others: any[] }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    if (!featured) return null;
+    return (
+      <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
+        <div className={`recommendation-card evo`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
+          <div className="rec-header">BEST NEXT EVO UNLOCKS</div>
+          <div className="rec-body">
+            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+               {featured.items.map((item: any, idx: number) => (
+                  <React.Fragment key={item.name}>
+                     {idx > 0 && <span style={{fontSize: '1.2rem', color: '#94a3b8'}}>+</span>}
+                     <CardImage src={item.icon} cardName={item.name} />
+                  </React.Fragment>
+               ))}
+            </div>
+            <div className="rec-info">
+              <div className="rec-name">{featured.items.map((i: any) => i.name).join(' + ')}</div>
+              <div className="rec-reason" style={{ color: '#fbbf24', fontWeight: 600 }}>💎 {featured.totalCost} Shards</div>
+            </div>
+            {others.length > 0 && (
+              <div className="expand-trigger">
+                {isExpanded ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="expand-wrapper">
+          <div className="expanded-alternatives">
+            {others.map((combo: any, idx: number) => (
+              <div key={idx} className="alt-row" style={{ animationDelay: `${idx * 0.1}s`, padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                   {combo.items.map((item: any, iIdx: number) => (
+                      <React.Fragment key={item.name}>
+                         {iIdx > 0 && <span style={{fontSize: '0.9rem', color: '#64748b'}}>+</span>}
+                         <CardImage src={item.icon} cardName={item.name} />
+                      </React.Fragment>
+                   ))}
+                </div>
+                <div className="alt-info">
+                  <span className="alt-name" style={{ fontSize: '0.85rem' }}>{combo.items.map((i: any) => i.name).join(' + ')}</span>
+                  <span className="alt-stat" style={{ color: '#fbbf24', fontWeight: 600 }}>💎 {combo.totalCost} Shards</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const ExpandableRec = ({ featured, others, type }: { featured: any, others: any[], type: string }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     if (!featured) return null;
@@ -897,7 +980,7 @@ function App() {
                   <div className="insights-divider"><TrendingUp size={20} /><span>META PROGRESSION INSIGHTS</span></div>
                   <>
                     <div className="recommendations-row">
-                      <ExpandableRec featured={metaInsightsData.sortedEvos[0]} others={metaInsightsData.sortedEvos.slice(1, 6).sort((a, b) => b.count - a.count)} type="evo" />
+                      <ExpandableEvoRec featured={metaInsightsData.sortedEvoCombos[0]} others={metaInsightsData.sortedEvoCombos.slice(1, 10)} />
                       <ExpandableRec featured={metaInsightsData.sortedHeroes[0]} others={metaInsightsData.sortedHeroes.slice(1, 6).sort((a, b) => b.count - a.count)} type="hero" />
                     </div>
                     <div className="stats-tables-row">
