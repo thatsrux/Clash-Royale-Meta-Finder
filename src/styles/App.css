@@ -846,6 +846,26 @@ img[src*="tombstone-hero.png"] {
   color: white;
 }
 
+.virtual-total-gold {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 0.3rem 0.6rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.virtual-total-gold .coin-icon {
+  font-size: 0.8rem;
+}
+
+
 .deck-ready-footer {
   padding: 1rem 1.5rem;
   background: linear-gradient(to right, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.02));
