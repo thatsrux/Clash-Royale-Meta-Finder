@@ -484,6 +484,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             }, 0);
             const ownedCount = 8 - missingCards.length;
             const realAvgLevel = ownedCount > 0 ? (ownedLevelSum / ownedCount).toFixed(1) : 0;
+            const affinityPercent = Math.floor(deck.score);
+            const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
             const archetype = detectArchetype(deck.cards);
 
             const evoCount = deck.cards.filter((c: any) => c._forceForm === 'evo').length;
@@ -538,10 +540,88 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     </div>
                   </div>
                   
-                  <div className="deck-header-right">
-                    <div className="deck-score-badge clickable" onClick={() => setExpandedScoreIdx(expandedScoreIdx === idx ? null : idx)} style={{ cursor: 'pointer', transition: 'all 0.2s' }} title="Click to view score breakdown">
-                      {Math.floor(deck.score)}% AFFINITY <span style={{ fontSize: '0.6rem', opacity: 0.7, marginLeft: '4px' }}>ℹ️</span>
+                  <div className="deck-header-right" style={{ position: 'relative' }} onMouseEnter={() => setExpandedScoreIdx(idx)} onMouseLeave={() => setExpandedScoreIdx(null)}>
+                    <div className="affinity-pill" style={{ borderColor: affinityColor, boxShadow: `0 0 10px ${affinityColor}33`, cursor: 'help' }}>
+                      <Target size={14} style={{ color: affinityColor }} />
+                      <div className="affinity-content">
+                        <span className="label">AFFINITY</span>
+                        <span className="value" style={{ color: affinityColor }}>{affinityPercent}%</span>
+                      </div>
                     </div>
+                    
+                    {expandedScoreIdx === idx && deck.scoreBreakdown && (
+                      <div className="score-breakdown-panel" style={{ 
+                        position: 'absolute', 
+                        top: '100%', 
+                        right: 0, 
+                        zIndex: 100, 
+                        width: 'max-content',
+                        minWidth: '320px',
+                        background: 'rgba(15,23,42,0.95)', 
+                        backdropFilter: 'blur(16px)', 
+                        marginTop: '0.5rem', 
+                        padding: '1.25rem', 
+                        borderRadius: '1rem', 
+                        border: '1px solid rgba(255,255,255,0.15)', 
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                        animation: 'fadeIn 0.2s ease-out' 
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                          <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}><Activity size={16} /> SCORE BREAKDOWN</span>
+                          <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text)' }}>{deck.score.toFixed(2)}%</span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                            <span>📈 Base Level Score</span>
+                            <span>+{deck.scoreBreakdown.baseLevelScore.toFixed(2)}%</span>
+                          </div>
+                          
+                          {deck.scoreBreakdown.levelScoreBoost > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#60a5fa' }}>
+                              <span>⚡ Progress Boost</span>
+                              <span>+{deck.scoreBreakdown.levelScoreBoost.toFixed(2)}%</span>
+                            </div>
+                          )}
+                          
+                          {deck.scoreBreakdown.missingCardPenalty > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                                <span>🚫 Missing Cards Penalty (-10% each)</span>
+                                <span>-{deck.scoreBreakdown.missingCardPenalty.toFixed(2)}%</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                {deck.scoreBreakdown.missingBaseCards.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(239,68,68,0.2)', color: '#ef4444', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(239,68,68,0.3)' }}>{c}</span>)}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {deck.scoreBreakdown.missingVariantPenalty > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f97316' }}>
+                                <span>💎 Missing Evo/Hero Penalty (-5% each)</span>
+                                <span>-{deck.scoreBreakdown.missingVariantPenalty.toFixed(2)}%</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                {deck.scoreBreakdown.missingVariants.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(249,115,22,0.2)', color: '#f97316', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(249,115,22,0.3)' }}>{c}</span>)}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {deck.scoreBreakdown.missingMaxLevelPenalty > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#eab308' }}>
+                                <span>👑 Non-Max Level Penalty (-2% each)</span>
+                                <span>-{deck.scoreBreakdown.missingMaxLevelPenalty.toFixed(2)}%</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                {deck.scoreBreakdown.nonMaxLevelCards.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(234,179,8,0.2)', color: '#eab308', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(234,179,8,0.3)' }}>{c}</span>)}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -655,65 +735,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       <div className="matchup-tags">
                         {getArchetypeMatchups(archetype).weak.map(m => <span key={m} className="m-tag weak">{m}</span>)}
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {expandedScoreIdx === idx && deck.scoreBreakdown && (
-                  <div className="score-breakdown-panel" style={{ background: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(12px)', margin: '1rem', padding: '1rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.1)', animation: 'fadeIn 0.2s ease-out' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={16} /> SCORE BREAKDOWN</span>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text)' }}>{deck.score.toFixed(2)}%</span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
-                        <span>📈 Base Level Score</span>
-                        <span>+{deck.scoreBreakdown.baseLevelScore.toFixed(2)}%</span>
-                      </div>
-                      
-                      {deck.scoreBreakdown.levelScoreBoost > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#60a5fa' }}>
-                          <span>⚡ Progress Boost</span>
-                          <span>+{deck.scoreBreakdown.levelScoreBoost.toFixed(2)}%</span>
-                        </div>
-                      )}
-                      
-                      {deck.scoreBreakdown.missingCardPenalty > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
-                            <span>🚫 Missing Cards Penalty (-10% each)</span>
-                            <span>-{deck.scoreBreakdown.missingCardPenalty.toFixed(2)}%</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                            {deck.scoreBreakdown.missingBaseCards.map(c => <span key={c} style={{ fontSize: '0.65rem', background: 'rgba(239,68,68,0.2)', color: '#ef4444', padding: '0.1rem 0.4rem', borderRadius: '1rem', border: '1px solid rgba(239,68,68,0.3)' }}>{c}</span>)}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {deck.scoreBreakdown.missingVariantPenalty > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f97316' }}>
-                            <span>💎 Missing Evo/Hero Penalty (-5% each)</span>
-                            <span>-{deck.scoreBreakdown.missingVariantPenalty.toFixed(2)}%</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                            {deck.scoreBreakdown.missingVariants.map(c => <span key={c} style={{ fontSize: '0.65rem', background: 'rgba(249,115,22,0.2)', color: '#f97316', padding: '0.1rem 0.4rem', borderRadius: '1rem', border: '1px solid rgba(249,115,22,0.3)' }}>{c}</span>)}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {deck.scoreBreakdown.missingMaxLevelPenalty > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#eab308' }}>
-                            <span>👑 Non-Max Level Penalty (-2% each)</span>
-                            <span>-{deck.scoreBreakdown.missingMaxLevelPenalty.toFixed(2)}%</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                            {deck.scoreBreakdown.nonMaxLevelCards.map(c => <span key={c} style={{ fontSize: '0.65rem', background: 'rgba(234,179,8,0.2)', color: '#eab308', padding: '0.1rem 0.4rem', borderRadius: '1rem', border: '1px solid rgba(234,179,8,0.3)' }}>{c}</span>)}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
