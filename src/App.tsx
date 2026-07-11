@@ -161,23 +161,26 @@ function App() {
         const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
         if (displayLevel > 0 && displayLevel < 16) {
           const r = getRarityClass(metaCard);
-          const required = getCardsToNextLevel(r, displayLevel);
-          let progressRatio = 0;
-          if (required > 0 && userCard?.count) {
-            progressRatio = Math.min(1, userCard.count / required);
-          }
-          let cardsNeeded = required;
-          if (required > 0 && userCard?.count) {
-            cardsNeeded = Math.max(0, required - userCard.count);
-          }
+          
+          const { virtualLevel, remainingCount } = getVirtualLevelAndGold(r, displayLevel, userCard?.count || 0, 0);
+          
+          if (virtualLevel < 16) {
+            const required = getCardsToNextLevel(r, virtualLevel);
+            let cardsNeeded = required;
+            let progressRatio = 0;
+            if (required > 0) {
+              cardsNeeded = Math.max(0, required - remainingCount);
+              progressRatio = Math.min(1, remainingCount / required);
+            }
 
-          const levelGain = (16 - displayLevel) / 1.28 + 2;
-          const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
-          const finalGain = levelGain * progressMultiplier;
+            const levelGain = (16 - virtualLevel) / 1.28 + 2;
+            const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
+            const finalGain = levelGain * progressMultiplier;
 
-          if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r, cardsNeeded, currentLevel: displayLevel };
-          upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
-          upgradeRarityImpact[metaCard.id].count++;
+            if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r, cardsNeeded, currentLevel: virtualLevel };
+            upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
+            upgradeRarityImpact[metaCard.id].count++;
+          }
         }
       });
     });
