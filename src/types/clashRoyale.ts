@@ -172,6 +172,7 @@ export interface MagicItems {
   championWild: number;
   evoShards: number | '';
   heroCoins: number | '';
+  specificEvoShards?: Record<string, number>;
 }
 
 const UPGRADE_REQUIREMENTS: Record<string, Record<number, number>> = {

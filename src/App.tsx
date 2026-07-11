@@ -14,6 +14,8 @@ interface CardInfo {
   rarity: string;
   maxLevel: number;
   elixirCost: number;
+  name: string;
+  iconUrls?: any;
 }
 
 interface MetaDeck {
@@ -64,7 +66,8 @@ function App() {
     legendaryWild: 0,
     championWild: 0,
     evoShards: 0,
-    heroCoins: 0
+    heroCoins: 0,
+    specificEvoShards: {}
   });
 
   const getBaseLevel = (rarity: string) => {
@@ -248,7 +251,7 @@ function App() {
       const cardsData = await getAllCards(INTEGRATED_API_KEY);
       const newMap: Record<number, CardInfo> = {};
       cardsData.items.forEach((c: any) => {
-        newMap[c.id] = { id: c.id, rarity: c.rarity, maxLevel: c.maxLevel, elixirCost: c.elixirCost || 0 };
+        newMap[c.id] = { id: c.id, rarity: c.rarity, maxLevel: c.maxLevel, elixirCost: c.elixirCost || 0, name: c.name, iconUrls: c.iconUrls };
       });
       setCardMap(newMap);
 
@@ -479,9 +482,13 @@ function App() {
             }
             
             if (metaIsEvo && !isEvoUnlocked(userCard)) {
-              if (localEvoShards >= 6) {
-                localEvoShards -= 6;
-                evoShardsUsed.push({ id: metaCard.id, count: 6 });
+              let shardsNeeded = 6;
+              if (magicItems.specificEvoShards && magicItems.specificEvoShards[metaCard.name]) {
+                shardsNeeded -= magicItems.specificEvoShards[metaCard.name];
+              }
+              if (localEvoShards >= shardsNeeded) {
+                localEvoShards -= shardsNeeded;
+                evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
               }
@@ -497,9 +504,13 @@ function App() {
           } else { 
             totalLevel += 1; 
             if (metaIsEvo) {
-              if (localEvoShards >= 6) {
-                localEvoShards -= 6;
-                evoShardsUsed.push({ id: metaCard.id, count: 6 });
+              let shardsNeeded = 6;
+              if (magicItems.specificEvoShards && magicItems.specificEvoShards[metaCard.name]) {
+                shardsNeeded -= magicItems.specificEvoShards[metaCard.name];
+              }
+              if (localEvoShards >= shardsNeeded) {
+                localEvoShards -= shardsNeeded;
+                evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
               }
@@ -718,6 +729,35 @@ function App() {
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
                 </div>
+                
+                {profile && (
+                  <div style={{ width: '100%', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Specific Evo Shards (Non-unlocked)</div>
+                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                      {Object.values(cardMap).filter(c => hasEvoAvailable(c as unknown as Card) && !isEvoUnlocked(profile.cards.find(uc => uc.id === c.id) as Card)).map(evoCard => (
+                         <div key={evoCard.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '50px' }}>
+                           <img src={getCardIcon(evoCard as unknown as Card, false, true)} style={{ width: '40px', height: '48px', objectFit: 'contain' }} alt={evoCard.name} title={evoCard.name} />
+                           <input 
+                             type="number" min="0" max="5" 
+                             value={magicItems.specificEvoShards?.[evoCard.name] || ''}
+                             onChange={e => {
+                               const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                               const newShards = { ...(magicItems.specificEvoShards || {}) };
+                               if (val === '' || val === 0) {
+                                 delete newShards[evoCard.name];
+                               } else {
+                                 newShards[evoCard.name] = Math.min(5, Math.max(0, val));
+                               }
+                               setMagicItems({ ...magicItems, specificEvoShards: newShards });
+                             }}
+                             style={{ width: '100%', padding: '0.2rem', textAlign: 'center', borderRadius: '0.25rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)', fontSize: '0.7rem' }}
+                           />
+                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button 
                   className="action-btn" 
                   style={{ width: '100%', marginTop: '0.5rem', background: 'var(--primary)', color: 'white' }}
