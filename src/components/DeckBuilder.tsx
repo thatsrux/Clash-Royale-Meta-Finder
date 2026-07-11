@@ -21,6 +21,7 @@ interface MetaDeck {
   virtualUpgrades?: { id: number; gold: number; level: number }[];
   evoShardsUsed?: { id: number; count: number }[];
   heroCoinsUsed?: { id: number; count: number }[];
+  wildcardsUsed?: Record<string, number>;
   towerTroopId?: number;
 }
 
@@ -465,6 +466,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             const totalVirtualGold = deck.virtualUpgrades?.reduce((sum: number, u: any) => sum + u.gold, 0) || 0;
             const totalEvoShardsUsed = deck.evoShardsUsed?.reduce((sum: number, e: any) => sum + e.count, 0) || 0;
             const totalHeroCoinsUsed = deck.heroCoinsUsed?.reduce((sum: number, h: any) => sum + h.count, 0) || 0;
+            const wcu = deck.wildcardsUsed || {};
 
             // STABLE KEY FOR PERFORMANCE
             const deckKey = deck.cards.map(c => `${c.id}-${(c as any)._forceForm}`).sort().join('|') + `-${deck.towerTroopId}`;
@@ -621,22 +623,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   <div className="deck-missing-section">
                     <div className="missing-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <div className="missing-label"><AlertCircle size={12} /><span>MISSING REQUIREMENTS</span></div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                         {totalVirtualGold > 0 && (
-                          <div className="virtual-total-gold">
+                          <div className="virtual-total-gold" title="Total Gold Needed">
                             <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
                           </div>
                         )}
                         {totalEvoShardsUsed > 0 && (
-                          <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }}>
-                            <span className="coin-icon">💎</span> {totalEvoShardsUsed}
+                          <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }} title="Wild Evo Shards">
+                            <span className="coin-icon">🃏</span> {totalEvoShardsUsed}
                           </div>
                         )}
                         {totalHeroCoinsUsed > 0 && (
-                          <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }}>
+                          <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }} title="Hero Coins">
                             <span className="coin-icon">🪙</span> {totalHeroCoinsUsed}
                           </div>
                         )}
+                        {wcu.common > 0 && <div className="virtual-total-gold" style={{ color: '#60a5fa', borderColor: 'rgba(96, 165, 250, 0.3)' }} title="Common Wildcards"><span className="coin-icon">🃏</span> {wcu.common}</div>}
+                        {wcu.rare > 0 && <div className="virtual-total-gold" style={{ color: '#fb923c', borderColor: 'rgba(251, 146, 60, 0.3)' }} title="Rare Wildcards"><span className="coin-icon">🃏</span> {wcu.rare}</div>}
+                        {wcu.epic > 0 && <div className="virtual-total-gold" style={{ color: '#c084fc', borderColor: 'rgba(192, 132, 252, 0.3)' }} title="Epic Wildcards"><span className="coin-icon">🃏</span> {wcu.epic}</div>}
+                        {wcu.legendary > 0 && <div className="virtual-total-gold" style={{ color: '#2dd4bf', borderColor: 'rgba(45, 212, 191, 0.3)' }} title="Legendary Wildcards"><span className="coin-icon">🃏</span> {wcu.legendary}</div>}
+                        {wcu.champion > 0 && <div className="virtual-total-gold" style={{ color: '#facc15', borderColor: 'rgba(250, 204, 21, 0.3)' }} title="Champion Wildcards"><span className="coin-icon">🃏</span> {wcu.champion}</div>}
                       </div>
                     </div>
                     <div className="missing-icons-list">
@@ -674,22 +681,27 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <CheckCircle2 size={12} /><span>DECK FULLY READY</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       {totalVirtualGold > 0 && (
-                        <div className="virtual-total-gold">
+                        <div className="virtual-total-gold" title="Total Gold Needed">
                           <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
                         </div>
                       )}
                       {totalEvoShardsUsed > 0 && (
-                        <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }}>
-                          <span className="coin-icon">💎</span> {totalEvoShardsUsed}
+                        <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }} title="Wild Evo Shards">
+                          <span className="coin-icon">🃏</span> {totalEvoShardsUsed}
                         </div>
                       )}
                       {totalHeroCoinsUsed > 0 && (
-                        <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }}>
+                        <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }} title="Hero Coins">
                           <span className="coin-icon">🪙</span> {totalHeroCoinsUsed}
                         </div>
                       )}
+                      {wcu.common > 0 && <div className="virtual-total-gold" style={{ color: '#60a5fa', borderColor: 'rgba(96, 165, 250, 0.3)' }} title="Common Wildcards"><span className="coin-icon">🃏</span> {wcu.common}</div>}
+                      {wcu.rare > 0 && <div className="virtual-total-gold" style={{ color: '#fb923c', borderColor: 'rgba(251, 146, 60, 0.3)' }} title="Rare Wildcards"><span className="coin-icon">🃏</span> {wcu.rare}</div>}
+                      {wcu.epic > 0 && <div className="virtual-total-gold" style={{ color: '#c084fc', borderColor: 'rgba(192, 132, 252, 0.3)' }} title="Epic Wildcards"><span className="coin-icon">🃏</span> {wcu.epic}</div>}
+                      {wcu.legendary > 0 && <div className="virtual-total-gold" style={{ color: '#2dd4bf', borderColor: 'rgba(45, 212, 191, 0.3)' }} title="Legendary Wildcards"><span className="coin-icon">🃏</span> {wcu.legendary}</div>}
+                      {wcu.champion > 0 && <div className="virtual-total-gold" style={{ color: '#facc15', borderColor: 'rgba(250, 204, 21, 0.3)' }} title="Champion Wildcards"><span className="coin-icon">🃏</span> {wcu.champion}</div>}
                     </div>
                   </div>
                 )}

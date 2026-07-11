@@ -59,6 +59,7 @@ function App() {
   const [insightsExpanded, setInsightsExpanded] = useState({ evo: false, hero: false, rarity: false });
   const [showMagicItems, setShowMagicItems] = useState(false);
   const [rawDeckCounts, setRawDeckCounts] = useState<any>(null);
+  const [isMaxPotentialMode, setIsMaxPotentialMode] = useState(false);
   const [magicItems, setMagicItems] = useState<MagicItems>({
     commonWild: 0,
     rareWild: 0,
@@ -522,34 +523,35 @@ function App() {
       });
 
       setRawDeckCounts(deckCounts);
-      applyScoring(deckCounts, activeProfile);
     } catch (err: any) { setError('Meta analysis failed.'); } finally { setIsMetaLoading(false); }
   };
 
-  const applyScoring = (deckCounts: any, activeProfile: PlayerProfile) => {
-      if (!deckCounts || !activeProfile) return;
-      const scoredDecks = Object.values(deckCounts).map((meta: any) => {
-        let totalLevel = 0;
-        let eliteCount = 0;
-        let ownedCount = 0;
-        let levelScoreBoost = 0;
-        
-        let localCommonWild = Number(magicItems.commonWild) || 0;
-        let localRareWild = Number(magicItems.rareWild) || 0;
-        let localEpicWild = Number(magicItems.epicWild) || 0;
-        let localLegendaryWild = Number(magicItems.legendaryWild) || 0;
-        let localChampionWild = Number(magicItems.championWild) || 0;
-        let localEvoShards = Number(magicItems.evoShards) || 0;
-        let localHeroCoins = Number(magicItems.heroCoins) || 0;
-        
-        const missingEvos: { name: string; icon: string }[] = [];
-        const missingHeroes: { name: string; icon: string }[] = [];
-        const virtualUpgrades: { id: number; gold: number; level: number }[] = [];
-        const evoShardsUsed: { id: number; count: number }[] = [];
-        const heroCoinsUsed: { id: number; count: number }[] = [];
+  useEffect(() => {
+    if (!rawDeckCounts || !profile) return;
+    
+    const scoredDecks = Object.values(rawDeckCounts).map((meta: any) => {
+      let totalLevel = 0;
+      let eliteCount = 0;
+      let ownedCount = 0;
+      let levelScoreBoost = 0;
+      
+      let localCommonWild = isMaxPotentialMode ? (Number(magicItems.commonWild) || 0) : 0;
+      let localRareWild = isMaxPotentialMode ? (Number(magicItems.rareWild) || 0) : 0;
+      let localEpicWild = isMaxPotentialMode ? (Number(magicItems.epicWild) || 0) : 0;
+      let localLegendaryWild = isMaxPotentialMode ? (Number(magicItems.legendaryWild) || 0) : 0;
+      let localChampionWild = isMaxPotentialMode ? (Number(magicItems.championWild) || 0) : 0;
+      let localEvoShards = isMaxPotentialMode ? (Number(magicItems.evoShards) || 0) : 0;
+      let localHeroCoins = isMaxPotentialMode ? (Number(magicItems.heroCoins) || 0) : 0;
+      
+      const missingEvos: { name: string; icon: string }[] = [];
+      const missingHeroes: { name: string; icon: string }[] = [];
+      const virtualUpgrades: { id: number; gold: number; level: number }[] = [];
+      const evoShardsUsed: { id: number; count: number }[] = [];
+      const heroCoinsUsed: { id: number; count: number }[] = [];
+      const wildcardsUsed = { common: 0, rare: 0, epic: 0, legendary: 0, champion: 0 };
         
         meta.cards.forEach((metaCard: any) => {
-          const userCard = activeProfile.cards.find(c => Number(c.id) === Number(metaCard.id));
+          const userCard = profile.cards.find((c: any) => Number(c.id) === Number(metaCard.id));
           const forcedForm = (metaCard as any)._forceForm;
           const metaIsEvo = forcedForm === 'evo';
           const metaIsHero = forcedForm === 'hero';
@@ -570,13 +572,13 @@ function App() {
               else if (rarity === 'legendary') currentWildCards = localLegendaryWild;
               else if (rarity === 'champion') currentWildCards = localChampionWild;
 
-              const { virtualLevel, totalGold, remainingCount, remainingWildCards } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards);
-              
-              if (rarity === 'common') localCommonWild = remainingWildCards;
-              else if (rarity === 'rare') localRareWild = remainingWildCards;
-              else if (rarity === 'epic') localEpicWild = remainingWildCards;
-              else if (rarity === 'legendary') localLegendaryWild = remainingWildCards;
-              else if (rarity === 'champion') localChampionWild = remainingWildCards;
+            const { virtualLevel, totalGold, remainingCount, remainingWildCards } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards);
+            
+            if (rarity === 'common') { wildcardsUsed.common += (localCommonWild - remainingWildCards); localCommonWild = remainingWildCards; }
+            else if (rarity === 'rare') { wildcardsUsed.rare += (localRareWild - remainingWildCards); localRareWild = remainingWildCards; }
+            else if (rarity === 'epic') { wildcardsUsed.epic += (localEpicWild - remainingWildCards); localEpicWild = remainingWildCards; }
+            else if (rarity === 'legendary') { wildcardsUsed.legendary += (localLegendaryWild - remainingWildCards); localLegendaryWild = remainingWildCards; }
+            else if (rarity === 'champion') { wildcardsUsed.champion += (localChampionWild - remainingWildCards); localChampionWild = remainingWildCards; }
 
               if (virtualLevel > displayLevel) {
                 virtualUpgrades.push({ id: metaCard.id, gold: totalGold, level: virtualLevel });
@@ -665,12 +667,13 @@ function App() {
           missingHeroes,
           virtualUpgrades,
           evoShardsUsed,
-          heroCoinsUsed
+          heroCoinsUsed,
+          wildcardsUsed
         };
       });
 
       setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
-  };
+  }, [rawDeckCounts, profile, magicItems, isMaxPotentialMode]);
 
   const sortedCards = profile?.cards ? [...profile.cards]
     .filter(c => {
@@ -960,13 +963,12 @@ function App() {
                     </div>
                   </div>
                 )}
-
                 <button 
                   className="action-btn" 
                   style={{ width: '100%', marginTop: '0.5rem', background: 'var(--primary)', color: 'white' }}
                   onClick={() => {
-                    if (rawDeckCounts && profile) {
-                      applyScoring(rawDeckCounts, profile);
+                    if (rawDeckCounts) {
+                      setRawDeckCounts({...rawDeckCounts});
                     }
                   }}
                 >
@@ -1125,16 +1127,34 @@ function App() {
               )}
             </div>
           ) : (
-            <DeckBuilder 
-              profile={profile} 
-              apiKey={INTEGRATED_API_KEY} 
-              getDisplayLevel={getDisplayLevel}
-              cachedDecks={metaDecksCache}
-              onAnalysisStart={performMetaAnalysis}
-              isLoading={isMetaLoading}
-              progress={metaProgress}
-              allGameCards={allGameCards}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '2rem', padding: '0.25rem', border: '1px solid var(--border)' }}>
+                  <button 
+                    onClick={() => setIsMaxPotentialMode(false)}
+                    style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: !isMaxPotentialMode ? 'var(--primary)' : 'transparent', color: !isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    Play Now
+                  </button>
+                  <button 
+                    onClick={() => setIsMaxPotentialMode(true)}
+                    style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: isMaxPotentialMode ? 'var(--evo-purple)' : 'transparent', color: isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                  >
+                    <Sparkles size={16} /> Max Potential
+                  </button>
+                </div>
+              </div>
+              <DeckBuilder 
+                profile={profile} 
+                apiKey={INTEGRATED_API_KEY} 
+                getDisplayLevel={getDisplayLevel}
+                cachedDecks={metaDecksCache}
+                onAnalysisStart={performMetaAnalysis}
+                isLoading={isMetaLoading}
+                progress={metaProgress}
+                allGameCards={allGameCards}
+              />
+            </div>
           )}
         </div>
       )}
