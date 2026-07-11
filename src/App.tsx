@@ -461,9 +461,9 @@ function App() {
               }
             }
             if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
-              if (localHeroCoins >= 1) {
-                localHeroCoins -= 1;
-                heroCoinsUsed.push({ id: metaCard.id, count: 1 });
+              if (localHeroCoins >= 200) {
+                localHeroCoins -= 200;
+                heroCoinsUsed.push({ id: metaCard.id, count: 200 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
               }
@@ -479,9 +479,9 @@ function App() {
               }
             }
             if (metaIsHero) {
-              if (localHeroCoins >= 1) {
-                localHeroCoins -= 1;
-                heroCoinsUsed.push({ id: metaCard.id, count: 1 });
+              if (localHeroCoins >= 200) {
+                localHeroCoins -= 200;
+                heroCoinsUsed.push({ id: metaCard.id, count: 200 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
               }
@@ -691,7 +691,7 @@ function App() {
                     onChange={e => setMagicItems({...magicItems, heroCoins: parseInt(e.target.value) || 0})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
-                  <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>1 Coin = 1 Unlock</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
                 </div>
               </div>
             )}
