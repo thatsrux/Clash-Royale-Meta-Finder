@@ -785,6 +785,8 @@ function App() {
     const othersFeasible = list.slice(1, 10);
 
     const featuredFeasible = featured.cardsNeeded <= availableWilds;
+    const featuredWildsUsed = featuredFeasible ? featured.cardsNeeded : availableWilds;
+    const featuredRemainingNeed = featured.cardsNeeded - featuredWildsUsed;
 
     return (
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
@@ -794,8 +796,9 @@ function App() {
             <CardImage src={featured.icon} cardName={featured.name} />
             <div className="rec-mini-info">
               <div className="name">{featured.name}</div>
-              <div className="meta-stats" style={{ color: featuredFeasible ? '#22c55e' : '#94a3b8', fontWeight: featuredFeasible ? 600 : 'normal' }}>
-                {featuredFeasible ? 'Ready (✓)' : `Needs ${featured.cardsNeeded} cards`}
+              <div className="meta-stats" style={{ color: featuredFeasible ? '#22c55e' : '#94a3b8', fontWeight: featuredFeasible ? 600 : 'normal', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                <span>{featuredFeasible ? 'Ready (✓)' : `Needs ${featuredRemainingNeed} cards`}</span>
+                {featuredWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>(using {featuredWildsUsed} WCs)</span>}
               </div>
             </div>
             {othersFeasible.length > 0 && (
@@ -809,13 +812,16 @@ function App() {
           <div className="expanded-alternatives mini">
             {othersFeasible.map((item: any, idx: number) => {
               const itemFeasible = item.cardsNeeded <= availableWilds;
+              const itemWildsUsed = itemFeasible ? item.cardsNeeded : availableWilds;
+              const itemRemainingNeed = item.cardsNeeded - itemWildsUsed;
               return (
                 <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
                   <CardImage src={item.icon} cardName={item.name} />
                   <div className="alt-info">
                     <span className="alt-name">{item.name}</span>
-                    <span className="alt-stat" style={{ color: itemFeasible ? '#22c55e' : '#94a3b8' }}>
-                      {itemFeasible ? 'Ready (✓)' : `Needs ${item.cardsNeeded} cards`}
+                    <span className="alt-stat" style={{ color: itemFeasible ? '#22c55e' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span>{itemFeasible ? 'Ready (✓)' : `Needs ${itemRemainingNeed} cards`}</span>
+                      {itemWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>(using {itemWildsUsed} WCs)</span>}
                     </span>
                   </div>
                 </div>
