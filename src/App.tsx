@@ -798,7 +798,7 @@ function App() {
               <div className="name">{featured.name}</div>
               <div className="meta-stats" style={{ color: featuredFeasible ? '#22c55e' : '#94a3b8', fontWeight: featuredFeasible ? 600 : 'normal', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
                 <span>{featuredFeasible ? 'Ready (✓)' : `Needs ${featuredRemainingNeed} cards`}</span>
-                {featuredWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>(using {featuredWildsUsed} WCs)</span>}
+                {featuredWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {featuredWildsUsed} 🃏 )</span>}
               </div>
             </div>
             {othersFeasible.length > 0 && (
@@ -821,7 +821,7 @@ function App() {
                     <span className="alt-name">{item.name}</span>
                     <span className="alt-stat" style={{ color: itemFeasible ? '#22c55e' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
                       <span>{itemFeasible ? 'Ready (✓)' : `Needs ${itemRemainingNeed} cards`}</span>
-                      {itemWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>(using {itemWildsUsed} WCs)</span>}
+                      {itemWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {itemWildsUsed} 🃏 )</span>}
                     </span>
                   </div>
                 </div>
