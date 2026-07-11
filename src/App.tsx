@@ -136,7 +136,14 @@ function App() {
         const card = deck.cards.find(c => c.name === evo.name);
         if (!card) return;
         if (!missingEvoImpact[card.id]) missingEvoImpact[card.id] = { name: evo.name, icon: evo.icon, impact: 0, count: 0 };
-        missingEvoImpact[card.id].impact += weight;
+        
+        let shardsOwned = 0;
+        if (magicItems.specificEvoShards && magicItems.specificEvoShards[evo.name]) {
+          shardsOwned = magicItems.specificEvoShards[evo.name];
+        }
+        const shardMultiplier = 1 + (shardsOwned * 0.3); // up to +150% if 5 shards
+
+        missingEvoImpact[card.id].impact += (weight * shardMultiplier);
         missingEvoImpact[card.id].count++;
       });
       deck.missingHeroes.forEach(hero => {
@@ -151,9 +158,17 @@ function App() {
         const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
         if (displayLevel > 0 && displayLevel < 16) {
           const r = getRarityClass(metaCard);
-          const gain = (16 - displayLevel) / 1.28 + 2;
+          const required = getCardsToNextLevel(r, displayLevel);
+          let progressRatio = 0;
+          if (required > 0 && userCard?.count) {
+            progressRatio = Math.min(1, userCard.count / required);
+          }
+          const levelGain = (16 - displayLevel) / 1.28 + 2;
+          const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
+          const finalGain = levelGain * progressMultiplier;
+
           if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r };
-          upgradeRarityImpact[metaCard.id].impact += (gain * weight);
+          upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
           upgradeRarityImpact[metaCard.id].count++;
         }
       });
@@ -174,7 +189,7 @@ function App() {
       rarityRecs,
       rarities
     };
-  }, [metaDecksCache, profile, getDisplayLevel, getRarityClass]);
+  }, [metaDecksCache, profile, getDisplayLevel, getRarityClass, magicItems.specificEvoShards]);
 
   const collectionLevel = useMemo(() => {
     if (!profile) return 0;
