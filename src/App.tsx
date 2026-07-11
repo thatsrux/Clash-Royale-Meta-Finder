@@ -733,10 +733,10 @@ function App() {
                 {profile && (
                   <div style={{ width: '100%', marginTop: '0.5rem' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Specific Evo Shards (Non-unlocked)</div>
-                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: '0.8rem', padding: '0.5rem 0' }}>
                       {Object.values(cardMap).filter(c => hasEvoAvailable(c as unknown as Card) && !isEvoUnlocked(profile.cards.find(uc => uc.id === c.id) as Card)).map(evoCard => (
-                         <div key={evoCard.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '50px' }}>
-                           <img src={getCardIcon(evoCard as unknown as Card, false, true)} style={{ width: '40px', height: '48px', objectFit: 'contain' }} alt={evoCard.name} title={evoCard.name} />
+                         <div key={evoCard.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', background: 'var(--surface)', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+                           <img src={getCardIcon(evoCard as unknown as Card, false, true)} style={{ width: '45px', height: '54px', objectFit: 'contain', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} alt={evoCard.name} title={evoCard.name} />
                            <input 
                              type="number" min="0" max="5" 
                              value={magicItems.specificEvoShards?.[evoCard.name] || ''}
