@@ -162,25 +162,27 @@ function App() {
         if (displayLevel > 0 && displayLevel < 16) {
           const r = getRarityClass(metaCard);
           
-          const { virtualLevel, remainingCount } = getVirtualLevelAndGold(r, displayLevel, userCard?.count || 0, 0);
-          
-          if (virtualLevel < 16) {
-            const required = getCardsToNextLevel(r, virtualLevel);
-            let cardsNeeded = required;
-            let progressRatio = 0;
-            if (required > 0) {
-              cardsNeeded = Math.max(0, required - remainingCount);
-              progressRatio = Math.min(1, remainingCount / required);
-            }
-
-            const levelGain = (16 - virtualLevel) / 1.28 + 2;
-            const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
-            const finalGain = levelGain * progressMultiplier;
-
-            if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r, cardsNeeded, currentLevel: virtualLevel };
-            upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
-            upgradeRarityImpact[metaCard.id].count++;
+          let totalNeeded = 0;
+          for (let L = displayLevel; L < 16; L++) {
+            totalNeeded += getCardsToNextLevel(r, L);
           }
+          
+          const owned = userCard?.count || 0;
+          const cardsNeeded = Math.max(0, totalNeeded - owned);
+          const progressRatio = totalNeeded > 0 ? Math.min(1, owned / totalNeeded) : 0;
+
+          const levelGain = (16 - displayLevel) / 1.28 + 2;
+          const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
+          const finalGain = levelGain * progressMultiplier;
+
+          if (!upgradeRarityImpact[metaCard.id]) {
+            upgradeRarityImpact[metaCard.id] = { 
+              id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, 
+              impact: 0, count: 0, rarity: r, cardsNeeded, currentLevel: displayLevel 
+            };
+          }
+          upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
+          upgradeRarityImpact[metaCard.id].count++;
         }
       });
     });
@@ -237,8 +239,8 @@ function App() {
       if (r === 'champion') availableWilds = Number(magicItems.championWild) || 0;
 
       list.sort((a, b) => {
-        const aFeasible = a.cardsNeeded <= availableWilds && a.currentLevel === 15;
-        const bFeasible = b.cardsNeeded <= availableWilds && b.currentLevel === 15;
+        const aFeasible = a.cardsNeeded <= availableWilds;
+        const bFeasible = b.cardsNeeded <= availableWilds;
         
         if (aFeasible && !bFeasible) return -1;
         if (!aFeasible && bFeasible) return 1;
@@ -782,7 +784,7 @@ function App() {
     const featured = list[0];
     const othersFeasible = list.slice(1, 10);
 
-    const featuredFeasible = featured.cardsNeeded <= availableWilds && featured.currentLevel === 15;
+    const featuredFeasible = featured.cardsNeeded <= availableWilds;
 
     return (
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
@@ -806,7 +808,7 @@ function App() {
         <div className="expand-wrapper">
           <div className="expanded-alternatives mini">
             {othersFeasible.map((item: any, idx: number) => {
-              const itemFeasible = item.cardsNeeded <= availableWilds && item.currentLevel === 15;
+              const itemFeasible = item.cardsNeeded <= availableWilds;
               return (
                 <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
                   <CardImage src={item.icon} cardName={item.name} />
