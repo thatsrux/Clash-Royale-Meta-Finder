@@ -463,6 +463,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             else if (evoCount > 0 && champCount > 0) themeClass = 'theme-mixed';
 
             const totalVirtualGold = deck.virtualUpgrades?.reduce((sum: number, u: any) => sum + u.gold, 0) || 0;
+            const totalEvoShardsUsed = deck.evoShardsUsed?.reduce((sum: number, e: any) => sum + e.count, 0) || 0;
+            const totalHeroCoinsUsed = deck.heroCoinsUsed?.reduce((sum: number, h: any) => sum + h.count, 0) || 0;
 
             // STABLE KEY FOR PERFORMANCE
             const deckKey = deck.cards.map(c => `${c.id}-${(c as any)._forceForm}`).sort().join('|') + `-${deck.towerTroopId}`;
@@ -619,11 +621,23 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   <div className="deck-missing-section">
                     <div className="missing-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <div className="missing-label"><AlertCircle size={12} /><span>MISSING REQUIREMENTS</span></div>
-                      {totalVirtualGold > 0 && (
-                        <div className="virtual-total-gold">
-                          <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {totalVirtualGold > 0 && (
+                          <div className="virtual-total-gold">
+                            <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
+                          </div>
+                        )}
+                        {totalEvoShardsUsed > 0 && (
+                          <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }}>
+                            <span className="coin-icon">💎</span> {totalEvoShardsUsed}
+                          </div>
+                        )}
+                        {totalHeroCoinsUsed > 0 && (
+                          <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }}>
+                            <span className="coin-icon">🪙</span> {totalHeroCoinsUsed}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="missing-icons-list">
                       {deck.missingEvos?.map((evo, eIdx) => (
@@ -660,11 +674,23 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <CheckCircle2 size={12} /><span>DECK FULLY READY</span>
                     </div>
-                    {totalVirtualGold > 0 && (
-                      <div className="virtual-total-gold">
-                        <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {totalVirtualGold > 0 && (
+                        <div className="virtual-total-gold">
+                          <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
+                        </div>
+                      )}
+                      {totalEvoShardsUsed > 0 && (
+                        <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }}>
+                          <span className="coin-icon">💎</span> {totalEvoShardsUsed}
+                        </div>
+                      )}
+                      {totalHeroCoinsUsed > 0 && (
+                        <div className="virtual-total-gold" style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.1)' }}>
+                          <span className="coin-icon">🪙</span> {totalHeroCoinsUsed}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
