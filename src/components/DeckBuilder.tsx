@@ -22,6 +22,7 @@ interface MetaDeck {
   evoShardsUsed?: { id: number; count: number }[];
   heroCoinsUsed?: { id: number; count: number }[];
   wildcardsUsed?: Record<string, number>;
+  wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
   towerTroopId?: number;
 }
 
@@ -42,6 +43,8 @@ interface DeckBuilderProps {
   isLoading: boolean;
   progress: number;
   allGameCards: Card[];
+  isMaxPotentialMode: boolean;
+  setIsMaxPotentialMode: (val: boolean) => void;
 }
 
 // Meta Deck Builder Component
@@ -52,7 +55,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   onAnalysisStart, 
   isLoading, 
   progress,
-  allGameCards 
+  allGameCards,
+  isMaxPotentialMode,
+  setIsMaxPotentialMode
 }) => {
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
   const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
@@ -278,6 +283,22 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   return (
     <div className="deck-builder">
+      <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', margin: '1rem 0' }}>
+        <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '2rem', padding: '0.25rem', border: '1px solid var(--border)' }}>
+          <button 
+            onClick={() => setIsMaxPotentialMode(false)}
+            style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: !isMaxPotentialMode ? 'var(--primary)' : 'transparent', color: !isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+          >
+            Play Now
+          </button>
+          <button 
+            onClick={() => setIsMaxPotentialMode(true)}
+            style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: isMaxPotentialMode ? 'var(--evo-purple)' : 'transparent', color: isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+          >
+            <Sparkles size={16} /> Max Potential
+          </button>
+        </div>
+      </div>
       <div className="builder-header-simple">
         <div 
           className={`filter-preview-trigger ${isFilterExpanded ? 'active' : ''}`}
@@ -572,6 +593,20 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                                 🪙 {heroUsed.count}
                               </div>
                             )}
+
+                            {(() => {
+                              const wcInfo = deck.wildcardsUsedByCard?.find((w: any) => w.id === card.id);
+                              if (!wcInfo) return null;
+                              return (
+                                <div className="magic-badge" style={{
+                                  background: `var(--rarity-${wcInfo.rarity})`,
+                                  color: 'white',
+                                  borderColor: 'rgba(255,255,255,0.3)'
+                                }} title={`${wcInfo.count} ${wcInfo.rarity} Wildcards needed`}>
+                                  🃏 {wcInfo.count}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <div className={`mini-level ${isMaxed ? 'maxed' : ''} ${virtualUpgradeInfo ? 'virtual' : ''}`}>

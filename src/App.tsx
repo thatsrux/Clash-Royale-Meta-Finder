@@ -549,6 +549,7 @@ function App() {
       const evoShardsUsed: { id: number; count: number }[] = [];
       const heroCoinsUsed: { id: number; count: number }[] = [];
       const wildcardsUsed = { common: 0, rare: 0, epic: 0, legendary: 0, champion: 0 };
+      const wildcardsUsedByCard: { id: number; count: number; rarity: string }[] = [];
         
         meta.cards.forEach((metaCard: any) => {
           const userCard = profile.cards.find((c: any) => Number(c.id) === Number(metaCard.id));
@@ -574,11 +575,16 @@ function App() {
 
             const { virtualLevel, totalGold, remainingCount, remainingWildCards } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards);
             
-            if (rarity === 'common') { wildcardsUsed.common += (localCommonWild - remainingWildCards); localCommonWild = remainingWildCards; }
-            else if (rarity === 'rare') { wildcardsUsed.rare += (localRareWild - remainingWildCards); localRareWild = remainingWildCards; }
-            else if (rarity === 'epic') { wildcardsUsed.epic += (localEpicWild - remainingWildCards); localEpicWild = remainingWildCards; }
-            else if (rarity === 'legendary') { wildcardsUsed.legendary += (localLegendaryWild - remainingWildCards); localLegendaryWild = remainingWildCards; }
-            else if (rarity === 'champion') { wildcardsUsed.champion += (localChampionWild - remainingWildCards); localChampionWild = remainingWildCards; }
+            const usedWCs = currentWildCards - remainingWildCards;
+            if (usedWCs > 0) {
+              wildcardsUsedByCard.push({ id: metaCard.id, count: usedWCs, rarity });
+            }
+
+            if (rarity === 'common') { wildcardsUsed.common += usedWCs; localCommonWild = remainingWildCards; }
+            else if (rarity === 'rare') { wildcardsUsed.rare += usedWCs; localRareWild = remainingWildCards; }
+            else if (rarity === 'epic') { wildcardsUsed.epic += usedWCs; localEpicWild = remainingWildCards; }
+            else if (rarity === 'legendary') { wildcardsUsed.legendary += usedWCs; localLegendaryWild = remainingWildCards; }
+            else if (rarity === 'champion') { wildcardsUsed.champion += usedWCs; localChampionWild = remainingWildCards; }
 
               if (virtualLevel > displayLevel) {
                 virtualUpgrades.push({ id: metaCard.id, gold: totalGold, level: virtualLevel });
@@ -668,7 +674,8 @@ function App() {
           virtualUpgrades,
           evoShardsUsed,
           heroCoinsUsed,
-          wildcardsUsed
+          wildcardsUsed,
+          wildcardsUsedByCard
         };
       });
 
@@ -1128,22 +1135,6 @@ function App() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '2rem', padding: '0.25rem', border: '1px solid var(--border)' }}>
-                  <button 
-                    onClick={() => setIsMaxPotentialMode(false)}
-                    style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: !isMaxPotentialMode ? 'var(--primary)' : 'transparent', color: !isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    Play Now
-                  </button>
-                  <button 
-                    onClick={() => setIsMaxPotentialMode(true)}
-                    style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: isMaxPotentialMode ? 'var(--evo-purple)' : 'transparent', color: isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
-                  >
-                    <Sparkles size={16} /> Max Potential
-                  </button>
-                </div>
-              </div>
               <DeckBuilder 
                 profile={profile} 
                 apiKey={INTEGRATED_API_KEY} 
@@ -1153,6 +1144,8 @@ function App() {
                 isLoading={isMetaLoading}
                 progress={metaProgress}
                 allGameCards={allGameCards}
+                isMaxPotentialMode={isMaxPotentialMode}
+                setIsMaxPotentialMode={setIsMaxPotentialMode}
               />
             </div>
           )}
