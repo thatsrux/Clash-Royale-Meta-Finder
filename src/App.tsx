@@ -550,6 +550,9 @@ function App() {
       const heroCoinsUsed: { id: number; count: number }[] = [];
       const wildcardsUsed = { common: 0, rare: 0, epic: 0, legendary: 0, champion: 0 };
       const wildcardsUsedByCard: { id: number; count: number; rarity: string }[] = [];
+      const missingBaseCards: string[] = [];
+      const nonMaxLevelCards: string[] = [];
+      const missingVariantNames: string[] = [];
         
         meta.cards.forEach((metaCard: any) => {
           const userCard = profile.cards.find((c: any) => Number(c.id) === Number(metaCard.id));
@@ -592,6 +595,7 @@ function App() {
               
               totalLevel += virtualLevel;
               if (virtualLevel >= 16) maxLevelCount++;
+              else nonMaxLevelCards.push(metaCard.name);
               
               const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
               if (requiredCards > 0) {
@@ -610,6 +614,7 @@ function App() {
                 evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+                missingVariantNames.push(metaCard.name + ' (Evo)');
               }
             }
             if (metaIsHero && !isHeroVariantUnlocked(userCard)) {
@@ -618,10 +623,14 @@ function App() {
                 heroCoinsUsed.push({ id: metaCard.id, count: 200 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+                missingVariantNames.push(metaCard.name);
               }
             }
           } else { 
             totalLevel += 1; 
+            missingBaseCards.push(metaCard.name);
+            nonMaxLevelCards.push(metaCard.name);
+            
             if (metaIsEvo) {
               let shardsNeeded = 6;
               if (magicItems.specificEvoShards && magicItems.specificEvoShards[metaCard.name]) {
@@ -632,6 +641,7 @@ function App() {
                 evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
               } else {
                 missingEvos.push({ name: metaCard.name, icon: getCardIcon(metaCard, false, true) });
+                missingVariantNames.push(metaCard.name + ' (Evo)');
               }
             }
             if (metaIsHero) {
@@ -640,6 +650,7 @@ function App() {
                 heroCoinsUsed.push({ id: metaCard.id, count: 200 });
               } else {
                 missingHeroes.push({ name: metaCard.name, icon: getCardIcon(metaCard, true, false) });
+                missingVariantNames.push(metaCard.name);
               }
             }
           }
@@ -675,7 +686,17 @@ function App() {
           evoShardsUsed,
           heroCoinsUsed,
           wildcardsUsed,
-          wildcardsUsedByCard
+          wildcardsUsedByCard,
+          scoreBreakdown: {
+            baseLevelScore: (totalLevel / 128) * 100,
+            levelScoreBoost,
+            missingCardPenalty,
+            missingVariantPenalty,
+            missingMaxLevelPenalty,
+            missingBaseCards,
+            missingVariants: missingVariantNames,
+            nonMaxLevelCards
+          }
         };
       });
 
