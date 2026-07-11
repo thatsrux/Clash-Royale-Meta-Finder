@@ -531,7 +531,7 @@ function App() {
     
     const scoredDecks = Object.values(rawDeckCounts).map((meta: any) => {
       let totalLevel = 0;
-      let eliteCount = 0;
+      let maxLevelCount = 0;
       let ownedCount = 0;
       let levelScoreBoost = 0;
       
@@ -563,7 +563,7 @@ function App() {
             const displayLevel = Number(getDisplayLevel(userCard));
             
             if (displayLevel >= 16) {
-              eliteCount++;
+              maxLevelCount++;
               totalLevel += displayLevel;
             } else {
               let currentWildCards = 0;
@@ -591,7 +591,7 @@ function App() {
               }
               
               totalLevel += virtualLevel;
-              if (virtualLevel >= 16) eliteCount++;
+              if (virtualLevel >= 16) maxLevelCount++;
               
               const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
               if (requiredCards > 0) {
@@ -648,9 +648,9 @@ function App() {
         const levelScore = (totalLevel / 128) * 100 + levelScoreBoost;
         const missingCardPenalty = (8 - ownedCount) * 10;
         const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
-        const missingElitePenalty = (8 - eliteCount) * 2;
+        const missingMaxLevelPenalty = (8 - maxLevelCount) * 2;
         
-        let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingElitePenalty;
+        let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingMaxLevelPenalty;
         affinityRaw = Math.max(0, Math.min(100, affinityRaw));
         
         const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
@@ -662,7 +662,7 @@ function App() {
           cards: meta.cards,
           towerTroopId: meta.towerTroopId,
           count: meta.count,
-          maxedCount: eliteCount,
+          maxedCount: maxLevelCount,
           isBestSynergy: ownedCount === 8 && missingEvos.length === 0 && missingHeroes.length === 0,
           maxMedals: meta.maxRating,
           bestPlayerName: meta.bestPlayerName,
