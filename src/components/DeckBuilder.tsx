@@ -23,6 +23,7 @@ interface MetaDeck {
   heroCoinsUsed?: { id: number; count: number }[];
   gemsUsed?: number;
   gemsUsedByCard?: { id: number; count: number }[];
+  totalCostScore?: number;
   wildcardsUsed?: Record<string, number>;
   wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
   towerTroopId?: number;
@@ -192,7 +193,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       finalFiltered = finalFiltered.filter(deck => selectedArchetypes.includes(detectArchetype(deck.cards)));
     }
 
-    finalFiltered.sort((a, b) => b.score - a.score);
+    finalFiltered.sort((a, b) => {
+        const aDisplayScore = Math.round(a.score);
+        const bDisplayScore = Math.round(b.score);
+        
+        if (aDisplayScore !== bDisplayScore) return b.score - a.score;
+        
+        const aCost = a.totalCostScore || 0;
+        const bCost = b.totalCostScore || 0;
+        if (aCost !== bCost) return aCost - bCost;
+        
+        return (b.maxMedals || 0) - (a.maxMedals || 0);
+    });
 
     return { 
       availableArchetypes: availableArchs,
