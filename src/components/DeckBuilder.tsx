@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CardImage } from './CardImage';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype, getArchetypeMatchups } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart, Gem } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface MetaDeck {
@@ -693,9 +693,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                                 <div className="magic-badge" style={{
                                   background: '#10b981',
                                   color: 'white',
-                                  borderColor: 'rgba(255,255,255,0.3)'
+                                  borderColor: 'rgba(255,255,255,0.3)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '2px'
                                 }} title={`${gemInfo.count} Gems needed`}>
-                                  💎 {gemInfo.count}
+                                  <Gem size={10} fill="currentColor" /> {gemInfo.count}
                                 </div>
                               );
                             })()}
@@ -739,12 +742,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       <div className="stat-icon"><CheckCircle2 size={14} /></div>
                       <div className="stat-info"><span className="stat-label">MAXED CARDS</span><span className="stat-value">{deck.maxedCount}/8</span></div>
                     </div>
-                    {(deck.gemsUsed || 0) > 0 && (
-                      <div className="deck-stat-item" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                        <div className="stat-icon"><span style={{ fontSize: '10px' }}>💎</span></div>
-                        <div className="stat-info"><span className="stat-label" style={{ color: '#10b981' }}>GEMS USED</span><span className="stat-value" style={{ color: '#10b981' }}>{deck.gemsUsed}</span></div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -774,6 +771,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         {totalVirtualGold > 0 && (
                           <div className="virtual-total-gold" title="Total Gold Needed">
                             <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
+                          </div>
+                        )}
+                        {(deck.gemsUsed || 0) > 0 && (
+                          <div className="virtual-total-gold" style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', gap: '3px' }} title="Gems Used">
+                            <Gem size={12} fill="currentColor" /> {deck.gemsUsed}
                           </div>
                         )}
                         {totalEvoShardsUsed > 0 && (
