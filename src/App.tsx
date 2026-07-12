@@ -36,6 +36,7 @@ interface MetaDeck {
   heroCoinsUsed: { id: number; count: number }[];
   gemsUsed: number;
   gemsUsedByCard: { id: number; count: number }[];
+  totalCostScore?: number;
   towerTroopId?: number;
 }
 
@@ -680,6 +681,17 @@ function App() {
         const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
         const score = affinityRaw + tieBreaker;
         const avgElixir = getDeckAverageElixir(meta.cards);
+        
+        const totalVirtualGold = virtualUpgrades.reduce((sum: number, u: any) => sum + u.gold, 0);
+        const totalEvoShardsUsed = evoShardsUsed.reduce((sum: number, e: any) => sum + e.count, 0);
+        const totalCostScore = (gemsUsed * 1000) + 
+                               (totalEvoShardsUsed * 5000) + 
+                               (totalVirtualGold * 0.001) + 
+                               (wildcardsUsed.common * 1) + 
+                               (wildcardsUsed.rare * 5) + 
+                               (wildcardsUsed.epic * 20) + 
+                               (wildcardsUsed.legendary * 100) + 
+                               (wildcardsUsed.champion * 200);
 
         return {
           name: `Meta Archetype`,
@@ -700,6 +712,7 @@ function App() {
           heroCoinsUsed,
           gemsUsed,
           gemsUsedByCard,
+          totalCostScore,
           wildcardsUsed,
           wildcardsUsedByCard,
           scoreBreakdown: {
@@ -716,10 +729,15 @@ function App() {
       });
 
       setMetaDecksCache(scoredDecks.sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        const aGems = a.gemsUsed || 0;
-        const bGems = b.gemsUsed || 0;
-        if (aGems !== bGems) return aGems - bGems;
+        const aDisplayScore = Math.round(a.score);
+        const bDisplayScore = Math.round(b.score);
+        
+        if (aDisplayScore !== bDisplayScore) return b.score - a.score;
+        
+        const aCost = a.totalCostScore || 0;
+        const bCost = b.totalCostScore || 0;
+        if (aCost !== bCost) return aCost - bCost;
+        
         return (b.maxMedals || 0) - (a.maxMedals || 0);
       }));
   }, [rawDeckCounts, profile, magicItems, isMaxPotentialMode]);
