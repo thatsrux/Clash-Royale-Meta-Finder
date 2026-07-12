@@ -715,7 +715,13 @@ function App() {
         };
       });
 
-      setMetaDecksCache(scoredDecks.sort((a, b) => b.score - a.score));
+      setMetaDecksCache(scoredDecks.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        const aGems = a.gemsUsed || 0;
+        const bGems = b.gemsUsed || 0;
+        if (aGems !== bGems) return aGems - bGems;
+        return (b.maxMedals || 0) - (a.maxMedals || 0);
+      }));
   }, [rawDeckCounts, profile, magicItems, isMaxPotentialMode]);
 
   const sortedCards = profile?.cards ? [...profile.cards]
