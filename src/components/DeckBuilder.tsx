@@ -836,6 +836,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           <span className="coin-icon">💰</span> {totalVirtualGold >= 1000 ? `${Math.floor(totalVirtualGold / 1000)}k` : totalVirtualGold}
                         </div>
                       )}
+                      {(deck.gemsUsed || 0) > 0 && (
+                        <div className="virtual-total-gold" style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', gap: '3px' }} title="Gems Used">
+                          <Gem size={12} fill="currentColor" /> {deck.gemsUsed}
+                        </div>
+                      )}
                       {totalEvoShardsUsed > 0 && (
                         <div className="virtual-total-gold" style={{ color: '#a78bfa', borderColor: 'rgba(167, 139, 250, 0.3)', background: 'rgba(167, 139, 250, 0.1)' }} title="Wild Evo Shards">
                           <span className="coin-icon">💎</span> {totalEvoShardsUsed}
