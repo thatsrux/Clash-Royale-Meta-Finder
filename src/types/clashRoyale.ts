@@ -262,7 +262,7 @@ export const getVirtualLevelAndGold = (
         }
       }
       
-      if (deficit === 0) {
+      if (deficit <= 0) {
         if (remainingCount >= requiredCards) {
           remainingCount -= requiredCards;
         } else {
