@@ -34,6 +34,8 @@ interface MetaDeck {
   virtualUpgrades: { id: number; gold: number; level: number }[];
   evoShardsUsed: { id: number; count: number }[];
   heroCoinsUsed: { id: number; count: number }[];
+  gemsUsed: number;
+  gemsUsedByCard: { id: number; count: number }[];
   towerTroopId?: number;
 }
 
@@ -68,7 +70,8 @@ function App() {
     championWild: 0,
     evoShards: 0,
     heroCoins: 0,
-    specificEvoShards: {}
+    specificEvoShards: {},
+    gems: 0
   });
 
   const getBaseLevel = (rarity: string) => {
@@ -364,7 +367,7 @@ function App() {
         }
       } else {
         setMagicItems({
-          commonWild: 0, rareWild: 0, epicWild: 0, legendaryWild: 0, championWild: 0, evoShards: 0, heroCoins: 0, specificEvoShards: {}
+          commonWild: 0, rareWild: 0, epicWild: 0, legendaryWild: 0, championWild: 0, evoShards: 0, heroCoins: 0, specificEvoShards: {}, gems: 0
         });
       }
 
@@ -542,12 +545,15 @@ function App() {
       let localChampionWild = isMaxPotentialMode ? (Number(magicItems.championWild) || 0) : 0;
       let localEvoShards = isMaxPotentialMode ? (Number(magicItems.evoShards) || 0) : 0;
       let localHeroCoins = isMaxPotentialMode ? (Number(magicItems.heroCoins) || 0) : 0;
+      let localGems = isMaxPotentialMode ? (Number(magicItems.gems) || 0) : 0;
       
       const missingEvos: { name: string; icon: string }[] = [];
       const missingHeroes: { name: string; icon: string }[] = [];
       const virtualUpgrades: { id: number; gold: number; level: number }[] = [];
       const evoShardsUsed: { id: number; count: number }[] = [];
       const heroCoinsUsed: { id: number; count: number }[] = [];
+      let gemsUsed = 0;
+      const gemsUsedByCard: { id: number; count: number }[] = [];
       const wildcardsUsed = { common: 0, rare: 0, epic: 0, legendary: 0, champion: 0 };
       const wildcardsUsedByCard: { id: number; count: number; rarity: string }[] = [];
       const missingBaseCards: string[] = [];
@@ -576,11 +582,18 @@ function App() {
               else if (rarity === 'legendary') currentWildCards = localLegendaryWild;
               else if (rarity === 'champion') currentWildCards = localChampionWild;
 
-            const { virtualLevel, totalGold, remainingCount, remainingWildCards } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards);
+            const { virtualLevel, totalGold, remainingCount, remainingWildCards, remainingGems } = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards, localGems);
             
             const usedWCs = currentWildCards - remainingWildCards;
             if (usedWCs > 0) {
               wildcardsUsedByCard.push({ id: metaCard.id, count: usedWCs, rarity });
+            }
+            
+            const usedGems = localGems - remainingGems;
+            if (usedGems > 0) {
+              gemsUsed += usedGems;
+              gemsUsedByCard.push({ id: metaCard.id, count: usedGems });
+              localGems = remainingGems;
             }
 
             if (rarity === 'common') { wildcardsUsed.common += usedWCs; localCommonWild = remainingWildCards; }
@@ -685,6 +698,8 @@ function App() {
           virtualUpgrades,
           evoShardsUsed,
           heroCoinsUsed,
+          gemsUsed,
+          gemsUsedByCard,
           wildcardsUsed,
           wildcardsUsedByCard,
           scoreBreakdown: {
@@ -936,6 +951,16 @@ function App() {
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
+                </div>
+                <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '150px' }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gems</label>
+                  <input 
+                    type="number" min="0" 
+                    value={magicItems.gems || ''} 
+                    onChange={e => setMagicItems({...magicItems, gems: e.target.value === '' ? 0 : parseInt(e.target.value)})} 
+                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
+                  />
+                  <span style={{ fontSize: '0.7rem', color: '#10b981' }}>Used for missing cards</span>
                 </div>
                 
                 <div style={{ width: '100%', marginTop: '0.5rem' }}>

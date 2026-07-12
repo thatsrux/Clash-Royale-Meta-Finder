@@ -173,6 +173,7 @@ export interface MagicItems {
   evoShards: number | '';
   heroCoins: number | '';
   specificEvoShards?: Record<string, number>;
+  gems?: number | '';
 }
 
 const UPGRADE_REQUIREMENTS: Record<string, Record<number, number>> = {
@@ -204,6 +205,19 @@ export const getCardsToNextLevel = (rarity: string, displayLevel: number): numbe
   return requirementsTable[displayLevel] || 0;
 };
 
+export const getGemsCost = (rarity: string, missingCards: number): number => {
+  if (missingCards <= 0) return 0;
+  switch ((rarity || 'common').toLowerCase()) {
+    case 'common': return Math.ceil(missingCards * (419 / 1164));
+    case 'rare': return Math.ceil(missingCards * (1707 / 797));
+    case 'epic': return Math.ceil(missingCards * (307 / 16));
+    case 'legendary': return Math.ceil(missingCards * (844 / 4));
+    case 'champion': return Math.ceil(missingCards * (800 / 2));
+    case 'hero': return Math.ceil(missingCards * (800 / 2));
+    default: return 0;
+  }
+};
+
 const UPGRADE_GOLD_COST: Record<number, number> = {
   1: 5, 2: 20, 3: 50, 4: 150, 5: 400, 6: 1000, 7: 2000, 8: 4000, 
   9: 5000, 10: 15000, 11: 25000, 12: 40000, 13: 60000, 14: 90000, 15: 120000, 16: 0
@@ -213,31 +227,60 @@ export const getVirtualLevelAndGold = (
   rarity: string, 
   currentDisplayLevel: number, 
   currentCount: number,
-  wildCards: number = 0
-): { virtualLevel: number, totalGold: number, remainingCount: number, remainingWildCards: number } => {
+  wildCards: number = 0,
+  gems: number = 0
+): { virtualLevel: number, totalGold: number, remainingCount: number, remainingWildCards: number, remainingGems: number } => {
   let virtualLevel = currentDisplayLevel;
   let totalGold = 0;
   let remainingCount = currentCount;
   let remainingWildCards = wildCards;
+  let remainingGems = gems;
   
   while (virtualLevel < 16) {
     const requiredCards = getCardsToNextLevel(rarity, virtualLevel);
-    if (requiredCards > 0 && (remainingCount + remainingWildCards) >= requiredCards) {
-      if (remainingCount >= requiredCards) {
-        remainingCount -= requiredCards;
-      } else {
-        const deficit = requiredCards - remainingCount;
-        remainingCount = 0;
-        remainingWildCards -= deficit;
+    if (requiredCards > 0) {
+      let deficit = requiredCards - remainingCount;
+      
+      let usedWilds = 0;
+      let usedGems = 0;
+      
+      if (deficit > 0) {
+        if (remainingWildCards >= deficit) {
+          usedWilds = deficit;
+          deficit = 0;
+        } else {
+          usedWilds = remainingWildCards;
+          deficit -= remainingWildCards;
+        }
       }
-      totalGold += (UPGRADE_GOLD_COST[virtualLevel] || 0);
-      virtualLevel++;
+      
+      if (deficit > 0) {
+        const cost = getGemsCost(rarity, deficit);
+        if (remainingGems >= cost) {
+          usedGems = cost;
+          deficit = 0;
+        }
+      }
+      
+      if (deficit === 0) {
+        if (remainingCount >= requiredCards) {
+          remainingCount -= requiredCards;
+        } else {
+          remainingCount = 0;
+          remainingWildCards -= usedWilds;
+          remainingGems -= usedGems;
+        }
+        totalGold += (UPGRADE_GOLD_COST[virtualLevel] || 0);
+        virtualLevel++;
+      } else {
+        break;
+      }
     } else {
       break;
     }
   }
   
-  return { virtualLevel, totalGold, remainingCount, remainingWildCards };
+  return { virtualLevel, totalGold, remainingCount, remainingWildCards, remainingGems };
 };
 
 

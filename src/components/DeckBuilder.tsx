@@ -21,6 +21,8 @@ interface MetaDeck {
   virtualUpgrades?: { id: number; gold: number; level: number }[];
   evoShardsUsed?: { id: number; count: number }[];
   heroCoinsUsed?: { id: number; count: number }[];
+  gemsUsed?: number;
+  gemsUsedByCard?: { id: number; count: number }[];
   wildcardsUsed?: Record<string, number>;
   wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
   towerTroopId?: number;
@@ -685,6 +687,20 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             )}
 
                             {(() => {
+                              const gemInfo = deck.gemsUsedByCard?.find((g: any) => g.id === card.id);
+                              if (!gemInfo) return null;
+                              return (
+                                <div className="magic-badge" style={{
+                                  background: '#10b981',
+                                  color: 'white',
+                                  borderColor: 'rgba(255,255,255,0.3)'
+                                }} title={`${gemInfo.count} Gems needed`}>
+                                  💎 {gemInfo.count}
+                                </div>
+                              );
+                            })()}
+
+                            {(() => {
                               const wcInfo = deck.wildcardsUsedByCard?.find((w: any) => w.id === card.id);
                               if (!wcInfo) return null;
                               return (
@@ -723,6 +739,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       <div className="stat-icon"><CheckCircle2 size={14} /></div>
                       <div className="stat-info"><span className="stat-label">MAXED CARDS</span><span className="stat-value">{deck.maxedCount}/8</span></div>
                     </div>
+                    {(deck.gemsUsed || 0) > 0 && (
+                      <div className="deck-stat-item" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        <div className="stat-icon"><span style={{ fontSize: '10px' }}>💎</span></div>
+                        <div className="stat-info"><span className="stat-label" style={{ color: '#10b981' }}>GEMS USED</span><span className="stat-value" style={{ color: '#10b981' }}>{deck.gemsUsed}</span></div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
