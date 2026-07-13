@@ -75,11 +75,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   setIsMaxPotentialMode
 }) => {
   const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
-  const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
-  const [expandedMatchups, setExpandedMatchups] = useState<Record<number, boolean>>({});
   const [expandedScoreIdx, setExpandedScoreIdx] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const [sortCriterion, setSortCriterion] = useState<string>('winRate');
@@ -88,7 +86,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(20);
-  }, [selectedFilters, selectedArchetypes]);
+  }, [selectedFilters]);
 
   const handleLoadMore = () => {
     setVisibleCount(prev => prev + 20);
@@ -102,14 +100,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       }
       return [...prev, item];
     });
-  };
-
-  const toggleArchetype = (arch: string) => {
-    setSelectedArchetypes(prev => prev.includes(arch) ? prev.filter(a => a !== arch) : [...prev, arch]);
-  };
-
-  const toggleMatchup = (idx: number) => {
-    setExpandedMatchups(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const generateDeckLink = (deck: MetaDeck): string => {
@@ -170,10 +160,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     return null;
   };
 
-  const { availableArchetypes, filteredRecommendations } = useMemo(() => {
-    if (!cachedDecks || cachedDecks.length === 0) return { cardFilteredDecks: [], availableArchetypes: [], filteredRecommendations: [] };
+  const { filteredRecommendations } = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return { cardFilteredDecks: [], filteredRecommendations: [] };
     
-    const cFiltered = cachedDecks
+    let finalFiltered = cachedDecks
       .filter(deck => 
         selectedFilters.every(filter => {
           if (filter.isEvoFilter) {
@@ -185,17 +175,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           }
         })
       );
-
-    const archs = new Set<string>();
-    cFiltered.forEach(deck => {
-      archs.add(detectArchetype(deck.cards));
-    });
-    const availableArchs = Array.from(archs).sort();
-
-    let finalFiltered = cFiltered;
-    if (selectedArchetypes.length > 0) {
-      finalFiltered = finalFiltered.filter(deck => selectedArchetypes.includes(detectArchetype(deck.cards)));
-    }
 
     finalFiltered.sort((a, b) => {
         const aDisplayScore = Math.round(a.score);
@@ -241,10 +220,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
 
     return { 
-      availableArchetypes: availableArchs,
-      filteredRecommendations: selectedFilters.length === 0 && selectedArchetypes.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
+      filteredRecommendations: selectedFilters.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
     };
-  }, [cachedDecks, selectedFilters, selectedArchetypes, sortCriterion, sortDirection]);
+  }, [cachedDecks, selectedFilters, sortCriterion, sortDirection]);
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
     const champions: FilterItem[] = [];
@@ -410,54 +388,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                       <CardImage src={f.icon} cardName={f.name} />
                     </div>
                   ))}
-                  {selectedArchetypes.map((arch) => (
-                    <div 
-                      key={arch}
-                      onClick={() => toggleArchetype(arch)}
-                      style={{ cursor: 'pointer', padding: '4px 8px', background: 'var(--primary)', color: 'white', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      {arch} <X size={12} />
-                    </div>
                   ))}
                 </div>
               </div>
 
-              {(selectedFilters.length > 0 || selectedArchetypes.length > 0) && (
-                <button onClick={() => { setSelectedFilters([]); setSelectedArchetypes([]); }} className="clear-btn">
+              {selectedFilters.length > 0 && (
+                <button onClick={() => { setSelectedFilters([]); }} className="clear-btn">
                   <X size={12} /> Reset
                 </button>
               )}
             </div>
             
             <div className="filter-sections-container">
-              {availableArchetypes && availableArchetypes.length > 0 && (
-                <div className="filter-section-group">
-                  <div className="section-title" style={{ color: 'var(--text)' }}>
-                    <Target size={14} /> ARCHETYPES
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                    {availableArchetypes.map(arch => (
-                      <button
-                        key={arch}
-                        onClick={() => toggleArchetype(arch)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '20px',
-                          border: selectedArchetypes.includes(arch) ? '1px solid var(--primary)' : '1px solid var(--border)',
-                          background: selectedArchetypes.includes(arch) ? 'rgba(43, 115, 255, 0.2)' : 'transparent',
-                          color: selectedArchetypes.includes(arch) ? 'var(--primary)' : 'var(--text-muted)',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {arch}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
               <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
               <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" />
               <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" />
@@ -558,7 +500,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             const realAvgLevel = ownedCount > 0 ? (ownedLevelSum / ownedCount).toFixed(1) : 0;
             const affinityPercent = Math.floor(deck.score);
             const affinityColor = affinityPercent >= 95 ? '#4ade80' : (affinityPercent >= 70 ? '#fbbf24' : '#ef4444');
-            const archetype = detectArchetype(deck.cards);
 
             const evoCount = deck.cards.filter((c: any) => c._forceForm === 'evo').length;
             const champCount = deck.cards.filter((c: any) => isChampion(c) || c._forceForm === 'hero').length;
@@ -580,11 +521,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 <div className="deck-header">
                   <div className="deck-header-left">
                     <div className="deck-header-info">
-                      <div className="archetype-title">{archetype}</div>
                       <div className="deck-meta-tags">
                         <div className="meta-tag uses" title="Number of Pro Players using this exact 8-card combination"><Trophy size={12} /> <span>{deck.count} PRO USES</span></div>
                         {deck.maxMedals > 0 && <div className="meta-tag medals" title="Highest medals achieved with this deck"><Medal size={12} /> <span>{deck.maxMedals}</span></div>}
                         {deck.bestPlayerName && <div className="meta-tag player" title="Top player using this deck"><UserCircle2 size={12} /> <span>{deck.bestPlayerName}</span></div>}
+                        {deck.winRate !== undefined && deck.winRate > 0 && (
+                          <div className="meta-tag" style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)' }} title="Win Rate"><TrendingUp size={12} /> <span>{deck.winRate.toFixed(1)}% WR</span></div>
+                        )}
+                        <div className="meta-tag" style={{ color: '#d946ef', borderColor: 'rgba(217, 70, 239, 0.3)', background: 'rgba(217, 70, 239, 0.1)' }} title="Avg Elixir"><Droplets size={12} /> <span>{deck.elixirCost.toFixed(1)}</span></div>
                       </div>
                     </div>
                     <div className="deck-actions">
@@ -601,13 +545,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         title="Show QR Code"
                       >
                         <QrCode size={14} />
-                      </button>
-                      <button 
-                        className={`action-btn matchup-btn ${expandedMatchups[idx] ? 'active' : ''}`}
-                        onClick={() => toggleMatchup(idx)}
-                        title="View Matchups"
-                      >
-                        <LineChart size={14} />
                       </button>
                     </div>
                   </div>
@@ -814,24 +751,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {expandedMatchups[idx] && (
-                  <div className="matchup-expansion-panel">
-                    <div className="matchup-col strong-vs">
-                      <div className="matchup-header"><ArrowUp size={14} /> STRONG AGAINST</div>
-                      <div className="matchup-tags">
-                        {getArchetypeMatchups(archetype).strong.map(m => <span key={m} className="m-tag strong">{m}</span>)}
-                      </div>
-                    </div>
-                    <div className="matchup-divider"></div>
-                    <div className="matchup-col weak-vs">
-                      <div className="matchup-header"><ArrowDown size={14} /> WEAK AGAINST</div>
-                      <div className="matchup-tags">
-                        {getArchetypeMatchups(archetype).weak.map(m => <span key={m} className="m-tag weak">{m}</span>)}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {(missingCards.length > 0 || deck.missingEvos?.length > 0 || deck.missingHeroes?.length > 0) ? (
                   <div className="deck-missing-section">
