@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { CardImage } from './CardImage';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, detectArchetype, getArchetypeMatchups } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, LineChart, Gem } from 'lucide-react';
+import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions } from '../types/clashRoyale';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, Gem } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface MetaDeck {
@@ -387,7 +387,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     >
                       <CardImage src={f.icon} cardName={f.name} />
                     </div>
-                  ))}
                   ))}
                 </div>
               </div>
