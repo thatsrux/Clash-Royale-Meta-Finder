@@ -38,6 +38,8 @@ interface MetaDeck {
   gemsUsedByCard: { id: number; count: number }[];
   totalCostScore?: number;
   towerTroopId?: number;
+  winRate?: number;
+  totalMatches?: number;
 }
 
 type SortOption = 'level' | 'elixir' | 'rarity' | 'evo' | 'hero-only' | 'evo-only';
@@ -433,7 +435,7 @@ function App() {
       if (!rankingsData) throw new Error('Could not find any active rankings.');
 
       const playersToFetch = rankingsData.items.slice(0, 200);
-      const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number, playerName: string }[] = [];
+      const decksWithRatings: { deck: Card[], towerTroopId?: number, rating: number, playerName: string, wins: number, totalMatches: number }[] = [];
       const batchSize = 20;
       
       const extractDeckFromLog = (log: any[]) => {
@@ -442,6 +444,24 @@ function App() {
         const allCards = recentMatch.team[0].cards || [];
         registerCardIcons(allCards);
         const towerTroop = allCards.find((c: any) => c.id >= 68000000);
+        
+        const recentDeckIds = allCards.filter((c: any) => c.id < 68000000).map((c: any) => c.id).sort().join(',');
+        let wins = 0;
+        let totalMatches = 0;
+        
+        log.forEach(entry => {
+            if (entry.type === 'pathOfLegend' || entry.type === 'PvP') {
+                if (entry.team && entry.team[0] && entry.team[0].cards) {
+                    const entryDeckIds = entry.team[0].cards.filter((c: any) => c.id < 68000000).map((c: any) => c.id).sort().join(',');
+                    if (entryDeckIds === recentDeckIds) {
+                        totalMatches++;
+                        const teamCrowns = entry.team[0].crowns || 0;
+                        const oppCrowns = (entry.opponent && entry.opponent[0] && entry.opponent[0].crowns) ? entry.opponent[0].crowns : 0;
+                        if (teamCrowns > oppCrowns) wins++;
+                    }
+                }
+            }
+        });
         
         const deck = allCards.filter((c: any) => c.id < 68000000).slice(0, 8).map((c: any, index: number) => {
           let forcedForm: 'hero' | 'evo' | 'normal' = 'normal';
@@ -471,7 +491,7 @@ function App() {
           };
         });
 
-        return { deck, towerTroopId: towerTroop?.id };
+        return { deck, towerTroopId: towerTroop?.id, wins, totalMatches };
       };
 
       for (let i = 0; i < playersToFetch.length; i += batchSize) {
@@ -500,7 +520,7 @@ function App() {
                 return { ...c, _forceForm: forcedForm };
               });
               const tower = deck.find((c: any) => c.id >= 68000000);
-              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: proRating, playerName: proName } : null;
+              return filtered.length === 8 ? { deck: filtered, towerTroopId: tower?.id, rating: proRating, playerName: proName, wins: 0, totalMatches: 0 } : null;
             }
           } catch { return null; }
           return null;
@@ -509,20 +529,22 @@ function App() {
         setMetaProgress(Math.round(((i + batch.length) / playersToFetch.length) * 100));
       }
       
-      const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number, bestPlayerName: string }> = {};
+      const deckCounts: Record<string, { cards: Card[], towerTroopId?: number, count: number, maxRating: number, bestPlayerName: string, wins: number, totalMatches: number }> = {};
       decksWithRatings.forEach(item => {
         const key = item.deck.map((c: any) => `${c.id}-${c._forceForm}`).sort().join(',');
         const itemRating = Number(item.rating);
 
         if (deckCounts[key]) {
           deckCounts[key].count++;
+          deckCounts[key].wins += item.wins || 0;
+          deckCounts[key].totalMatches += item.totalMatches || 0;
           if (itemRating > deckCounts[key].maxRating) {
             deckCounts[key].maxRating = itemRating;
             deckCounts[key].bestPlayerName = item.playerName;
           }
           if (!deckCounts[key].towerTroopId) deckCounts[key].towerTroopId = item.towerTroopId;
         } else {
-          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: itemRating, bestPlayerName: item.playerName };
+          deckCounts[key] = { cards: item.deck, towerTroopId: item.towerTroopId, count: 1, maxRating: itemRating, bestPlayerName: item.playerName, wins: item.wins || 0, totalMatches: item.totalMatches || 0 };
         }
       });
 
@@ -693,6 +715,8 @@ function App() {
                                (wildcardsUsed.legendary * 100) + 
                                (wildcardsUsed.champion * 200);
 
+        const winRate = meta.totalMatches > 0 ? (meta.wins / meta.totalMatches) * 100 : 0;
+
         return {
           name: `Meta Archetype`,
           cards: meta.cards,
@@ -715,6 +739,8 @@ function App() {
           totalCostScore,
           wildcardsUsed,
           wildcardsUsedByCard,
+          winRate,
+          totalMatches: meta.totalMatches,
           scoreBreakdown: {
             baseLevelScore: (totalLevel / 128) * 100,
             levelScoreBoost,
@@ -733,6 +759,10 @@ function App() {
         const bDisplayScore = Math.round(b.score);
         
         if (aDisplayScore !== bDisplayScore) return b.score - a.score;
+        
+        const aWinRate = a.winRate || 0;
+        const bWinRate = b.winRate || 0;
+        if (aWinRate !== bWinRate) return bWinRate - aWinRate;
         
         const aCost = a.totalCostScore || 0;
         const bCost = b.totalCostScore || 0;

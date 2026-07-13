@@ -27,6 +27,8 @@ interface MetaDeck {
   wildcardsUsed?: Record<string, number>;
   wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
   towerTroopId?: number;
+  winRate?: number;
+  totalMatches?: number;
   scoreBreakdown?: {
     baseLevelScore: number;
     levelScoreBoost: number;
@@ -80,6 +82,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [expandedMatchups, setExpandedMatchups] = useState<Record<number, boolean>>({});
   const [expandedScoreIdx, setExpandedScoreIdx] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [sortCriterion, setSortCriterion] = useState<string>('winRate');
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -199,6 +203,36 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         
         if (aDisplayScore !== bDisplayScore) return b.score - a.score;
         
+        const dir = sortDirection === 'desc' ? 1 : -1;
+        
+        if (sortCriterion === 'winRate') {
+            const aVal = a.winRate || 0;
+            const bVal = b.winRate || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'elixir') {
+            const aVal = a.elixirCost || 0;
+            const bVal = b.elixirCost || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'gems') {
+            const aVal = a.gemsUsed || 0;
+            const bVal = b.gemsUsed || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'gold') {
+            const aVal = a.virtualUpgrades?.reduce((sum: number, u: any) => sum + u.gold, 0) || 0;
+            const bVal = b.virtualUpgrades?.reduce((sum: number, u: any) => sum + u.gold, 0) || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'affinity') {
+            if (a.score !== b.score) return (b.score - a.score) * dir;
+        } else if (sortCriterion === 'evoShards') {
+            const aVal = a.evoShardsUsed?.reduce((sum: number, e: any) => sum + e.count, 0) || 0;
+            const bVal = b.evoShardsUsed?.reduce((sum: number, e: any) => sum + e.count, 0) || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'wildCards') {
+            const aVal = Object.values(a.wildcardsUsed || {}).reduce((sum: number, count: any) => sum + count, 0);
+            const bVal = Object.values(b.wildcardsUsed || {}).reduce((sum: number, count: any) => sum + count, 0);
+            if (aVal !== bVal) return (bVal - aVal) * dir;
+        }
+        
         const aCost = a.totalCostScore || 0;
         const bCost = b.totalCostScore || 0;
         if (aCost !== bCost) return aCost - bCost;
@@ -210,7 +244,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       availableArchetypes: availableArchs,
       filteredRecommendations: selectedFilters.length === 0 && selectedArchetypes.length === 0 ? finalFiltered : finalFiltered.slice(0, 100) 
     };
-  }, [cachedDecks, selectedFilters, selectedArchetypes]);
+  }, [cachedDecks, selectedFilters, selectedArchetypes, sortCriterion, sortDirection]);
   const sections = useMemo(() => {
     const evos: FilterItem[] = [];
     const champions: FilterItem[] = [];
@@ -483,10 +517,34 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               </div>
             </div>
           )}
-          <div className="results-summary-bar">
+          <div className="results-summary-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div className="total-decks-badge">
               <LayoutDashboard size={14} />
               <span>TOTAL DECKS: {filteredRecommendations.length} {filteredRecommendations.length > visibleCount && `(SHOWING ${visibleCount})`}</span>
+            </div>
+            
+            <div className="deck-sorting-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>TIE-BREAKER:</span>
+              <select 
+                value={sortCriterion}
+                onChange={(e) => setSortCriterion(e.target.value)}
+                style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid var(--border)', color: 'white', padding: '0.4rem', borderRadius: '0.5rem', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="winRate">Win Rate</option>
+                <option value="elixir">Avg Elixir</option>
+                <option value="gems">Gems Cost</option>
+                <option value="gold">Gold Cost</option>
+                <option value="affinity">Exact Affinity</option>
+                <option value="evoShards">Evo Shards Used</option>
+                <option value="wildCards">Wildcards Used</option>
+              </select>
+              <button 
+                onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
+                style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid var(--border)', color: 'white', padding: '0.4rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                title={sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+              >
+                {sortDirection === 'desc' ? <ArrowDown size={16} /> : <ArrowUp size={16} />}
+              </button>
             </div>
           </div>
           {filteredRecommendations.slice(0, visibleCount).map((deck, idx) => {
