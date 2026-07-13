@@ -464,12 +464,12 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <span>TOTAL DECKS: {filteredRecommendations.length} {filteredRecommendations.length > visibleCount && `(SHOWING ${visibleCount})`}</span>
             </div>
             
-            <div className="deck-sorting-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>TIE-BREAKER:</span>
+            <div className="deck-sorting-controls">
+              <span className="sorting-label">TIE-BREAKER</span>
               <select 
                 value={sortCriterion}
                 onChange={(e) => setSortCriterion(e.target.value)}
-                style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid var(--border)', color: 'white', padding: '0.4rem', borderRadius: '0.5rem', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}
+                className="premium-select"
               >
                 <option value="winRate">Win Rate</option>
                 <option value="elixir">Avg Elixir</option>
@@ -481,10 +481,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               </select>
               <button 
                 onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
-                style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid var(--border)', color: 'white', padding: '0.4rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                className="sort-dir-btn"
                 title={sortDirection === 'desc' ? 'Descending' : 'Ascending'}
               >
-                {sortDirection === 'desc' ? <ArrowDown size={16} /> : <ArrowUp size={16} />}
+                {sortDirection === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
               </button>
             </div>
           </div>
