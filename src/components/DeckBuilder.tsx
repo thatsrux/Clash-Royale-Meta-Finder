@@ -524,7 +524,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                         <div className="meta-tag uses" title="Number of Pro Players using this exact 8-card combination"><Trophy size={12} /> <span>{deck.count} PRO USES</span></div>
                         {deck.maxMedals > 0 && <div className="meta-tag medals" title="Highest medals achieved with this deck"><Medal size={12} /> <span>{deck.maxMedals}</span></div>}
                         {deck.bestPlayerName && <div className="meta-tag player" title="Top player using this deck"><UserCircle2 size={12} /> <span>{deck.bestPlayerName}</span></div>}
-                        {deck.winRate !== undefined && deck.winRate > 0 && (
+                        {deck.winRate !== undefined && (
                           <div className="meta-tag" style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)' }} title="Win Rate"><TrendingUp size={12} /> <span>{deck.winRate.toFixed(1)}% WR</span></div>
                         )}
                         <div className="meta-tag" style={{ color: '#d946ef', borderColor: 'rgba(217, 70, 239, 0.3)', background: 'rgba(217, 70, 239, 0.1)' }} title="Avg Elixir"><Droplets size={12} /> <span>{deck.elixirCost.toFixed(1)}</span></div>
