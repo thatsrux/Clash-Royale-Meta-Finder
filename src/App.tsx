@@ -1253,6 +1253,9 @@ function App() {
                 allGameCards={allGameCards}
                 isMaxPotentialMode={isMaxPotentialMode}
                 setIsMaxPotentialMode={setIsMaxPotentialMode}
+                rawDeckCounts={rawDeckCounts}
+                magicItems={magicItems}
+                getRarityClass={getRarityClass}
               />
             </div>
           )}
