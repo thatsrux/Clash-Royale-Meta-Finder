@@ -350,10 +350,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     };
   }, [allGameCards]);
 
-  const FilterGrid = ({ items, title, icon: Icon, color }: { items: FilterItem[], title: string, icon: any, color: string }) => {
+  const renderFilterGrid = (items: FilterItem[], title: string, Icon: any, color: string) => {
     if (items.length === 0) return null;
     return (
-      <div className="filter-section-group">
+      <div className="filter-section-group" key={title}>
         <div className="section-title" style={{ color }}>
           <Icon size={14} /> {title} ({items.length})
         </div>
@@ -494,10 +494,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             </div>
             
             <div className="filter-sections-container">
-              <FilterGrid items={sections.evos} title="EVOLUTIONS" icon={Sparkles} color="var(--evo-purple)" />
-              <FilterGrid items={sections.champions} title="CHAMPIONS" icon={Crown} color="var(--champion-gold)" />
-              <FilterGrid items={sections.heroes} title="HEROES" icon={Crown} color="var(--hero-yellow)" />
-              <FilterGrid items={sections.normal} title="ALL CARDS" icon={Filter} color="var(--text-muted)" />
+              {renderFilterGrid(sections.evos, "EVOLUTIONS", Sparkles, "var(--evo-purple)")}
+              {renderFilterGrid(sections.champions, "CHAMPIONS", Crown, "var(--champion-gold)")}
+              {renderFilterGrid(sections.heroes, "HEROES", Crown, "var(--hero-yellow)")}
+              {renderFilterGrid(sections.normal, "ALL CARDS", Filter, "var(--text-muted)")}
             </div>
           </div>
         )}
