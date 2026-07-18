@@ -1108,55 +1108,6 @@ function App() {
                 </div>
               </div>
 
-              <div className="collection-header">
-                <h3>Card Collection ({sortedCards.length})</h3>
-                <div className="sort-controls">
-                  <span className="sort-label">View:</span>
-                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="sort-select">
-                    <option value="level">By Level</option>
-                    <option value="rarity">By Rarity</option>
-                    <option value="elixir">By Elixir</option>
-                    <option value="evo">By Evolution</option>
-                    <option value="hero-only">ONLY HEROES</option>
-                    <option value="evo-only">ONLY EVOS</option>
-                  </select>
-                  <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="order-toggle-btn">
-                    {sortOrder === 'asc' ? <ArrowUpAZ size={18} /> : <ArrowDownAZ size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="card-grid pure-style">
-                {sortedCards.map((card) => {
-                  const displayLevel = getDisplayLevel(card);
-                  const heroVariant = isHeroVariantUnlocked(card);
-                  const hero = isAnyHeroUnlocked(card);
-                  const evo = isEvoUnlocked(card);
-                  const icon = getCardIcon(card, heroVariant, evo);
-                  const elixir = cardMap[card.id]?.elixirCost;
-
-                  const rarityClass = getRarityClass(card);
-                  const isRonin = card.name && card.name.toLowerCase().includes('ronin');
-                  return (
-                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}>
-                      <CardImage src={icon} cardName={card.name} />
-                      <div className="mini-level">{displayLevel}</div>
-                      {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
-                      <div className="card-badges-compact">
-                        {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
-                        {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
-                      </div>
-                      
-                      {displayLevel < 16 && (
-                        <div className="card-progress">
-                          {card.count}/{getCardsToNextLevel(rarityClass, displayLevel)}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
               {isMetaLoading && (
                 <div className="variant-insights-section loading">
                   <div className="insights-divider"><RefreshCw size={20} className="spin" /><span>ANALYZING META STRATEGIES...</span></div>
@@ -1232,6 +1183,55 @@ function App() {
                   </>
                 </div>
               )}
+
+              <div className="collection-header">
+                <h3>Card Collection ({sortedCards.length})</h3>
+                <div className="sort-controls">
+                  <span className="sort-label">View:</span>
+                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="sort-select">
+                    <option value="level">By Level</option>
+                    <option value="rarity">By Rarity</option>
+                    <option value="elixir">By Elixir</option>
+                    <option value="evo">By Evolution</option>
+                    <option value="hero-only">ONLY HEROES</option>
+                    <option value="evo-only">ONLY EVOS</option>
+                  </select>
+                  <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="order-toggle-btn">
+                    {sortOrder === 'asc' ? <ArrowUpAZ size={18} /> : <ArrowDownAZ size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="card-grid pure-style">
+                {sortedCards.map((card) => {
+                  const displayLevel = getDisplayLevel(card);
+                  const heroVariant = isHeroVariantUnlocked(card);
+                  const hero = isAnyHeroUnlocked(card);
+                  const evo = isEvoUnlocked(card);
+                  const icon = getCardIcon(card, heroVariant, evo);
+                  const elixir = cardMap[card.id]?.elixirCost;
+
+                  const rarityClass = getRarityClass(card);
+                  const isRonin = card.name && card.name.toLowerCase().includes('ronin');
+                  return (
+                    <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}>
+                      <CardImage src={icon} cardName={card.name} />
+                      <div className="mini-level">{displayLevel}</div>
+                      {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
+                      <div className="card-badges-compact">
+                        {hero && <div className="badge hero-badge-tiny"><Crown size={8} strokeWidth={3} /></div>}
+                        {evo && <div className="badge evo-badge-tiny"><Sparkles size={8} strokeWidth={3} /></div>}
+                      </div>
+                      
+                      {displayLevel < 16 && (
+                        <div className="card-progress">
+                          {card.count}/{getCardsToNextLevel(rarityClass, displayLevel)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
