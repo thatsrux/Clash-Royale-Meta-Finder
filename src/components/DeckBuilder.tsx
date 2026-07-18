@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CardImage } from './CardImage';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, Gem } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, Gem, Swords } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface MetaDeck {
@@ -87,6 +87,65 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const isTouchDevice = useMemo(() => {
     return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   }, []);
+
+  const [showWarDecks, setShowWarDecks] = useState(false);
+
+  const bestWarDecks = useMemo(() => {
+    if (!cachedDecks || cachedDecks.length === 0) return [];
+    
+    const sortedDecks = [...cachedDecks].sort((a, b) => b.score - a.score);
+    
+    let bestCombination: MetaDeck[] = [];
+    let bestScore = -1;
+
+    const maxDecksToConsider = Math.min(200, sortedDecks.length);
+
+    const findCombination = (
+      currentIndex: number, 
+      currentCombination: MetaDeck[], 
+      usedCards: Set<number>, 
+      currentScore: number
+    ) => {
+      if (currentCombination.length === 4) {
+        if (currentScore > bestScore) {
+          bestScore = currentScore;
+          bestCombination = [...currentCombination];
+        }
+        return;
+      }
+
+      const remainingNeeded = 4 - currentCombination.length;
+      if (currentIndex < maxDecksToConsider) {
+         const optimisticMax = currentScore + (sortedDecks[currentIndex].score * remainingNeeded);
+         if (optimisticMax <= bestScore) return; 
+      }
+
+      for (let i = currentIndex; i < maxDecksToConsider; i++) {
+        const deck = sortedDecks[i];
+        
+        let hasOverlap = false;
+        for (const card of deck.cards) {
+          if (usedCards.has(card.id)) {
+            hasOverlap = true;
+            break;
+          }
+        }
+
+        if (!hasOverlap) {
+          currentCombination.push(deck);
+          for (const card of deck.cards) usedCards.add(card.id);
+          
+          findCombination(i + 1, currentCombination, usedCards, currentScore + deck.score);
+          
+          currentCombination.pop();
+          for (const card of deck.cards) usedCards.delete(card.id);
+        }
+      }
+    };
+
+    findCombination(0, [], new Set(), 0);
+    return bestCombination;
+  }, [cachedDecks]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -388,23 +447,57 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   return (
     <div className="deck-builder">
-      <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', margin: '1rem 0' }}>
-        <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '2rem', padding: '0.25rem', border: '1px solid var(--border)' }}>
-          <button 
-            onClick={() => setIsMaxPotentialMode(false)}
-            style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: !isMaxPotentialMode ? 'var(--primary)' : 'transparent', color: !isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-          >
-            Play Now
-          </button>
-          <button 
-            onClick={() => setIsMaxPotentialMode(true)}
-            style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: isMaxPotentialMode ? 'var(--evo-purple)' : 'transparent', color: isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
-          >
-            <Sparkles size={16} /> Max Potential
-          </button>
+      <div 
+        className="war-banner" 
+        onClick={() => setShowWarDecks(!showWarDecks)} 
+        style={{ 
+          background: 'linear-gradient(135deg, #7f1d1d, #ef4444)', 
+          padding: '1rem', 
+          borderRadius: '1rem', 
+          margin: '0.5rem 1rem 1rem 1rem', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          cursor: 'pointer', 
+          boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' 
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '50%' }}>
+            <Swords color="white" size={24} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Clan War Decks</h3>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>Find the best 4 non-overlapping decks</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)', width: '32px', height: '32px', borderRadius: '50%' }}>
+          {showWarDecks ? <ArrowUp color="white" size={18} /> : <ArrowDown color="white" size={18} />}
         </div>
       </div>
-      <div className="builder-header-simple">
+
+      {!showWarDecks && (
+        <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', margin: '1rem 0' }}>
+          <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '2rem', padding: '0.25rem', border: '1px solid var(--border)' }}>
+            <button 
+              onClick={() => setIsMaxPotentialMode(false)}
+              style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: !isMaxPotentialMode ? 'var(--primary)' : 'transparent', color: !isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+              Play Now
+            </button>
+            <button 
+              onClick={() => setIsMaxPotentialMode(true)}
+              style={{ padding: '0.5rem 1.5rem', borderRadius: '2rem', border: 'none', background: isMaxPotentialMode ? 'var(--evo-purple)' : 'transparent', color: isMaxPotentialMode ? 'white' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+            >
+              <Sparkles size={16} /> Max Potential
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {!showWarDecks && (
+        <>
+        <div className="builder-header-simple">
         <div 
           className={`filter-preview-trigger ${isFilterExpanded ? 'active' : ''}`}
           onClick={() => setIsFilterExpanded(!isFilterExpanded)}
@@ -502,11 +595,25 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           </div>
         )}
       </div>
+      </>
+      )}
 
       {!cachedDecks && !isLoading && (
         <div className="start-analysis-container-centered">
           <button onClick={onAnalysisStart} className="big-analysis-btn-premium">
             <TrendingUp size={24} />
+            <span>FIND META DECKS</span>
+          </button>
+        </div>
+      )}
+      
+      {selectedFilters.length === 0 && !showWarDecks && !cachedDecks && !isLoading && (
+        <div className="empty-state">
+          <div className="empty-icon"><Activity size={48} /></div>
+          <h3>Select Cards to Find Decks</h3>
+          <p>Tap cards in the filter above to discover the perfect meta deck for your collection.</p>
+          <button className="action-btn" onClick={() => setIsFilterExpanded(true)} style={{ marginTop: '1rem', background: 'var(--primary)' }}>
+            <Filter size={16} />
             <span>FIND META DECKS</span>
           </button>
         </div>
@@ -553,38 +660,52 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               </div>
             </div>
           )}
-          <div className="results-summary-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div className="total-decks-badge">
-              <LayoutDashboard size={14} />
-              <span>TOTAL DECKS: {filteredRecommendations.length} {filteredRecommendations.length > visibleCount && `(SHOWING ${visibleCount})`}</span>
+          {showWarDecks ? (
+            <div className="results-summary-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="total-decks-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <Swords size={14} />
+                <span>4 DISJOINT DECKS FOR CLAN WARS</span>
+              </div>
+              <div className="total-decks-badge" style={{ background: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+                <Trophy size={14} />
+                <span>COMBINED SCORE: {Math.round(bestWarDecks.reduce((sum, d) => sum + d.score, 0))}</span>
+              </div>
             </div>
-            
-            <div className="deck-sorting-controls">
-              <span className="sorting-label">TIE-BREAKER</span>
-              <select 
-                value={sortCriterion}
-                onChange={(e) => setSortCriterion(e.target.value)}
-                className="premium-select"
-              >
-                <option value="winRate">Win Rate</option>
-                <option value="elixir">Avg Elixir</option>
-                <option value="medals">Medals</option>
-                <option value="gems">Gems Cost</option>
-                <option value="gold">Gold Cost</option>
-                <option value="affinity">Exact Affinity</option>
-                <option value="evoShards">Evo Shards Used</option>
-                <option value="wildCards">Wildcards Used</option>
-              </select>
-              <button 
-                onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
-                className="sort-dir-btn"
-                title={sortDirection === 'desc' ? 'Descending' : 'Ascending'}
-              >
-                {sortDirection === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
-              </button>
+          ) : (
+            <div className="results-summary-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div className="total-decks-badge">
+                <LayoutDashboard size={14} />
+                <span>TOTAL DECKS: {filteredRecommendations.length} {filteredRecommendations.length > visibleCount && `(SHOWING ${visibleCount})`}</span>
+              </div>
+              
+              <div className="deck-sorting-controls">
+                <span className="sorting-label">TIE-BREAKER</span>
+                <select 
+                  value={sortCriterion}
+                  onChange={(e) => setSortCriterion(e.target.value)}
+                  className="premium-select"
+                >
+                  <option value="winRate">Win Rate</option>
+                  <option value="elixir">Avg Elixir</option>
+                  <option value="medals">Medals</option>
+                  <option value="gems">Gems Cost</option>
+                  <option value="gold">Gold Cost</option>
+                  <option value="affinity">Exact Affinity</option>
+                  <option value="evoShards">Evo Shards Used</option>
+                  <option value="wildCards">Wildcards Used</option>
+                </select>
+                <button 
+                  onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
+                  className="sort-dir-btn"
+                  title={sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+                >
+                  {sortDirection === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                </button>
+              </div>
             </div>
-          </div>
-          {filteredRecommendations.slice(0, visibleCount).map((deck, idx) => {
+          )}
+          
+          {(showWarDecks ? bestWarDecks : filteredRecommendations.slice(0, visibleCount)).map((deck, idx) => {
             const missingCards: any[] = [];
             const ownedLevelSum = deck.cards.reduce((sum: number, metaCard: any) => {
               const uCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
@@ -947,7 +1068,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             );
           })}
 
-          {filteredRecommendations.length > visibleCount && (
+          {(!showWarDecks && filteredRecommendations.length > visibleCount) && (
             <div className="load-more-container" style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', marginBottom: '3rem' }}>
               <button 
                 onClick={handleLoadMore}
