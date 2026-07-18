@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CardImage } from './CardImage';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
 import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, getVirtualLevelAndGold, getCardsToNextLevel, getDeckAverageElixir } from '../types/clashRoyale';
@@ -254,7 +254,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingMaxLevelPenalty;
       affinityRaw = Math.max(0, Math.min(100, affinityRaw));
       
-      const tieBreaker = (Math.min(meta.count, 999) * 0.001) + (meta.maxRating * 0.0000001);
+      const tieBreaker = (Math.min(meta.count, 999) * 0.001) + ((meta.maxMedals || 0) * 0.0000001);
       const score = affinityRaw + tieBreaker;
       const avgElixir = getDeckAverageElixir(meta.cards);
       
@@ -269,7 +269,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                              (wildcardsUsed.legendary * 100) + 
                              (wildcardsUsed.champion * 200);
 
-      const winRate = meta.totalMatches > 0 ? (meta.wins / meta.totalMatches) * 100 : 0;
+      const winRate = (meta.totalMatches || 0) > 0 ? ((meta.wins || 0) / (meta.totalMatches || 1)) * 100 : 0;
 
       return {
         name: `Meta Archetype`,
@@ -309,7 +309,240 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     });
   }, [rawDeckCounts, profile, magicItems, getRarityClass, getDisplayLevel, warUseGold, warUseGems, warUseWildcards, warUseEvoShards, warUseHeroCoins]);
 
+
+  const evaluateGlobalPool = useCallback((combination: MetaDeck[]) => {
+    let localCommonWild = warUseWildcards ? (Number(magicItems?.commonWild) || 0) : 0;
+    let localRareWild = warUseWildcards ? (Number(magicItems?.rareWild) || 0) : 0;
+    let localEpicWild = warUseWildcards ? (Number(magicItems?.epicWild) || 0) : 0;
+    let localLegendaryWild = warUseWildcards ? (Number(magicItems?.legendaryWild) || 0) : 0;
+    let localChampionWild = warUseWildcards ? (Number(magicItems?.championWild) || 0) : 0;
+    let localEvoShards = warUseEvoShards ? (Number(magicItems?.evoShards) || 0) : 0;
+    let localHeroCoins = warUseHeroCoins ? (Number(magicItems?.heroCoins) || 0) : 0;
+    let localGems = warUseGems ? (Number(magicItems?.gems) || 0) : 0;
+    let localSpecificEvoShards = magicItems?.specificEvoShards ? JSON.parse(JSON.stringify(magicItems.specificEvoShards)) : {};
+
+    let totalCombinedScore = 0;
+    const evaluatedDecks: MetaDeck[] = [];
+
+    for (const meta of combination) {
+      let totalLevel = 0;
+      let maxLevelCount = 0;
+      let ownedCount = 0;
+      let levelScoreBoost = 0;
+
+      const missingEvos: { name: string; icon: string }[] = [];
+      const missingHeroes: { name: string; icon: string }[] = [];
+      const virtualUpgrades: { id: number; gold: number; level: number }[] = [];
+      const evoShardsUsed: { id: number; count: number }[] = [];
+      const heroCoinsUsed: { id: number; count: number }[] = [];
+      let gemsUsed = 0;
+      const gemsUsedByCard: { id: number; count: number }[] = [];
+      const wildcardsUsed = { common: 0, rare: 0, epic: 0, legendary: 0, champion: 0 };
+      const wildcardsUsedByCard: { id: number; count: number; rarity: string }[] = [];
+      const missingBaseCards: string[] = [];
+      const nonMaxLevelCards: string[] = [];
+      const missingVariantNames: string[] = [];
+
+      meta.cards.forEach((metaCard: any) => {
+        const userCard = profile?.cards.find((c: any) => Number(c.id) === Number(metaCard.id));
+        const forcedForm = (metaCard as any)._forceForm;
+        const metaIsEvo = forcedForm === 'evo';
+        const metaIsHero = forcedForm === 'hero';
+        const rarity = getRarityClass ? getRarityClass(metaCard) : 'common';
+        
+        if (userCard) {
+          ownedCount++;
+          const displayLevel = Number(getDisplayLevel ? getDisplayLevel(userCard) : 1);
+          
+          if (displayLevel >= 16) {
+            maxLevelCount++;
+            totalLevel += 16;
+            levelScoreBoost += 25;
+          } else {
+            let virtualLevel = displayLevel;
+            let totalGold = 0;
+            
+            let currentWildCards = 0;
+            if (warUseWildcards) {
+              if (rarity === 'common') currentWildCards = localCommonWild;
+              else if (rarity === 'rare') currentWildCards = localRareWild;
+              else if (rarity === 'epic') currentWildCards = localEpicWild;
+              else if (rarity === 'legendary') currentWildCards = localLegendaryWild;
+              else if (rarity === 'champion') currentWildCards = localChampionWild;
+            }
+            
+            let localGemsPool = localGems;
+            
+            if (getVirtualLevelAndGold) {
+              const res = getVirtualLevelAndGold(rarity, displayLevel, userCard.count, currentWildCards, localGemsPool);
+              virtualLevel = res.virtualLevel;
+              totalGold = res.totalGold;
+              
+              const usedGems = localGemsPool - res.remainingGems;
+              if (usedGems > 0) {
+                localGems = res.remainingGems;
+                gemsUsed += usedGems;
+                gemsUsedByCard.push({ id: metaCard.id, count: usedGems });
+              }
+              
+              const usedWCs = currentWildCards - res.remainingWildCards;
+              if (usedWCs > 0 && warUseWildcards) {
+                if (rarity === 'common') { localCommonWild = res.remainingWildCards; wildcardsUsed.common += usedWCs; }
+                else if (rarity === 'rare') { localRareWild = res.remainingWildCards; wildcardsUsed.rare += usedWCs; }
+                else if (rarity === 'epic') { localEpicWild = res.remainingWildCards; wildcardsUsed.epic += usedWCs; }
+                else if (rarity === 'legendary') { localLegendaryWild = res.remainingWildCards; wildcardsUsed.legendary += usedWCs; }
+                else if (rarity === 'champion') { localChampionWild = res.remainingWildCards; wildcardsUsed.champion += usedWCs; }
+                
+                wildcardsUsedByCard.push({ id: metaCard.id, count: usedWCs, rarity });
+              }
+            }
+            
+            let finalVirtualLevel = warUseGold ? virtualLevel : displayLevel;
+            let finalTotalGold = warUseGold ? totalGold : 0;
+            
+            if (warUseGold && finalVirtualLevel > displayLevel) {
+              virtualUpgrades.push({ id: metaCard.id, gold: finalTotalGold, level: finalVirtualLevel });
+            }
+            
+            totalLevel += finalVirtualLevel;
+            if (finalVirtualLevel >= 16) {
+              maxLevelCount++;
+              levelScoreBoost += 25;
+            } else {
+              nonMaxLevelCards.push(metaCard.name);
+            }
+            
+            if (metaIsEvo) {
+              const currentEvoLevel = userCard.evolutionLevel || 0;
+              if (currentEvoLevel < 1) {
+                let shardsNeeded = 6;
+                if (localSpecificEvoShards && localSpecificEvoShards[metaCard.name]) {
+                   const specShards = localSpecificEvoShards[metaCard.name];
+                   if (specShards > 0) {
+                     const usedSpec = Math.min(shardsNeeded, specShards);
+                     shardsNeeded -= usedSpec;
+                     localSpecificEvoShards[metaCard.name] -= usedSpec;
+                   }
+                }
+                
+                if (localEvoShards >= shardsNeeded) {
+                  localEvoShards -= shardsNeeded;
+                  evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
+                } else {
+                  missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls?.evolutionMedium || '' });
+                  missingVariantNames.push(metaCard.name + ' (Evo)');
+                }
+              }
+            }
+            
+            if (metaIsHero) {
+              const currentHeroLevel = userCard.heroLevel || 0;
+              if (currentHeroLevel < 1) {
+                if (localHeroCoins >= 200) {
+                  localHeroCoins -= 200;
+                  heroCoinsUsed.push({ id: metaCard.id, count: 200 });
+                } else {
+                  missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls?.heroMedium || '' });
+                  missingVariantNames.push(metaCard.name);
+                }
+              }
+            }
+          }
+        } else {
+          totalLevel += 1; 
+          missingBaseCards.push(metaCard.name);
+          nonMaxLevelCards.push(metaCard.name);
+          
+          if (metaIsEvo) {
+            let shardsNeeded = 6;
+            if (localSpecificEvoShards && localSpecificEvoShards[metaCard.name]) {
+              const specShards = localSpecificEvoShards[metaCard.name];
+              if (specShards > 0) {
+                 const usedSpec = Math.min(shardsNeeded, specShards);
+                 shardsNeeded -= usedSpec;
+                 localSpecificEvoShards[metaCard.name] -= usedSpec;
+              }
+            }
+            if (localEvoShards >= shardsNeeded) {
+              localEvoShards -= shardsNeeded;
+              evoShardsUsed.push({ id: metaCard.id, count: shardsNeeded });
+            } else {
+              missingEvos.push({ name: metaCard.name, icon: metaCard.iconUrls?.evolutionMedium || '' });
+              missingVariantNames.push(metaCard.name + ' (Evo)');
+            }
+          }
+          if (metaIsHero) {
+            if (localHeroCoins >= 200) {
+              localHeroCoins -= 200;
+              heroCoinsUsed.push({ id: metaCard.id, count: 200 });
+            } else {
+              missingHeroes.push({ name: metaCard.name, icon: metaCard.iconUrls?.heroMedium || '' });
+              missingVariantNames.push(metaCard.name);
+            }
+          }
+        }
+      });
+
+      const levelScore = (totalLevel / 128) * 100 + levelScoreBoost;
+      const missingCardPenalty = (8 - ownedCount) * 10;
+      const missingVariantPenalty = (missingEvos.length + missingHeroes.length) * 5;
+      const missingMaxLevelPenalty = (8 - maxLevelCount) * 2;
+      
+      let affinityRaw = levelScore - missingCardPenalty - missingVariantPenalty - missingMaxLevelPenalty;
+      affinityRaw = Math.max(0, Math.min(100, affinityRaw));
+      
+      const tieBreaker = (Math.min(meta.count, 999) * 0.001) + ((meta.maxMedals || 0) * 0.0000001);
+      const score = affinityRaw + tieBreaker;
+      totalCombinedScore += score;
+      
+      const avgElixir = 0; // simplified for evaluation
+      const totalVirtualGold = virtualUpgrades.reduce((sum: number, u: any) => sum + u.gold, 0);
+      const totalEvoShardsUsed = evoShardsUsed.reduce((sum: number, e: any) => sum + e.count, 0);
+      const totalCostScore = (gemsUsed * 1000) + 
+                             (totalEvoShardsUsed * 5000) + 
+                             (totalVirtualGold * 0.001) + 
+                             (wildcardsUsed.common * 1) + 
+                             (wildcardsUsed.rare * 5) + 
+                             (wildcardsUsed.epic * 20) + 
+                             (wildcardsUsed.legendary * 100) + 
+                             (wildcardsUsed.champion * 200);
+
+      const winRate = meta.winRate;
+
+      evaluatedDecks.push({
+        ...meta,
+        score,
+        avgLevel: totalLevel / 8,
+        elixirCost: avgElixir,
+        missingEvos,
+        missingHeroes,
+        virtualUpgrades,
+        evoShardsUsed,
+        heroCoinsUsed,
+        gemsUsed,
+        gemsUsedByCard,
+        totalCostScore,
+        wildcardsUsed,
+        wildcardsUsedByCard,
+        winRate,
+        scoreBreakdown: {
+          baseLevelScore: (totalLevel / 128) * 100,
+          levelScoreBoost,
+          missingCardPenalty,
+          missingVariantPenalty,
+          missingMaxLevelPenalty,
+          missingBaseCards,
+          missingVariants: missingVariantNames,
+          nonMaxLevelCards
+        }
+      });
+    }
+
+    return { decks: evaluatedDecks, combinedScore: totalCombinedScore };
+  }, [profile, magicItems, getRarityClass, getDisplayLevel, getVirtualLevelAndGold, warUseGold, warUseGems, warUseWildcards, warUseEvoShards, warUseHeroCoins]);
+
   const bestWarDecks = useMemo(() => {
+
 
     if (!warScoredDecks || warScoredDecks.length === 0) return [];
     
@@ -326,13 +559,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       usedCards: Set<number>, 
       currentScore: number
     ) => {
-      if (currentCombination.length === 4) {
-        if (currentScore > bestScore) {
-          bestScore = currentScore;
-          bestCombination = [...currentCombination];
+        if (currentCombination.length === 4) {
+          const { decks, combinedScore } = evaluateGlobalPool(currentCombination);
+          if (combinedScore > bestScore) {
+            bestScore = combinedScore;
+            bestCombination = decks;
+          }
+          return;
         }
-        return;
-      }
 
       const remainingNeeded = 4 - currentCombination.length;
       if (currentIndex < maxDecksToConsider) {
@@ -699,7 +933,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
       {showWarDecks && (
         <div className="war-toggles-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', margin: '0 1rem 1.5rem 1rem', padding: '1rem', background: 'var(--surface)', borderRadius: '1rem', border: '1px solid var(--border)' }}>
           <div style={{ width: '100%', textAlign: 'center', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Abilita l'utilizzo delle risorse per i War Decks
+            Enable resources usage for War Decks
           </div>
           
           <button 
@@ -709,35 +943,35 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                <span style={{ fontSize: '10px', color: '#000', lineHeight: 1 }}>💰</span>
             </div>
-            Oro
+            Gold
           </button>
           
           <button 
             onClick={() => setWarUseGems(!warUseGems)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '2rem', border: `1px solid ${warUseGems ? '#10b981' : 'var(--border)'}`, background: warUseGems ? 'rgba(16, 185, 129, 0.1)' : 'transparent', color: warUseGems ? '#10b981' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
           >
-            <Gem size={16} /> Gemme
+            <Gem size={16} /> Gems
           </button>
           
           <button 
             onClick={() => setWarUseWildcards(!warUseWildcards)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '2rem', border: `1px solid ${warUseWildcards ? '#3b82f6' : 'var(--border)'}`, background: warUseWildcards ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: warUseWildcards ? '#3b82f6' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
           >
-            <Copy size={16} /> Jolly
+            <Copy size={16} /> Wildcards
           </button>
 
           <button 
             onClick={() => setWarUseEvoShards(!warUseEvoShards)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '2rem', border: `1px solid ${warUseEvoShards ? '#d946ef' : 'var(--border)'}`, background: warUseEvoShards ? 'rgba(217, 70, 239, 0.1)' : 'transparent', color: warUseEvoShards ? '#d946ef' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
           >
-            <Sparkles size={16} /> Frammenti Evo
+            <Sparkles size={16} /> Evo Shards
           </button>
           
           <button 
             onClick={() => setWarUseHeroCoins(!warUseHeroCoins)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '2rem', border: `1px solid ${warUseHeroCoins ? '#f59e0b' : 'var(--border)'}`, background: warUseHeroCoins ? 'rgba(245, 158, 11, 0.1)' : 'transparent', color: warUseHeroCoins ? '#f59e0b' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
           >
-            <Crown size={16} /> Monete Hero
+            <Crown size={16} /> Hero Coins
           </button>
         </div>
       )}
