@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Trophy, Shield, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, ArrowUpAZ, Clock, RefreshCw, X as CloseIcon, TrendingUp, ArrowUp, ArrowDown, CheckCircle2 } from 'lucide-react';
 import { getPlayerProfile, getAllCards, fetchRankings, getBattleLog, getPlayerDeck, getPathOfLegendSeasons } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card, MagicItems } from './types/clashRoyale';
@@ -65,6 +65,7 @@ function App() {
   const [showMagicItems, setShowMagicItems] = useState(false);
   const [rawDeckCounts, setRawDeckCounts] = useState<any>(null);
   const [isMaxPotentialMode, setIsMaxPotentialMode] = useState(false);
+  const [isApplyingMagicItems, setIsApplyingMagicItems] = useState(false);
   const [magicItems, setMagicItems] = useState<MagicItems>({
     commonWild: 0,
     rareWild: 0,
@@ -1072,14 +1073,20 @@ function App() {
                 )}
                 <button 
                   className="action-btn" 
-                  style={{ width: '100%', marginTop: '0.5rem', background: 'var(--primary)', color: 'white' }}
+                  style={{ width: '100%', marginTop: '0.5rem', background: isApplyingMagicItems ? '#10b981' : 'var(--primary)', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'all 0.3s' }}
                   onClick={() => {
+                    setIsApplyingMagicItems(true);
                     if (rawDeckCounts) {
                       setRawDeckCounts({...rawDeckCounts});
                     }
+                    setTimeout(() => {
+                      setIsApplyingMagicItems(false);
+                      setShowMagicItems(false);
+                    }, 800);
                   }}
+                  disabled={isApplyingMagicItems}
                 >
-                  Apply
+                  {isApplyingMagicItems ? <><CheckCircle2 size={18} /> Saved!</> : 'Apply'}
                 </button>
               </div>
             )}
