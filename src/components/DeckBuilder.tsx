@@ -84,6 +84,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [sortCriterion, setSortCriterion] = useState<string>('winRate');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
+  const isTouchDevice = useMemo(() => {
+    return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  }, []);
+
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(20);
@@ -93,20 +97,47 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     setVisibleCount(prev => prev + 20);
   };
 
-  const toggleFilter = (item: FilterItem) => {
+  const toggleFilter = (item: FilterItem, action: 'cycle' | 'include' | 'exclude' | 'remove' = 'cycle') => {
     setSelectedFilters(prev => {
       const existingIdx = prev.findIndex(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
+      
+      if (action === 'remove') {
+        if (existingIdx >= 0) return prev.filter((_, idx) => idx !== existingIdx);
+        return prev;
+      }
+
       if (existingIdx >= 0) {
         const existing = prev[existingIdx];
-        if (existing.mode === 'include') {
-          const newFilters = [...prev];
-          newFilters[existingIdx] = { ...existing, mode: 'exclude' };
-          return newFilters;
-        } else {
-          return prev.filter((_, idx) => idx !== existingIdx);
+        const newFilters = [...prev];
+
+        if (action === 'cycle') {
+          if (existing.mode === 'include') {
+            newFilters[existingIdx] = { ...existing, mode: 'exclude' };
+            return newFilters;
+          } else {
+            return prev.filter((_, idx) => idx !== existingIdx);
+          }
+        } else if (action === 'include') {
+          if (existing.mode === 'include') {
+            return prev.filter((_, idx) => idx !== existingIdx);
+          } else {
+            newFilters[existingIdx] = { ...existing, mode: 'include' };
+            return newFilters;
+          }
+        } else if (action === 'exclude') {
+          if (existing.mode === 'exclude') {
+            return prev.filter((_, idx) => idx !== existingIdx);
+          } else {
+            newFilters[existingIdx] = { ...existing, mode: 'exclude' };
+            return newFilters;
+          }
         }
       }
-      return [...prev, { ...item, mode: 'include' }];
+
+      if (action === 'exclude') {
+        return [...prev, { ...item, mode: 'exclude' }];
+      }
+      return [...prev, { ...item, mode: 'include' }]; 
     });
   };
 
@@ -336,7 +367,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
                 className={`filter-grid-item ${selectedItem ? 'selected' : ''} ${selectedItem?.mode === 'include' ? 'selected-include' : ''} ${selectedItem?.mode === 'exclude' ? 'selected-exclude' : ''} ${c.isEvoFilter ? 'evo' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}
-                onClick={() => toggleFilter(c)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleFilter(c, isTouchDevice ? 'cycle' : 'include');
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  if (!isTouchDevice) toggleFilter(c, 'exclude');
+                }}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
                 <CardImage src={c.icon} cardName={c.name} alt={c.isEvoFilter ? `Evolved ${c.name}` : c.name} />
@@ -411,8 +449,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     <div 
                       key={`${f.id}-${f.isEvoFilter}`} 
                       className={`active-filter-icon-wrapper ${f.mode === 'exclude' ? 'excluded' : 'included'}`}
-                      onClick={() => toggleFilter(f)}
-                      title={`${f.mode === 'exclude' ? 'Remove Excluded' : 'Toggle Exclude'} ${f.name}`}
+                      onClick={() => toggleFilter(f, 'remove')}
+                      title={`Remove ${f.name}`}
                       style={{ cursor: 'pointer' }}
                     >
                       <CardImage src={f.icon} cardName={f.name} />
@@ -425,6 +463,33 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 <button onClick={() => { setSelectedFilters([]); }} className="clear-btn">
                   <X size={12} /> Reset
                 </button>
+              )}
+            </div>
+            
+            <div className="filter-legend" style={{ display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', background: 'rgba(15,23,42,0.5)', padding: '0.5rem 1rem', borderRadius: '0.5rem', marginBottom: '1rem', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+              {isTouchDevice ? (
+                <>
+                  <span style={{ fontWeight: 600 }}>Tap to cycle:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></div>
+                    <span>Include</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }}></div>
+                    <span>Exclude</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></div>
+                    <span>Left Click = Include</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }}></div>
+                    <span>Right Click = Exclude</span>
+                  </div>
+                </>
               )}
             </div>
             
