@@ -2603,3 +2603,18 @@ img[src*="tombstone-hero.png"] {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(43, 115, 255, 0.3);
 }
+
+/* Filter inclusion/exclusion halos */
+.filter-grid-item.selected-include img {
+  filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.8)) drop-shadow(0 0 15px rgba(34, 197, 94, 0.8)) !important;
+}
+.filter-grid-item.selected-exclude img {
+  filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8)) drop-shadow(0 0 15px rgba(239, 68, 68, 0.8)) !important;
+}
+.active-filter-icon-wrapper.included img {
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6)) !important;
+}
+.active-filter-icon-wrapper.excluded img {
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6)) !important;
+}
+

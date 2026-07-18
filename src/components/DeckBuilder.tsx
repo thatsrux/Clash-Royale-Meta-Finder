@@ -74,7 +74,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
   isMaxPotentialMode,
   setIsMaxPotentialMode
 }) => {
-  const [selectedFilters, setSelectedFilters] = useState<FilterItem[]>([]);
+  type SelectedFilterItem = FilterItem & { mode: 'include' | 'exclude' };
+  const [selectedFilters, setSelectedFilters] = useState<SelectedFilterItem[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
@@ -94,11 +95,18 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const toggleFilter = (item: FilterItem) => {
     setSelectedFilters(prev => {
-      const exists = prev.find(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
-      if (exists) {
-        return prev.filter(f => !(f.id === item.id && f.isEvoFilter === item.isEvoFilter));
+      const existingIdx = prev.findIndex(f => f.id === item.id && f.isEvoFilter === item.isEvoFilter);
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        if (existing.mode === 'include') {
+          const newFilters = [...prev];
+          newFilters[existingIdx] = { ...existing, mode: 'exclude' };
+          return newFilters;
+        } else {
+          return prev.filter((_, idx) => idx !== existingIdx);
+        }
       }
-      return [...prev, item];
+      return [...prev, { ...item, mode: 'include' }];
     });
   };
 
@@ -164,8 +172,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
     if (!cachedDecks || cachedDecks.length === 0) return { cardFilteredDecks: [], filteredRecommendations: [] };
     
     let finalFiltered = cachedDecks
-      .filter(deck => 
-        selectedFilters.every(filter => {
+      .filter(deck => {
+        const includes = selectedFilters.filter(f => f.mode === 'include');
+        const hasAllIncludes = includes.every(filter => {
           if (filter.isEvoFilter) {
             return deck.cards.some(c => Number(c.id) === filter.id && (c as any)._forceForm === 'evo');
           } else if (filter.rarity === 'hero') {
@@ -173,8 +182,25 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
           } else {
             return deck.cards.some(c => Number(c.id) === filter.id);
           }
-        })
-      );
+        });
+
+        if (!hasAllIncludes) return false;
+
+        const excludes = selectedFilters.filter(f => f.mode === 'exclude');
+        const hasAnyExclude = excludes.some(filter => {
+          if (filter.isEvoFilter) {
+            return deck.cards.some(c => Number(c.id) === filter.id && (c as any)._forceForm === 'evo');
+          } else if (filter.rarity === 'hero') {
+            return deck.cards.some(c => Number(c.id) === filter.id && (c as any)._forceForm === 'hero');
+          } else {
+            return deck.cards.some(c => Number(c.id) === filter.id);
+          }
+        });
+
+        if (hasAnyExclude) return false;
+
+        return true;
+      });
 
     finalFiltered.sort((a, b) => {
         const aDisplayScore = Math.round(a.score);
@@ -302,14 +328,14 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
         </div>
         <div className="filter-grid">
           {items.map((c, idx) => {
-            const isSelected = selectedFilters.some(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
+            const selectedItem = selectedFilters.find(f => f.id === c.id && f.isEvoFilter === c.isEvoFilter);
             
             const cardRarity = (c.name && c.name.toLowerCase().includes('ronin')) ? 'legendary' : (c.rarity || 'common').toLowerCase();
             const isRonin = c.name && c.name.toLowerCase().includes('ronin');
             return (
               <div 
                 key={`${c.id}-${c.isEvoFilter}-${idx}`} 
-                className={`filter-grid-item ${isSelected ? 'selected' : ''} ${c.isEvoFilter ? 'evo' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}
+                className={`filter-grid-item ${selectedItem ? 'selected' : ''} ${selectedItem?.mode === 'include' ? 'selected-include' : ''} ${selectedItem?.mode === 'exclude' ? 'selected-exclude' : ''} ${c.isEvoFilter ? 'evo' : ''} ${cardRarity === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}
                 onClick={() => toggleFilter(c)}
                 title={c.isEvoFilter ? `Evolved ${c.name}` : c.name}
               >
@@ -384,9 +410,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   {selectedFilters.map((f) => (
                     <div 
                       key={`${f.id}-${f.isEvoFilter}`} 
-                      className="active-filter-icon-wrapper"
+                      className={`active-filter-icon-wrapper ${f.mode === 'exclude' ? 'excluded' : 'included'}`}
                       onClick={() => toggleFilter(f)}
-                      title={`Remove ${f.name}`}
+                      title={`${f.mode === 'exclude' ? 'Remove Excluded' : 'Toggle Exclude'} ${f.name}`}
                       style={{ cursor: 'pointer' }}
                     >
                       <CardImage src={f.icon} cardName={f.name} />
