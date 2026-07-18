@@ -210,6 +210,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
             const aVal = Object.values(a.wildcardsUsed || {}).reduce((sum: number, count: any) => sum + count, 0);
             const bVal = Object.values(b.wildcardsUsed || {}).reduce((sum: number, count: any) => sum + count, 0);
             if (aVal !== bVal) return (bVal - aVal) * dir;
+        } else if (sortCriterion === 'medals') {
+            const aVal = a.maxMedals || 0;
+            const bVal = b.maxMedals || 0;
+            if (aVal !== bVal) return (bVal - aVal) * dir;
         }
         
         const aCost = a.totalCostScore || 0;
@@ -473,6 +477,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               >
                 <option value="winRate">Win Rate</option>
                 <option value="elixir">Avg Elixir</option>
+                <option value="medals">Medals</option>
                 <option value="gems">Gems Cost</option>
                 <option value="gold">Gold Cost</option>
                 <option value="affinity">Exact Affinity</option>
