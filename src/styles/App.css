@@ -2618,3 +2618,23 @@ img[src*="tombstone-hero.png"] {
   filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6)) !important;
 }
 
+
+/* Custom Scrollbar for the whole app */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
