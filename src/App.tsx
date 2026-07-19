@@ -798,21 +798,20 @@ function App() {
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
         <div className={`recommendation-card evo`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
           <div className="rec-header">BEST NEXT EVO UNLOCKS</div>
-          <div className="rec-body">
-            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+          <div className="rec-body" style={{ flexDirection: 'column', gap: '1rem', alignItems: 'center', padding: '0.5rem 0' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
                {featured.items.map((item: any, idx: number) => (
                   <React.Fragment key={item.name}>
-                     {idx > 0 && <span style={{fontSize: '1.2rem', color: '#94a3b8'}}>+</span>}
-                     <CardImage src={item.icon} cardName={item.name} />
+                     {idx > 0 && <span style={{fontSize: '2rem', color: '#94a3b8', fontWeight: 600}}>+</span>}
+                     <CardImage src={item.icon} cardName={item.name} style={{ width: '80px' }} />
                   </React.Fragment>
                ))}
             </div>
-            <div className="rec-info">
-              <div className="rec-name">{featured.items.map((i: any) => i.name).join(' + ')}</div>
-              <div className="rec-reason" style={{ color: '#fbbf24', fontWeight: 600 }}>💎 {featured.totalCost} Shards</div>
+            <div className="rec-info" style={{ textAlign: 'center' }}>
+              <div className="rec-reason" style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.2rem', margin: 0 }}>💎 {featured.totalCost} Shards</div>
             </div>
             {others.length > 0 && (
-              <div className="expand-trigger">
+              <div className="expand-trigger" style={{ marginTop: 'auto' }}>
                 {isExpanded ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
               </div>
             )}
@@ -821,18 +820,17 @@ function App() {
         <div className="expand-wrapper">
           <div className="expanded-alternatives">
             {others.map((combo: any, idx: number) => (
-              <div key={idx} className="alt-row" style={{ animationDelay: `${idx * 0.1}s`, padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+              <div key={idx} className="alt-row" style={{ animationDelay: `${idx * 0.1}s`, padding: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                    {combo.items.map((item: any, iIdx: number) => (
                       <React.Fragment key={item.name}>
-                         {iIdx > 0 && <span style={{fontSize: '0.9rem', color: '#64748b'}}>+</span>}
-                         <CardImage src={item.icon} cardName={item.name} />
+                         {iIdx > 0 && <span style={{fontSize: '1.5rem', color: '#64748b', fontWeight: 600}}>+</span>}
+                         <CardImage src={item.icon} cardName={item.name} style={{ width: '60px' }} />
                       </React.Fragment>
                    ))}
                 </div>
-                <div className="alt-info">
-                  <span className="alt-name" style={{ fontSize: '0.85rem' }}>{combo.items.map((i: any) => i.name).join(' + ')}</span>
-                  <span className="alt-stat" style={{ color: '#fbbf24', fontWeight: 600 }}>💎 {combo.totalCost} Shards</span>
+                <div className="alt-info" style={{ textAlign: 'center', flex: 'none', marginLeft: '0.5rem' }}>
+                  <span className="alt-stat" style={{ color: '#fbbf24', fontWeight: 600, fontSize: '1rem' }}>💎 {combo.totalCost} Shards</span>
                 </div>
               </div>
             ))}
@@ -849,14 +847,15 @@ function App() {
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
         <div className={`recommendation-card ${type}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
           <div className="rec-header">BEST NEXT {type.toUpperCase()}</div>
-          <div className="rec-body">
-            <CardImage src={featured.icon} cardName={featured.name} />
-            <div className="rec-info">
-              <div className="rec-name">{featured.name}</div>
-              <div className="rec-reason">{type === 'hero' ? 'Unlocks' : 'Completes'} {featured.count} archetypes</div>
+          <div className="rec-body" style={{ flexDirection: 'column', gap: '1rem', alignItems: 'center', padding: '0.5rem 0' }}>
+            <CardImage src={featured.icon} cardName={featured.name} style={{ width: '80px' }} />
+            <div className="rec-info" style={{ textAlign: 'center' }}>
+              <div className="rec-reason" style={{ fontSize: '1.2rem', fontWeight: 600, color: type === 'hero' ? '#fbbf24' : '#60a5fa', margin: 0 }}>
+                {type === 'hero' ? 'Unlocks' : 'Completes'} {featured.count} archetypes
+              </div>
             </div>
             {others.length > 0 && (
-              <div className="expand-trigger">
+              <div className="expand-trigger" style={{ marginTop: 'auto' }}>
                 {isExpanded ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
               </div>
             )}
@@ -865,11 +864,10 @@ function App() {
         <div className="expand-wrapper">
           <div className="expanded-alternatives">
             {others.map((item: any, idx: number) => (
-              <div key={item.name} className="alt-row" style={{ animationDelay: `${idx * 0.1}s` }}>
-                <CardImage src={item.icon} cardName={item.name} />
-                <div className="alt-info">
-                  <span className="alt-name">{item.name}</span>
-                  <span className="alt-stat">{item.count} Archetypes</span>
+              <div key={item.name} className="alt-row" style={{ animationDelay: `${idx * 0.1}s`, padding: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+                <CardImage src={item.icon} cardName={item.name} style={{ width: '60px' }} />
+                <div className="alt-info" style={{ textAlign: 'center', flex: 'none' }}>
+                  <span className="alt-stat" style={{ fontSize: '1rem', fontWeight: 600, color: type === 'hero' ? '#fbbf24' : '#60a5fa' }}>{item.count} Archetypes</span>
                 </div>
               </div>
             ))}
