@@ -35,15 +35,27 @@ export interface MetaDeck {
   bestPlayerName?: string;
   missingEvos: { name: string; icon: string }[];
   missingHeroes: { name: string; icon: string }[];
-  virtualUpgrades: { id: number; gold: number; level: number }[];
-  evoShardsUsed: { id: number; count: number }[];
-  heroCoinsUsed: { id: number; count: number }[];
-  gemsUsed: number;
-  gemsUsedByCard: { id: number; count: number }[];
+  virtualUpgrades?: { id: number; gold: number; level: number }[];
+  evoShardsUsed?: { id: number; count: number }[];
+  heroCoinsUsed?: { id: number; count: number }[];
+  gemsUsed?: number;
+  gemsUsedByCard?: { id: number; count: number }[];
   totalCostScore?: number;
   towerTroopId?: number;
   winRate?: number;
   totalMatches?: number;
+  wildcardsUsed?: Record<string, number>;
+  wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
+  scoreBreakdown?: {
+    baseLevelScore: number;
+    levelScoreBoost: number;
+    missingCardPenalty: number;
+    missingVariantPenalty: number;
+    missingMaxLevelPenalty: number;
+    missingBaseCards: string[];
+    missingVariants: string[];
+    nonMaxLevelCards: string[];
+  };
 }
 
 type SortOption = 'level' | 'elixir' | 'rarity' | 'evo' | 'hero-only' | 'evo-only';
