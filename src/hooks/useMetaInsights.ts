@@ -407,7 +407,7 @@ export const useMetaInsights = (
     const absoluteRarityUsage: Record<string, Record<number, { name: string, icon: string, count: number, rarity: string }>> = { common: {}, rare: {}, epic: {}, legendary: {}, champion: {} };
 
     allMetaDecks.forEach(deck => {
-      deck.cards.forEach((metaCard, idx) => {
+      deck.cards.forEach((metaCard: any, idx: number) => {
         const forcedForm = (metaCard as any)._forceForm;
         const cardRarity = getRarityClass(metaCard);
         if (absoluteRarityUsage[cardRarity]) {
@@ -432,7 +432,7 @@ export const useMetaInsights = (
 
     allMetaDecks.forEach(deck => {
       const weight = Math.pow(deck.score / 10, 3);
-      deck.cards.forEach(metaCard => {
+      deck.cards.forEach((metaCard: any) => {
         const userCard = profile!.cards.find(c => Number(c.id) === Number(metaCard.id));
         const forcedForm = (metaCard as any)._forceForm;
 

@@ -3,7 +3,7 @@ import { Search, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, Arr
 import { getPlayerProfile, getAllCards } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card, MagicItems } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, hasHeroAvailable, hasEvoAvailable, isChampion, getDeckAverageElixir, getCardsToNextLevel, getVirtualLevelAndGold } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, getCardsToNextLevel } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import { useMetaInsights } from './hooks/useMetaInsights';
 import { ProfileHeader } from './components/layout/ProfileHeader';
@@ -22,7 +22,7 @@ interface CardInfo {
   iconUrls?: any;
 }
 
-interface MetaDeck {
+export interface MetaDeck {
   name: string;
   cards: Card[];
   score: number;
@@ -237,8 +237,7 @@ function App() {
     isMetaLoading,
     metaProgress,
     rawDeckCounts,
-    setRawDeckCounts,
-    performMetaAnalysis,
+        performMetaAnalysis,
     metaInsightsData
   } = useMetaInsights(
     profile,
