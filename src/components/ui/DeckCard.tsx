@@ -1,7 +1,7 @@
 import React from 'react';
 import { CardImage } from '../CardImage';
-import { Copy, QrCode, TrendingUp, UserCircle2, ArrowUp, ArrowDown, CheckCircle2, AlertCircle, Droplets, Trophy } from 'lucide-react';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon } from '../../types/clashRoyale';
+import { Copy, QrCode, TrendingUp, UserCircle2, ArrowUp, ArrowDown, CheckCircle2, AlertCircle, Droplets, Trophy, Gem, Activity } from 'lucide-react';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, isChampion } from '../../types/clashRoyale';
 import type { MetaDeck } from '../../App';
 import type { PlayerProfile } from '../../types/clashRoyale';
 
@@ -35,7 +35,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
 
             const missingCards: any[] = [];
             const ownedLevelSum = deck.cards.reduce((sum: number, metaCard: any) => {
-              const uCard = profile.cards.find(c => Number(c.id) === Number(metaCard.id));
+              const uCard = profile.cards.find((c: any) => Number(c.id) === Number(metaCard.id));
               if (!uCard) missingCards.push(metaCard);
               return sum + (uCard ? getDisplayLevel(uCard) : 0);
             }, 0);
@@ -57,7 +57,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
             const wcu = deck.wildcardsUsed || {};
 
             // STABLE KEY FOR PERFORMANCE
-            const deckKey = deck.cards.map(c => `${c.id}-${(c as any)._forceForm}`).sort().join('|') + `-${deck.towerTroopId}`;
+            const deckKey = deck.cards.map((c: any) => `${c.id}-${(c as any)._forceForm}`).sort().join('|') + `-${deck.towerTroopId}`;
 
             return (
               <div key={deckKey} className={`deck-suggestion ${themeClass}`}>
@@ -148,7 +148,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
                                 <span>-{deck.scoreBreakdown.missingCardPenalty.toFixed(2)}%</span>
                               </div>
                               <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                {deck.scoreBreakdown.missingBaseCards.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(239,68,68,0.2)', color: '#ef4444', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(239,68,68,0.3)' }}>{c}</span>)}
+                                {deck.scoreBreakdown.missingBaseCards.map((c: any) => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(239,68,68,0.2)', color: '#ef4444', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(239,68,68,0.3)' }}>{c}</span>)}
                               </div>
                             </div>
                           )}
@@ -160,7 +160,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
                                 <span>-{deck.scoreBreakdown.missingVariantPenalty.toFixed(2)}%</span>
                               </div>
                               <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                {deck.scoreBreakdown.missingVariants.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(249,115,22,0.2)', color: '#f97316', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(249,115,22,0.3)' }}>{c}</span>)}
+                                {deck.scoreBreakdown.missingVariants.map((c: any) => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(249,115,22,0.2)', color: '#f97316', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(249,115,22,0.3)' }}>{c}</span>)}
                               </div>
                             </div>
                           )}
@@ -172,7 +172,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
                                 <span>-{deck.scoreBreakdown.missingMaxLevelPenalty.toFixed(2)}%</span>
                               </div>
                               <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                {deck.scoreBreakdown.nonMaxLevelCards.map(c => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(234,179,8,0.2)', color: '#eab308', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(234,179,8,0.3)' }}>{c}</span>)}
+                                {deck.scoreBreakdown.nonMaxLevelCards.map((c: any) => <span key={c} style={{ fontSize: '0.7rem', background: 'rgba(234,179,8,0.2)', color: '#eab308', padding: '0.2rem 0.5rem', borderRadius: '1rem', border: '1px solid rgba(234,179,8,0.3)' }}>{c}</span>)}
                               </div>
                             </div>
                           )}
@@ -185,7 +185,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
                 <div className="deck-main-content">
                   <div className="mini-card-grid">
                     {deck.cards.map((card, index) => {
-                      const userCard = profile.cards.find(c => Number(c.id) === Number(card.id));
+                      const userCard = profile.cards.find((c: any) => Number(c.id) === Number(card.id));
                       const userLevel = userCard ? getDisplayLevel(userCard) : 0;
                       const isMaxed = userLevel >= 16;
                       

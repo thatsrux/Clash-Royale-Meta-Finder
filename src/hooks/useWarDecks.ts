@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import type { PlayerProfile, Card, MagicItems } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, getCardsToNextLevel, getVirtualLevelAndGold } from '../types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, getCardsToNextLevel, getVirtualLevelAndGold, getCardIcon, getDeckAverageElixir } from '../types/clashRoyale';
 import type { MetaDeck } from '../App';
 
 export const useWarDecks = (
