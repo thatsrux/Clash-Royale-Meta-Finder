@@ -1,7 +1,7 @@
 import React from 'react';
 import { CardImage } from '../CardImage';
-import { Copy, QrCode, TrendingUp, UserCircle2, ArrowUp, ArrowDown, CheckCircle2, AlertCircle, Droplets, Trophy, Gem, Activity } from 'lucide-react';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, isChampion } from '../../types/clashRoyale';
+import { Copy, QrCode, TrendingUp, UserCircle2, CheckCircle2, AlertCircle, Droplets, Trophy, Gem, Activity, Medal, Check, Target } from 'lucide-react';
+import { isEvoUnlocked, isHeroVariantUnlocked, getCardIcon, isChampion } from '../../types/clashRoyale';
 import type { MetaDeck } from '../../App';
 import type { PlayerProfile } from '../../types/clashRoyale';
 
@@ -16,7 +16,7 @@ interface DeckCardProps {
   getDisplayLevel: (card: any) => number;
   getCardSubstitutesData: (cardName: string) => { name: string, icon: string } | null;
   copiedIndex: number | null;
-  allGameCards?: any[];
+  
 }
 
 export const DeckCard: React.FC<DeckCardProps> = ({
@@ -30,8 +30,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
   getDisplayLevel,
   getCardSubstitutesData,
   copiedIndex,
-  allGameCards
-}) => {
+  }) => {
 
             const missingCards: any[] = [];
             const ownedLevelSum = deck.cards.reduce((sum: number, metaCard: any) => {
