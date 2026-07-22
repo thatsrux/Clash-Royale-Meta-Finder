@@ -1,47 +1,12 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CardImage } from './CardImage';
+import type { MetaDeck } from '../App';
 import type { PlayerProfile, Card } from '../types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isChampion, hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions, getVirtualLevelAndGold, getCardsToNextLevel, getDeckAverageElixir } from '../types/clashRoyale';
-import { TrendingUp, CheckCircle2, AlertCircle, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Medal, Target, Activity, Copy, Check, UserCircle2, ArrowUp, ArrowDown, LayoutDashboard, QrCode, Droplets, Gem, Swords } from 'lucide-react';
+import { hasEvoAvailable, hasHeroAvailable, getCardIcon, getSubstitutions } from '../types/clashRoyale';
+import { TrendingUp, RefreshCw, Trophy, Filter, X, Sparkles, Crown, Activity, Copy, LayoutDashboard, Gem, Swords, ArrowUp, ArrowDown } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { DeckCard } from './ui/DeckCard';
 import { useWarDecks } from '../hooks/useWarDecks';
-
-interface MetaDeck {
-  name: string;
-  cards: Card[];
-  score: number;
-  avgLevel: number;
-  elixirCost: number;
-  count: number;
-  maxedCount: number;
-  isBestSynergy: boolean;
-  maxMedals: number;
-  bestPlayerName?: string;
-  missingEvos: { name: string; icon: string }[];
-  missingHeroes: { name: string; icon: string }[];
-  virtualUpgrades?: { id: number; gold: number; level: number }[];
-  evoShardsUsed?: { id: number; count: number }[];
-  heroCoinsUsed?: { id: number; count: number }[];
-  gemsUsed?: number;
-  gemsUsedByCard?: { id: number; count: number }[];
-  totalCostScore?: number;
-  wildcardsUsed?: Record<string, number>;
-  wildcardsUsedByCard?: { id: number; count: number; rarity: string }[];
-  towerTroopId?: number;
-  winRate?: number;
-  totalMatches?: number;
-  scoreBreakdown?: {
-    baseLevelScore: number;
-    levelScoreBoost: number;
-    missingCardPenalty: number;
-    missingVariantPenalty: number;
-    missingMaxLevelPenalty: number;
-    missingBaseCards: string[];
-    missingVariants: string[];
-    nonMaxLevelCards: string[];
-  };
-}
 
 interface FilterItem {
   id: number;
@@ -756,7 +721,6 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({
               getDisplayLevel={getDisplayLevel}
               getCardSubstitutesData={getCardSubstitutesData}
               copiedIndex={copiedIndex}
-              allGameCards={allGameCards}
             />
           ))}
 
