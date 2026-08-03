@@ -128,7 +128,7 @@ function App() {
 
     const missingEvoImpact: Record<number, { name: string, icon: string, impact: number, shardsNeeded: number }> = {};
     const missingHeroImpact: Record<number, { name: string, icon: string, impact: number, count: number }> = {};
-    const upgradeRarityImpact: Record<number, { name: string, icon: string, impact: number, count: number, rarity: string, id: number }> = {};
+    const upgradeRarityImpact: Record<number, { name: string, icon: string, impact: number, count: number, rarity: string, id: number, cardsNeeded: number, currentLevel: number }> = {};
 
     allMetaDecks.forEach(deck => {
       const weight = Math.pow(deck.score / 10, 3);
@@ -161,16 +161,26 @@ function App() {
         const displayLevel = userCard ? getDisplayLevel(userCard) : 0;
         if (displayLevel > 0 && displayLevel < 16) {
           const r = getRarityClass(metaCard);
-          const required = getCardsToNextLevel(r, displayLevel);
-          let progressRatio = 0;
-          if (required > 0 && userCard?.count) {
-            progressRatio = Math.min(1, userCard.count / required);
+          
+          let totalNeeded = 0;
+          for (let L = displayLevel; L < 16; L++) {
+            totalNeeded += getCardsToNextLevel(r, L);
           }
+          
+          const owned = userCard?.count || 0;
+          const cardsNeeded = Math.max(0, totalNeeded - owned);
+          const progressRatio = totalNeeded > 0 ? Math.min(1, owned / totalNeeded) : 0;
+
           const levelGain = (16 - displayLevel) / 1.28 + 2;
           const progressMultiplier = 1 + (progressRatio * 1.5); // up to +150% if enough cards
           const finalGain = levelGain * progressMultiplier;
 
-          if (!upgradeRarityImpact[metaCard.id]) upgradeRarityImpact[metaCard.id] = { id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, impact: 0, count: 0, rarity: r };
+          if (!upgradeRarityImpact[metaCard.id]) {
+            upgradeRarityImpact[metaCard.id] = { 
+              id: metaCard.id, name: metaCard.name, icon: metaCard.iconUrls.medium, 
+              impact: 0, count: 0, rarity: r, cardsNeeded, currentLevel: displayLevel 
+            };
+          }
           upgradeRarityImpact[metaCard.id].impact += (finalGain * weight);
           upgradeRarityImpact[metaCard.id].count++;
         }
@@ -219,7 +229,26 @@ function App() {
 
     const sortedHeroes = Object.values(missingHeroImpact).sort((a, b) => b.impact - a.impact);
     const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
-    const rarityRecs = rarities.map(r => ({ rarity: r, list: Object.values(upgradeRarityImpact).filter(c => c.rarity === r).sort((a, b) => b.impact - a.impact) }));
+    const rarityRecs = rarities.map(r => {
+      const list = Object.values(upgradeRarityImpact).filter(c => c.rarity === r);
+      let availableWilds = 0;
+      if (r === 'common') availableWilds = Number(magicItems.commonWild) || 0;
+      if (r === 'rare') availableWilds = Number(magicItems.rareWild) || 0;
+      if (r === 'epic') availableWilds = Number(magicItems.epicWild) || 0;
+      if (r === 'legendary') availableWilds = Number(magicItems.legendaryWild) || 0;
+      if (r === 'champion') availableWilds = Number(magicItems.championWild) || 0;
+
+      list.sort((a, b) => {
+        const aFeasible = a.cardsNeeded <= availableWilds;
+        const bFeasible = b.cardsNeeded <= availableWilds;
+        
+        if (aFeasible && !bFeasible) return -1;
+        if (!aFeasible && bFeasible) return 1;
+        return b.impact - a.impact;
+      });
+
+      return { rarity: r, list, availableWilds };
+    });
 
     return {
       totalDecksCount,
@@ -231,7 +260,72 @@ function App() {
       rarityRecs,
       rarities
     };
-  }, [metaDecksCache, profile, getDisplayLevel, getRarityClass, magicItems.specificEvoShards, magicItems.evoShards]);
+  }, [
+    metaDecksCache, profile, getDisplayLevel, getRarityClass, 
+    magicItems.specificEvoShards, magicItems.evoShards, 
+    magicItems.commonWild, magicItems.rareWild, magicItems.epicWild, magicItems.legendaryWild, magicItems.championWild
+  ]);
+
+  const generalProgressionData = useMemo(() => {
+    if (!profile) return null;
+    
+    const rarities = ['common', 'rare', 'epic', 'legendary', 'champion'];
+    const recs = rarities.map(r => {
+      let availableWilds = 0;
+      if (r === 'common') availableWilds = Number(magicItems.commonWild) || 0;
+      if (r === 'rare') availableWilds = Number(magicItems.rareWild) || 0;
+      if (r === 'epic') availableWilds = Number(magicItems.epicWild) || 0;
+      if (r === 'legendary') availableWilds = Number(magicItems.legendaryWild) || 0;
+      if (r === 'champion') availableWilds = Number(magicItems.championWild) || 0;
+
+      const list: any[] = [];
+      profile.cards.forEach(userCard => {
+        const rarity = getRarityClass(userCard);
+        if (rarity === r) {
+          const displayLevel = getDisplayLevel(userCard);
+          if (displayLevel < 16) {
+            let totalNeeded = 0;
+            for (let L = displayLevel; L < 16; L++) {
+              totalNeeded += getCardsToNextLevel(rarity, L);
+            }
+            const owned = userCard.count || 0;
+            const cardsNeeded = Math.max(0, totalNeeded - owned);
+            
+            list.push({
+              id: userCard.id,
+              name: userCard.name,
+              icon: getCardIcon(userCard, false, false),
+              cardsNeeded,
+              currentLevel: displayLevel
+            });
+          }
+        }
+      });
+
+      list.sort((a, b) => {
+        const aReady = a.cardsNeeded <= 0;
+        const bReady = b.cardsNeeded <= 0;
+        if (aReady && !bReady) return -1;
+        if (!aReady && bReady) return 1;
+
+        const aFeasible = a.cardsNeeded <= availableWilds;
+        const bFeasible = b.cardsNeeded <= availableWilds;
+        if (aFeasible && !bFeasible) return -1;
+        if (!aFeasible && bFeasible) return 1;
+
+        const aMissing = a.cardsNeeded - (aFeasible ? 0 : availableWilds);
+        const bMissing = b.cardsNeeded - (bFeasible ? 0 : availableWilds);
+        
+        if (aMissing !== bMissing) return aMissing - bMissing;
+        return a.name.localeCompare(b.name);
+      });
+
+      return { rarity: r, list, availableWilds };
+    });
+
+    return recs;
+  }, [profile, magicItems, getDisplayLevel, getRarityClass]);
+
 
   useEffect(() => {
     if (profile?.tag) {
@@ -746,23 +840,30 @@ function App() {
     );
   };
 
-  const UpgradeExpandable = ({ rarity, list }: { rarity: string, list: any[] }) => {
+  const UpgradeExpandable = ({ rarity, list, availableWilds }: { rarity: string, list: any[], availableWilds: number }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     if (list.length === 0) return null;
     const featured = list[0];
-    const others = list.slice(1, 6).sort((a, b) => b.count - a.count);
+    const othersFeasible = list.slice(1, 10);
+
+    const featuredFeasible = featured.cardsNeeded <= availableWilds;
+    const featuredWildsUsed = featuredFeasible ? featured.cardsNeeded : availableWilds;
+    const featuredRemainingNeed = featured.cardsNeeded - featuredWildsUsed;
 
     return (
       <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
-        <div className={`upgrade-rec-card ${rarity}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
+        <div className={`upgrade-rec-card ${rarity}`} onClick={() => othersFeasible.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: othersFeasible.length > 0 ? 'pointer' : 'default' }}>
           <div className="rec-header">BEST NEXT {rarity.toUpperCase()}</div>
           <div className="rec-body-mini">
             <CardImage src={featured.icon} cardName={featured.name} />
             <div className="rec-mini-info">
               <div className="name">{featured.name}</div>
-              <div className="meta-stats">Boosts {featured.count} archetypes</div>
+              <div className="meta-stats" style={{ color: featuredFeasible ? '#22c55e' : '#94a3b8', fontWeight: featuredFeasible ? 600 : 'normal', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                <span>{featuredFeasible ? 'Ready (✓)' : `Needs ${featuredRemainingNeed} cards`}</span>
+                {featuredWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {featuredWildsUsed} 🃏 )</span>}
+              </div>
             </div>
-            {others.length > 0 && (
+            {othersFeasible.length > 0 && (
               <div className="expand-trigger mini">
                 {isExpanded ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
               </div>
@@ -771,15 +872,78 @@ function App() {
         </div>
         <div className="expand-wrapper">
           <div className="expanded-alternatives mini">
-            {others.map((item: any, idx: number) => (
-              <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
-                <CardImage src={item.icon} cardName={item.name} />
-                <div className="alt-info">
-                  <span className="alt-name">{item.name}</span>
-                  <span className="alt-stat">{item.count} Archetypes</span>
+            {othersFeasible.map((item: any, idx: number) => {
+              const itemFeasible = item.cardsNeeded <= availableWilds;
+              const itemWildsUsed = itemFeasible ? item.cardsNeeded : availableWilds;
+              const itemRemainingNeed = item.cardsNeeded - itemWildsUsed;
+              return (
+                <div key={item.name} className="alt-row mini" style={{ animationDelay: `${idx * 0.08}s` }}>
+                  <CardImage src={item.icon} cardName={item.name} />
+                  <div className="alt-info">
+                    <span className="alt-name">{item.name}</span>
+                    <span className="alt-stat" style={{ color: itemFeasible ? '#22c55e' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span>{itemFeasible ? 'Ready (✓)' : `Needs ${itemRemainingNeed} cards`}</span>
+                      {itemWildsUsed > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {itemWildsUsed} 🃏 )</span>}
+                    </span>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const GeneralUpgradeExpandable = ({ rarity, list, availableWilds }: { rarity: string, list: any[], availableWilds: number }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    if (list.length === 0) return null;
+    const featured = list[0];
+    const others = list.slice(1);
+
+    const featuredFeasible = featured.cardsNeeded <= availableWilds;
+    const featuredWildsUsed = featuredFeasible ? featured.cardsNeeded : Math.min(featured.cardsNeeded, availableWilds);
+    const featuredRemainingNeed = featured.cardsNeeded - featuredWildsUsed;
+
+    return (
+      <div className={`recommendation-group ${isExpanded ? 'is-expanded' : ''}`}>
+        <div className={`upgrade-rec-card ${rarity}`} onClick={() => others.length > 0 && setIsExpanded(!isExpanded)} style={{ cursor: others.length > 0 ? 'pointer' : 'default' }}>
+          <div className="rec-header">ALL {rarity.toUpperCase()} ({list.length})</div>
+          <div className="rec-body-mini">
+            <CardImage src={featured.icon} cardName={featured.name} />
+            <div className="rec-mini-info">
+              <div className="name">{featured.name}</div>
+              <div className="meta-stats" style={{ color: featured.cardsNeeded <= 0 ? '#4ade80' : (featuredFeasible ? '#22c55e' : '#94a3b8'), fontWeight: (featuredFeasible || featured.cardsNeeded <= 0) ? 600 : 'normal', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                <span>{featured.cardsNeeded <= 0 ? 'Fully Ready (✓)' : (featuredFeasible ? 'Ready with Wilds (✓)' : `Needs ${featuredRemainingNeed} cards`)}</span>
+                {featuredWildsUsed > 0 && featured.cardsNeeded > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {featuredWildsUsed} 🃏 )</span>}
               </div>
-            ))}
+            </div>
+            {others.length > 0 && (
+              <div className="expand-trigger mini">
+                {isExpanded ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="expand-wrapper" style={{ maxHeight: isExpanded ? '600px' : undefined, overflowY: isExpanded ? 'auto' : undefined }}>
+          <div className="expanded-alternatives mini">
+            {others.map((item: any, idx: number) => {
+              const itemFeasible = item.cardsNeeded <= availableWilds;
+              const itemWildsUsed = itemFeasible ? item.cardsNeeded : Math.min(item.cardsNeeded, availableWilds);
+              const itemRemainingNeed = item.cardsNeeded - itemWildsUsed;
+              return (
+                <div key={item.name} className="alt-row mini" style={{ animationDelay: `${Math.min(idx * 0.05, 0.5)}s` }}>
+                  <CardImage src={item.icon} cardName={item.name} />
+                  <div className="alt-info">
+                    <span className="alt-name">{item.name}</span>
+                    <span className="alt-stat" style={{ color: item.cardsNeeded <= 0 ? '#4ade80' : (itemFeasible ? '#22c55e' : '#94a3b8'), display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span>{item.cardsNeeded <= 0 ? 'Fully Ready (✓)' : (itemFeasible ? 'Ready with Wilds (✓)' : `Needs ${itemRemainingNeed} cards`)}</span>
+                      {itemWildsUsed > 0 && item.cardsNeeded > 0 && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>( {itemWildsUsed} 🃏 )</span>}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -832,8 +996,8 @@ function App() {
               style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                <Sparkles size={18} color="var(--primary)" /> 
-                <span>Configure Magic Items (Unlocks)</span>
+                <Sparkles size={20} />
+                <span>Magic Items 🃏</span>
               </div>
               {showMagicItems ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
             </button>
@@ -843,8 +1007,8 @@ function App() {
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Wild Evo Shards</label>
                   <input 
                     type="number" min="0" max="6" 
-                    value={magicItems.evoShards} 
-                    onChange={e => setMagicItems({...magicItems, evoShards: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
+                    value={magicItems.evoShards || ''} 
+                    onChange={e => setMagicItems({...magicItems, evoShards: e.target.value === '' ? 0 : parseInt(e.target.value)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>6 Shards = 1 Unlock</span>
@@ -853,11 +1017,37 @@ function App() {
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hero Coins</label>
                   <input 
                     type="number" min="0" 
-                    value={magicItems.heroCoins} 
-                    onChange={e => setMagicItems({...magicItems, heroCoins: e.target.value === '' ? '' : (parseInt(e.target.value) || 0)})} 
+                    value={magicItems.heroCoins || ''} 
+                    onChange={e => setMagicItems({...magicItems, heroCoins: e.target.value === '' ? 0 : parseInt(e.target.value)})} 
                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>200 Coins = 1 Unlock</span>
+                </div>
+                
+                <div style={{ width: '100%', marginTop: '0.5rem' }}>
+                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Rarity Wildcards</div>
+                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem' }}>
+                      <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Common</label>
+                        <input type="number" min="0" value={magicItems.commonWild || ''} onChange={e => setMagicItems({...magicItems, commonWild: e.target.value === '' ? 0 : parseInt(e.target.value)})} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }} />
+                      </div>
+                      <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rare</label>
+                        <input type="number" min="0" value={magicItems.rareWild || ''} onChange={e => setMagicItems({...magicItems, rareWild: e.target.value === '' ? 0 : parseInt(e.target.value)})} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }} />
+                      </div>
+                      <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Epic</label>
+                        <input type="number" min="0" value={magicItems.epicWild || ''} onChange={e => setMagicItems({...magicItems, epicWild: e.target.value === '' ? 0 : parseInt(e.target.value)})} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }} />
+                      </div>
+                      <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Legendary</label>
+                        <input type="number" min="0" value={magicItems.legendaryWild || ''} onChange={e => setMagicItems({...magicItems, legendaryWild: e.target.value === '' ? 0 : parseInt(e.target.value)})} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }} />
+                      </div>
+                      <div className="magic-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Champion</label>
+                        <input type="number" min="0" value={magicItems.championWild || ''} onChange={e => setMagicItems({...magicItems, championWild: e.target.value === '' ? 0 : parseInt(e.target.value)})} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text)' }} />
+                      </div>
+                   </div>
                 </div>
                 
                 {profile && (
@@ -975,6 +1165,15 @@ function App() {
                 })}
               </div>
 
+              {generalProgressionData && (
+                <div className="variant-insights-section" style={{ marginTop: '2rem' }}>
+                  <div className="insights-divider"><TrendingUp size={20} /><span>GENERAL ACCOUNT PROGRESSION (ALL CARDS)</span></div>
+                  <div className="upgrade-rec-grid">
+                    {generalProgressionData.map(rec => <GeneralUpgradeExpandable key={rec.rarity} rarity={rec.rarity} list={rec.list} availableWilds={rec.availableWilds} />)}
+                  </div>
+                </div>
+              )}
+
               {isMetaLoading && (
                 <div className="variant-insights-section loading">
                   <div className="insights-divider"><RefreshCw size={20} className="spin" /><span>ANALYZING META STRATEGIES...</span></div>
@@ -1027,7 +1226,7 @@ function App() {
                       <ArrowUp size={20} /><span>UPGRADE PRIORITY BY RARITY</span>
                     </div>
                     <div className="upgrade-rec-grid">
-                      {metaInsightsData.rarityRecs.map(rec => <UpgradeExpandable key={rec.rarity} rarity={rec.rarity} list={rec.list} />)}
+                      {metaInsightsData.rarityRecs.map(rec => <UpgradeExpandable key={rec.rarity} rarity={rec.rarity} list={rec.list} availableWilds={rec.availableWilds} />)}
                     </div>
 
                     <div className="stats-column" style={{ marginTop: '2rem' }}>
