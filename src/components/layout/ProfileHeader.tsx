@@ -10,8 +10,10 @@ interface ProfileHeaderProps {
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, getDisplayLevel }) => {
   const collectionLevel = useMemo(() => {
-    if (!profile) return 0;
-    if (profile.collectionLevel !== undefined) return profile.collectionLevel;
+    const apiCollectionLevel = Number(profile.collectionLevel);
+    if (Number.isFinite(apiCollectionLevel) && apiCollectionLevel > 0) {
+      return apiCollectionLevel;
+    }
     
     let totalLevels = 0;
     let bonus = 0;
