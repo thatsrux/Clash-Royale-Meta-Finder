@@ -3255,3 +3255,240 @@ button:disabled { cursor: not-allowed; opacity: .55; filter: saturate(.55); }
   .filter-grid-item img { filter: none; }
 }
 
+/* ========================================================================== */
+/* RESPONSIVE HARDENING — every dense surface remains inside its own viewport  */
+/* ========================================================================== */
+
+.profile-view,
+.deck-builder,
+.recommendations-list,
+.recommendations-list > *,
+.deck-suggestion,
+.deck-header,
+.deck-header-left,
+.deck-header-right,
+.deck-main-content,
+.deck-main-content .mini-card-grid,
+.deck-stats-group,
+.results-summary-bar,
+.deck-sorting-controls,
+.filter-animation-wrapper,
+.card-filter-grid-section,
+.filter-sections-container,
+.filter-section-group,
+.collection-header,
+.sort-controls {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The entrance animation must release its transform. Retaining an identity
+   transform makes fixed dialogs position against the full profile instead of
+   the viewport on mobile. */
+.profile-view {
+  animation-fill-mode: none;
+}
+
+.recommendations-list,
+.deck-suggestion,
+.results-summary-bar {
+  width: 100%;
+}
+
+/* Layout containment froze off-screen cards at their desktop width after a
+   viewport change. Keeping normal layout flow prevents blank/oversized decks
+   during scrolling, rotation and full-page rendering. */
+.deck-suggestion,
+.collection-item,
+.stat-row-item,
+.filter-section-group {
+  content-visibility: visible;
+  contain: none;
+  contain-intrinsic-size: none;
+}
+
+.magic-items-config {
+  padding: 0 !important;
+}
+
+.magic-items-panel {
+  width: 100%;
+  min-width: 0;
+}
+
+.deck-main-content .card-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 1200px) {
+  .deck-main-content .mini-card-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: clamp(7px, .8vw, 11px);
+    max-width: none;
+  }
+
+  .deck-main-content .mini-card {
+    width: 100%;
+    aspect-ratio: 5 / 6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .deck-main-content .deck-stats-group {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .deck-main-content .deck-stats-group .deck-stat-item {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 760px) {
+  .results-summary-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch !important;
+  }
+
+  .total-decks-badge {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .deck-sorting-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 36px;
+    width: 100%;
+    gap: 7px;
+  }
+
+  .premium-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .deck-header-left,
+  .deck-header-info,
+  .deck-meta-tags,
+  .deck-header-right,
+  .deck-actions {
+    max-width: 100%;
+  }
+
+  .deck-meta-tags {
+    row-gap: 6px;
+  }
+
+  .meta-tag.player {
+    min-width: 0;
+  }
+
+  .meta-tag.player span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .deck-main-content .mini-card-grid {
+    width: 100%;
+    max-width: none;
+    gap: clamp(5px, 2vw, 8px);
+  }
+
+  .deck-main-content .mini-card {
+    width: 100%;
+    aspect-ratio: 5 / 6;
+  }
+
+  .deck-missing-section,
+  .deck-ready-footer,
+  .missing-header {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .missing-header {
+    align-items: flex-start !important;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 500px) {
+  .profile-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 359px) {
+  .app-container {
+    padding-inline: 8px;
+  }
+
+  .main-header-centered {
+    padding-inline: 6px;
+  }
+
+  .main-header-centered h1 {
+    font-size: 1.95rem;
+  }
+
+  .tabs-premium-container {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .tab-btn {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .war-banner {
+    margin-inline: 8px !important;
+  }
+
+  .war-banner > div:first-child {
+    min-width: 0;
+    gap: 10px !important;
+  }
+
+  .war-banner h3 {
+    font-size: 1.05rem !important;
+  }
+
+  .deck-header,
+  .deck-main-content {
+    padding-inline: 10px;
+  }
+
+  .deck-stats-group {
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .deck-stats-group .deck-stat-item {
+    min-height: 64px;
+    padding-inline: 3px;
+  }
+
+  .deck-stats-group .stat-label {
+    font-size: .52rem;
+    letter-spacing: .025em;
+  }
+
+  .deck-stats-group .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .sorting-label {
+    font-size: .62rem;
+    letter-spacing: .025em;
+  }
+
+  .card-filter-grid-section {
+    padding-inline: 10px;
+  }
+}
+
