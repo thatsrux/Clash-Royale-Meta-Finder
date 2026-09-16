@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
-import { Trophy, Shield, Layers3 } from 'lucide-react';
+import { Trophy, Shield, Layers3, Sparkles, Crown } from 'lucide-react';
 import type { PlayerProfile, Card } from '../../types/clashRoyale';
-import { hasCopiesToReachMaxLevel, isEvoUnlocked, isHeroVariantUnlocked } from '../../types/clashRoyale';
+import { hasCopiesToReachMaxLevel, hasEvoAvailable, hasHeroAvailable, isEvoUnlocked, isHeroVariantUnlocked } from '../../types/clashRoyale';
 
 interface ProfileHeaderProps {
   profile: PlayerProfile;
   getDisplayLevel: (card: Card) => number;
   getRarityClass: (card: Card) => string;
+  allGameCards?: Card[];
   totalCardCount?: number;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, getDisplayLevel, getRarityClass, totalCardCount }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, getDisplayLevel, getRarityClass, allGameCards = [], totalCardCount }) => {
   const collectionLevel = useMemo(() => {
     const apiCollectionLevel = Number(profile.collectionLevel);
     if (Number.isFinite(apiCollectionLevel) && apiCollectionLevel > 0) {
@@ -49,6 +50,32 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, getDispla
     }, { maxed: 0, potentialMaxed: 0, total: Math.max(cards.length, totalCardCount || 0) });
   }, [profile.cards, getDisplayLevel, getRarityClass, totalCardCount]);
 
+  const variantProgress = useMemo(() => {
+    const ownedCards = profile.cards || [];
+    const isStandaloneVariant = (card: Card, variant: 'evo' | 'hero') => {
+      const key = (card.key || '').toLowerCase();
+      const name = (card.name || '').toLowerCase();
+
+      if (variant === 'evo') {
+        return key.endsWith('-evo') || name.includes('evolved') || name.includes('evolution');
+      }
+
+      return key.endsWith('-hero') || name.includes('hero') || (card.rarity || '').toLowerCase() === 'hero';
+    };
+
+    const unlockedEvos = ownedCards.filter(isEvoUnlocked).length;
+    const unlockedHeroes = ownedCards.filter(isHeroVariantUnlocked).length;
+    const catalogEvos = allGameCards.filter(card => hasEvoAvailable(card) && !isStandaloneVariant(card, 'evo')).length;
+    const catalogHeroes = allGameCards.filter(card => hasHeroAvailable(card) && !isStandaloneVariant(card, 'hero')).length;
+
+    return {
+      unlockedEvos,
+      totalEvos: Math.max(unlockedEvos, catalogEvos),
+      unlockedHeroes,
+      totalHeroes: Math.max(unlockedHeroes, catalogHeroes),
+    };
+  }, [allGameCards, profile.cards]);
+
   return (
     <div className="profile-header">
       <div>
@@ -84,6 +111,20 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, getDispla
             <div className="stat-tooltip-label">POTENTIAL MAXED CARDS</div>
             <div className="stat-tooltip-value">{cardProgress.potentialMaxed}/{cardProgress.total}</div>
             <div className="stat-tooltip-note">All copies ready — only gold required</div>
+          </div>
+        </div>
+        <div className="stat-badge variant-stat evo-stat">
+          <Sparkles color="#c084fc" size={24} />
+          <div className="stat-values">
+            <div className="stat-main">{variantProgress.unlockedEvos}/{variantProgress.totalEvos}</div>
+            <div className="stat-label">UNLOCKED EVO</div>
+          </div>
+        </div>
+        <div className="stat-badge variant-stat hero-stat">
+          <Crown color="#facc15" size={24} />
+          <div className="stat-values">
+            <div className="stat-main">{variantProgress.unlockedHeroes}/{variantProgress.totalHeroes}</div>
+            <div className="stat-label">UNLOCKED HEROES</div>
           </div>
         </div>
       </div>

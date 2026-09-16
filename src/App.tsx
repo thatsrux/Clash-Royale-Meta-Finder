@@ -490,7 +490,7 @@ function App() {
 
           {activeTab === 'profile' ? (
             <div className="profile-content">
-              <ProfileHeader profile={profile} getDisplayLevel={getDisplayLevel} getRarityClass={getRarityClass} totalCardCount={allGameCards.length} />
+              <ProfileHeader profile={profile} getDisplayLevel={getDisplayLevel} getRarityClass={getRarityClass} allGameCards={allGameCards} totalCardCount={allGameCards.length} />
 
               {isMetaLoading && (
                 <div className="variant-insights-section loading">
