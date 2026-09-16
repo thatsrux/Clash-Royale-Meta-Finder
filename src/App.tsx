@@ -3,7 +3,7 @@ import { Search, LayoutDashboard, UserCircle2, Sparkles, Crown, ArrowDownAZ, Arr
 import { getPlayerProfile, getAllCards } from './services/royaleApi';
 import { CardImage } from './components/CardImage';
 import type { PlayerProfile, Card, MagicItems } from './types/clashRoyale';
-import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, getCardsToNextLevel, registerCardIcons } from './types/clashRoyale';
+import { isEvoUnlocked, isHeroVariantUnlocked, isAnyHeroUnlocked, getCardIcon, getCardsToNextLevel, hasCopiesToReachMaxLevel, registerCardIcons } from './types/clashRoyale';
 import { DeckBuilder } from './components/DeckBuilder';
 import { useMetaInsights } from './hooks/useMetaInsights';
 import { ProfileHeader } from './components/layout/ProfileHeader';
@@ -490,7 +490,7 @@ function App() {
 
           {activeTab === 'profile' ? (
             <div className="profile-content">
-              <ProfileHeader profile={profile} getDisplayLevel={getDisplayLevel} />
+              <ProfileHeader profile={profile} getDisplayLevel={getDisplayLevel} getRarityClass={getRarityClass} totalCardCount={allGameCards.length} />
 
               {isMetaLoading && (
                 <div className="variant-insights-section loading">
@@ -619,10 +619,20 @@ function App() {
                   const elixir = cardMap[card.id]?.elixirCost;
 
                   const rarityClass = getRarityClass(card);
+                  const isMaxed = displayLevel >= 16;
+                  const isPotentialMaxed = !isMaxed && hasCopiesToReachMaxLevel(rarityClass, displayLevel, card.count);
                   const isRonin = card.name && card.name.toLowerCase().includes('ronin');
                   return (
                     <div key={card.id} className={`mini-card collection-item rarity-bg-${rarityClass} ${rarityClass === 'legendary' ? 'card-legendary' : ''} ${isRonin ? 'card-ronin' : ''}`}>
                       <CardImage src={icon} cardName={card.name} />
+                      {(isMaxed || isPotentialMaxed) && (
+                        <div
+                          className={`collection-max-badge ${isMaxed ? 'is-maxed' : 'is-potential'}`}
+                          title={isMaxed ? 'Card fully maxed' : 'All copies ready — only gold required'}
+                        >
+                          MAX
+                        </div>
+                      )}
                       <div className="mini-level">{displayLevel}</div>
                       {elixir !== undefined && <div className="collection-elixir">{elixir}</div>}
                       <div className="card-badges-compact">

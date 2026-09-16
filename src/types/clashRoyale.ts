@@ -246,6 +246,24 @@ export const getCardsToNextLevel = (rarity: string, displayLevel: number): numbe
   return requirementsTable[displayLevel] || 0;
 };
 
+export const hasCopiesToReachMaxLevel = (
+  rarity: string,
+  currentDisplayLevel: number,
+  currentCount: number,
+  maxDisplayLevel: number = 16
+): boolean => {
+  if (currentDisplayLevel >= maxDisplayLevel) return true;
+
+  let copiesRequired = 0;
+  for (let level = currentDisplayLevel; level < maxDisplayLevel; level += 1) {
+    const requirement = getCardsToNextLevel(rarity, level);
+    if (requirement <= 0) return false;
+    copiesRequired += requirement;
+  }
+
+  return (Number(currentCount) || 0) >= copiesRequired;
+};
+
 export const getGemsCost = (rarity: string, missingCards: number): number => {
   if (missingCards <= 0) return 0;
   switch ((rarity || 'common').toLowerCase()) {
