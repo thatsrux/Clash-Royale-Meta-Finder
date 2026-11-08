@@ -671,6 +671,10 @@ function App() {
           )}
         </div>
       )}
+      <footer style={{ marginTop: '3rem', padding: '1.5rem 1rem', borderTop: '1px solid rgba(255,255,255,0.12)', color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6, textAlign: 'center' }}>
+        This material is unofficial and is not endorsed by Supercell. For more information see{' '}
+        <a href="https://supercell.com/en/fan-content-policy/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Supercell&apos;s Fan Content Policy</a>.
+      </footer>
     </div>
     </>
   );
